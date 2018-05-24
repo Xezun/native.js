@@ -1,0 +1,158 @@
+
+table#test {
+    width: 100%;
+    border-top: 1px solid #cccccc;
+    border-left: 1px solid #cccccc;
+    padding: 0;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+table#test tr {
+    height: 30px;
+}
+
+table#test tr th {
+    border-bottom: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
+    height: 40px;
+}
+
+table#test tr td {
+    border-bottom: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
+    text-align: left;
+    box-sizing: border-box;
+    height: 35px;
+    color: #666;
+    padding: 0 10px;
+
+}
+
+table#test input[type='button'] {
+    width: 60px;
+    height: 31px;
+    border: 1px solid #cccccc;
+    background: #999999;
+    color: white;
+}
+
+table#test select {
+    border: 1px solid #cccccc;
+}
+
+body.night  {
+    background-color: #252525;
+}
+
+.night table#test {
+    border-color: #707070;
+}
+
+.night table#test tr th {
+    border-color: #707070;
+    color: #cccccc;
+}
+
+.night table#test tr td {
+    border-color: #707070;
+    color: #cccccc;
+}
+
+.night table#test input[type="button"] {
+    border-color: #707070;
+    color: #cccccc;
+}
+
+.night table#test select {
+    background-color: #999999;
+    border-color: #707070;
+    color: #cccccc;
+}
+
+
+
+
+@-webkit-keyframes square-spin {
+    25% {
+        -webkit-transform: perspective(100px) rotateX(180deg) rotateY(0);
+        transform: perspective(100px) rotateX(180deg) rotateY(0);
+    }
+    50% {
+        -webkit-transform: perspective(100px) rotateX(180deg) rotateY(180deg);
+        transform: perspective(100px) rotateX(180deg) rotateY(180deg);
+    }
+    75% {
+        -webkit-transform: perspective(100px) rotateX(0) rotateY(180deg);
+        transform: perspective(100px) rotateX(0) rotateY(180deg);
+    }
+    100% {
+        -webkit-transform: perspective(100px) rotateX(0) rotateY(0);
+        transform: perspective(100px) rotateX(0) rotateY(0);
+    }
+}
+
+@keyframes square-spin {
+    25% {
+        -webkit-transform: perspective(100px) rotateX(180deg) rotateY(0);
+        transform: perspective(100px) rotateX(180deg) rotateY(0);
+    }
+    50% {
+        -webkit-transform: perspective(100px) rotateX(180deg) rotateY(180deg);
+        transform: perspective(100px) rotateX(180deg) rotateY(180deg);
+    }
+    75% {
+        -webkit-transform: perspective(100px) rotateX(0) rotateY(180deg);
+        transform: perspective(100px) rotateX(0) rotateY(180deg);
+    }
+    100% {
+        -webkit-transform: perspective(100px) rotateX(0) rotateY(0);
+        transform: perspective(100px) rotateX(0) rotateY(0);
+    }
+}
+
+.square-spin {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.square-spin > div {
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    margin: 0 auto;
+    width: 50px;
+    height: 50px;
+    background-color: rebeccapurple;
+    -webkit-animation: square-spin 3s 0s cubic-bezier(.09, .57, .49, .9) infinite;
+    animation: square-spin 3s 0s cubic-bezier(.09, .57, .49, .9) infinite;
+}
+
+
+div#login {
+    position: absolute;
+    display: none;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+div#login .wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    bottom: 0;
+    width: 150px;
+    margin-left: -75px;
+    text-align: center;
+}
+
+div#login .text {
+    color: white;
+    height: 50px;
+    line-height: 50px;
+    font-size: 12px;
+    font-family: Arial;
+}
+
