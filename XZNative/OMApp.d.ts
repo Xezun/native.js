@@ -1,23 +1,47 @@
-// Type definitions for OMApp 3.0.1
+// Type definitions for XZApp
 //
 // 2017-08-24
 // Powered by mlibai.
 
 /**
- * 在 HTML 与 App 的交互过程中，OMApp 在 JavaScript 环境中代表的就是 App，它模拟了 App 具有的属性和方法，将
- * HTML 对 App 的交互过程转简化为对 OMApp 对象属性和方法的访问。
- *
- * 由于平台、环境的不同，App 与 HTML 的实际交互方式不一，但是 OMApp 负责对外统一接口，以保证适应各个平台：
- * - OMApp 是单纯的 JS 对象，它将 HTML 对其方法的调用转化成 "消息" 发送给 App 来实现 HTML 对 App 功能的访问；
- * - 因为 OMApp 的部分属性描述的是 App 的属性，因此 App 在状态更改时，需同步信息到 OMApp，在具体的接口中会有说明。
- * - 所有回调函数的 this 指向方法的调用者。
+ * 默认 Log 格式。
  */
+declare const XZAppLogLevelDefault: number;
+/**
+ * 警告的 LOG 。
+ */
+declare const XZAppLogLevelWarning: number;
+/**
+ * 错误 LOG 。
+ */
+declare const XZAppLogLevelError: number;
 
-declare const OMAppLogLevelDefault: number;
-declare const OMAppLogLevelWarning: number;
-declare const OMAppLogLevelError: number;
+/**
+ * iOS 平台。
+ */
+declare const XZAppPlatformIOS: string;
+/**
+ * 安卓平台。
+ */
+declare const XZAppPlatformAndroid: string;
+/**
+ * 保存当前主题的所使用的 Cookie 键名。
+ */
+declare const XZAppCurrentThemeCookieKey: string;
+/**
+ * 保存当前用户所使用的 Cookie 键名。
+ */
+declare const XZAppCurrentUserCookieKey: string;
+/**
+ * 网络状态 Wi-Fi 。
+ */
+declare const XZAppNetworkStatusWiFi: string;
+/**
+ * 缓存类型，图片。
+ */
+declare const XZAppResourceCacheTypeImage: string;
 
-declare class OMApp {
+declare class XZApp {
 
     /********************* 静态方法 *************************/
 
