@@ -1,10 +1,24 @@
 // Cookie
+
+(function () {
+    window.native.extend(function () {
+        let _cookie = new _XZCookie();
+        return {
+            cookie: {
+                get: function () {
+                    return _cookie;
+                }
+            }
+        }
+    })
+})();
+
 /**
- * 类。AppCore 管理 Cookie 的模块。AppCoreCookie 将 Cookie 缓存起来以提高读取性能。
+ * 类。AppCore 管理 Cookie 的模块。ACCookie 将 Cookie 缓存起来以提高读取性能。
  * 为了让不同页面的 Cookie 及时同步，缓存只在同一 RunLoop 中有效。
  * @constructor
  */
-function AppCoreCookie() {
+function _XZCookie() {
     // 缓存
     let _keyedCookies = null;
     

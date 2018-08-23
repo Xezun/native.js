@@ -1,31 +1,37 @@
+// XZLog
+
+const XZ_LOG_DEFAULT = 0;
+const XZ_LOG_WARNING = 1;
+const XZ_LOG_ERROR = 2;
+
 /**
  * 函数，在控制台输出。
  * @param message 输出的内容。
  * @param style 输出样式，可选。0，默认；1，警告；2，错误。
  */
-function _ACLog(message, style) {
-    if (typeof style !== "number" || style === 0) {
+export function XZLog(message, style) {
+    if (typeof style !== "number" || style === XZ_LOG_DEFAULT) {
         console.log("%c[XZApp]", "color: #357bbb; font-weight: bold;", message);
-    } else if (style === 1) {
+    } else if (style === XZ_LOG_WARNING) {
         console.log("%c[XZApp] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #f18f38; color: #ffffff");
-    } else if (style === 2) {
+    } else if (style === XZ_LOG_ERROR) {
         console.log("%c[XZApp] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #e95648; color: #ffffff");
     }
 }
 
 /**
- *
- * @param anObject
+ * 将任意对象转换为 URL 查询字符串。
+ * @param anObject 对象。
  * @return {*}
  * @private
  */
-function _ACURLQueryFromObject(anObject) {
+export function XZURLQuery(anObject) {
+    if (!anObject) {
+        return "";
+    }
     // 1. 数组直接 JSON
     if (Array.isArray(anObject)) {
         return encodeURIComponent(JSON.stringify(anObject));
-    }
-    if (!anObject) {
-        return "";
     }
     switch (typeof anObject) {
         case 'string':
