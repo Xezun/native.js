@@ -1,0 +1,224 @@
+// Native.Navigation.js
+// requires Native.js
+
+
+const NativeMethodPush = 'push';
+const NativeMethodPop = 'pop';
+const NativeMethodPopTo = 'popTo';
+const NativeMethodSetNavigationBarHidden = "setNavigationBarHidden";
+const NativeMethodSetNavigationBarTitle = "setNavigationBarTitle";
+const NativeMethodSetNavigationBarTitleColor = "setNavigationBarTitleColor";
+const NativeMethodSetNavigationBarBackgroundColor = "setNavigationBarBackgroundColor";
+
+window.native.extend(function (configuration) {
+    // 3.4 Bar
+    function XZAppNavigationBar(NavigationBarInfo) {
+        let _title           = NavigationBarInfo.title;
+        let _titleColor      = NavigationBarInfo.titleColor;
+        let _backgroundColor = NavigationBarInfo.backgroundColor;
+        let _isHidden        = NavigationBarInfo.isHidden;
+        
+        function _setTitle(newValue, needsSyncToApp) {
+            if (typeof newValue !== 'string') {
+                NLog("The navigation.bar.title must be a string value.", NativeLogStyleError);
+                return this;
+            }
+            _title = newValue;
+            if (needsSyncToApp) {
+                window.native.perform(NativeMethodSetNavigationBarTitle, [newValue]);
+            }
+            return this;
+        }
+        
+        function _setTitleColor(newValue, needsSyncToApp) {
+            if (typeof newValue !== 'string') {
+                NLog("The navigation.bar.titleColor must be a string value.", NativeLogStyleError);
+                return this;
+            }
+            _titleColor = newValue;
+            if (needsSyncToApp) {
+                window.native.perform(NativeMethodSetNavigationBarTitleColor, [newValue]);
+            }
+            return this;
+        }
+        
+        function _setHidden(newValue, animated, needsSyncToApp) {
+            if (typeof newValue !== 'boolean') {
+                NLog("The navigation.bar.isHidden must be a boolean value.", NativeLogStyleError);
+                return this;
+            }
+            _isHidden = newValue;
+            if (needsSyncToApp) {
+                window.native.perform(NativeMethodSetNavigationBarHidden, [newValue, animated]);
+            }
+            return this;
+        }
+        
+        function _hide(animated) {
+            _setHidden(true, animated, true);
+            return this;
+        }
+        
+        function _show(animated) {
+            _setHidden(false, animated, true);
+            return this;
+        }
+        
+        function _setBackgroundColor(newValue, needsSyncToApp) {
+            if (typeof newValue !== 'string') {
+                NLog("The navigation.bar.backgroundColor must be a string value.", 1);
+                return this;
+            }
+            _backgroundColor = newValue;
+            if (!needsSyncToApp) {
+                return this;
+            }
+            window.native.perform(NativeMethodSetNavigationBarBackgroundColor, [newValue]);
+            return this;
+        }
+        
+        Object.defineProperties(this, {
+            title: {
+                get: function () {
+                    return _title;
+                },
+                set: function (newValue) {
+                    _setTitle(newValue, true);
+                }
+            },
+            titleColor: {
+                get: function () {
+                    return _titleColor;
+                },
+                set: function (newValue) {
+                    _setTitleColor(newValue, true);
+                }
+            },
+            backgroundColor: {
+                get: function () {
+                    return _backgroundColor;
+                },
+                set: function (newValue) {
+                    _setBackgroundColor(newValue, true);
+                }
+            },
+            isHidden: {
+                get: function () {
+                    return _isHidden;
+                },
+                set: function (newValue) {
+                    _setHidden(newValue, false, true);
+                }
+            },
+            setTitle: {
+                get: function () {
+                    return _setTitle;
+                }
+            },
+            setTitleColor: {
+                get: function () {
+                    return _setTitleColor;
+                }
+            },
+            setBackgroundColor: {
+                get: function () {
+                    return _setBackgroundColor;
+                }
+            },
+            setHidden: {
+                get: function () {
+                    return _setHidden;
+                }
+            },
+            hide: {
+                get: function () {
+                    return _hide;
+                }
+            },
+            show: {
+                get: function () {
+                    return _show;
+                }
+            }
+        });
+    }
+    
+    function XZAppNavigation(NavigationInfo) {
+        // 3.1 进入下级页面。
+        let _push = function (url, animated) {
+            if (typeof url !== 'string') {
+                NLog("Method `push` can not be called without a url parameter.", 0);
+                return null;
+            }
+            // 判断 URL 是否是相对路径。
+            if (!/^([a-z]+):\/\//i.test(url)) {
+                if (/^(\/)/i.test(url)) { // 相对根目录的路径
+                    url = window.location.protocol + "//" + window.location.host + url;
+                } else { // 当前目录相对路径
+                    let components = window.location.href.split("/");
+                    components.pop();
+                    url = components.join("/") + "/" + url;
+                }
+            }
+            if (typeof animated !== 'boolean') {
+                animated = true;
+            }
+            return window.native.perform(NativeMethodPush, [url, animated], null);
+        };
+        
+        // 3.2 推出当前页面，使栈内页面数量 -1。
+        let _pop = function (animated) {
+            if (typeof animated !== 'boolean') {
+                animated = true;
+            }
+            return window.native.perform(NativeMethodPop, [animated], null);
+        };
+        
+        // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
+        let _popTo = function (index, animated) {
+            if (typeof index !== 'number') {
+                NLog("Method `popTo` can not be called without a index parameter.", 1);
+                return;
+            }
+            if (typeof animated !== 'boolean') {
+                animated = true;
+            }
+            return window.native.perform(NativeMethodPopTo, [index, animated]);
+        };
+        
+        let _bar = new XZAppNavigationBar(NavigationInfo.bar);
+        
+        Object.defineProperties(this, {
+            push: {
+                get: function () {
+                    return _push;
+                }
+            },
+            pop: {
+                get: function () {
+                    return _pop;
+                }
+            },
+            popTo: {
+                get: function () {
+                    return _popTo;
+                }
+            },
+            bar: {
+                get: function () {
+                    return _bar;
+                }
+            }
+        });
+    }
+    
+    let _navigation = new XZAppNavigation(configuration.navigation);
+    
+    return {
+        'navigation': {
+            get: function () {
+                return _navigation;
+            }
+        }
+    };
+});
