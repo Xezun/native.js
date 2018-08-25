@@ -1,7 +1,6 @@
 // Native.Navigation.js
 // requires Native.js
 
-
 const NativeMethodPush = 'push';
 const NativeMethodPop = 'pop';
 const NativeMethodPopTo = 'popTo';
@@ -12,7 +11,8 @@ const NativeMethodSetNavigationBarBackgroundColor = "setNavigationBarBackgroundC
 
 window.native.extend(function (configuration) {
     // 3.4 Bar
-    function XZAppNavigationBar(NavigationBarInfo) {
+    function _NavigationBar(NavigationBarInfo) {
+        
         let _title           = NavigationBarInfo.title;
         let _titleColor      = NavigationBarInfo.titleColor;
         let _backgroundColor = NavigationBarInfo.backgroundColor;
@@ -20,7 +20,7 @@ window.native.extend(function (configuration) {
         
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NLog("The navigation.bar.title must be a string value.", NativeLogStyleError);
+                NTLog("The navigation.bar.title must be a string value.", NativeLogStyleError);
                 return this;
             }
             _title = newValue;
@@ -32,7 +32,7 @@ window.native.extend(function (configuration) {
         
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NLog("The navigation.bar.titleColor must be a string value.", NativeLogStyleError);
+                NTLog("The navigation.bar.titleColor must be a string value.", NativeLogStyleError);
                 return this;
             }
             _titleColor = newValue;
@@ -44,7 +44,7 @@ window.native.extend(function (configuration) {
         
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                NLog("The navigation.bar.isHidden must be a boolean value.", NativeLogStyleError);
+                NTLog("The navigation.bar.isHidden must be a boolean value.", NativeLogStyleError);
                 return this;
             }
             _isHidden = newValue;
@@ -66,7 +66,7 @@ window.native.extend(function (configuration) {
         
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NLog("The navigation.bar.backgroundColor must be a string value.", 1);
+                NTLog("The navigation.bar.backgroundColor must be a string value.", 1);
                 return this;
             }
             _backgroundColor = newValue;
@@ -143,11 +143,11 @@ window.native.extend(function (configuration) {
         });
     }
     
-    function XZAppNavigation(NavigationInfo) {
+    function _Navigation(NavigationInfo) {
         // 3.1 进入下级页面。
         let _push = function (url, animated) {
             if (typeof url !== 'string') {
-                NLog("Method `push` can not be called without a url parameter.", 0);
+                NTLog("Method `push` can not be called without a url parameter.", 0);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -177,7 +177,7 @@ window.native.extend(function (configuration) {
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function (index, animated) {
             if (typeof index !== 'number') {
-                NLog("Method `popTo` can not be called without a index parameter.", 1);
+                NTLog("Method `popTo` can not be called without a index parameter.", 1);
                 return;
             }
             if (typeof animated !== 'boolean') {
@@ -186,7 +186,7 @@ window.native.extend(function (configuration) {
             return window.native.perform(NativeMethodPopTo, [index, animated]);
         };
         
-        let _bar = new XZAppNavigationBar(NavigationInfo.bar);
+        let _bar = new _NavigationBar(NavigationInfo.bar);
         
         Object.defineProperties(this, {
             push: {
@@ -212,7 +212,7 @@ window.native.extend(function (configuration) {
         });
     }
     
-    let _navigation = new XZAppNavigation(configuration.navigation);
+    let _navigation = new _Navigation(configuration.navigation);
     
     return {
         'navigation': {

@@ -11,8 +11,8 @@
 
     <script>
         native.register(function (method, parameters, callbackID) {
-            NLog("执行方法 "+ method);
-            native.execute(callbackID, {
+            NTLog("执行方法 "+ method);
+            native.core.execute(callbackID, {
                 currentTheme: "day",
                 currentUser: {
                     id: 123,
@@ -22,14 +22,14 @@
                 }
             });
         }, NativeTypeFunction).ready(function () {
-            NLog("Did Ready.");
-            NLog("Theme: "+ native.currentTheme);
-            NLog("User: "+ native.currentUser.name);
-            NLog(native.cookie.value("XZNative.version"));
+            NTLog("Did Ready.");
+            NTLog("Theme: "+ native.currentTheme);
+            NTLog("User: "+ native.currentUser.name);
+            NTLog(native.cookie.value("XZNative.version"));
 
             native.cookie.value("XZNative.version", "1.1.0");
 
-            NLog(native.cookie.value("XZNative.version"));
+            NTLog(native.cookie.value("XZNative.version"));
         });
     </script>
 </head>
