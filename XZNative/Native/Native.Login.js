@@ -10,7 +10,7 @@ window.native.extend(function () {
             NTLog("Method `login` called without a callback is not allowed.", NativeLogStyleError);
             return this;
         }
-        return window.native.perform(NativeMethodLogin, null, callback);
+        return this.perform(NativeMethodLogin, null, callback);
     }
     
     return {

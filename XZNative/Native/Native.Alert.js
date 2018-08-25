@@ -1,7 +1,6 @@
 // Native.Alert.js
 // requires Native.js
 
-
 const NativeMethodAlert = "alert";
 
 window.native.extend(function () {

@@ -118,6 +118,21 @@ function _Native() {
                 return _core;
             }
         },
+        perform: {
+            get: function () {
+                return _core.perform;
+            }
+        },
+        dispatch: {
+            get: function () {
+                return _core.dispatch;
+            }
+        },
+        remove: {
+            get: function () {
+                return _core.remove;
+            }
+        },
         cookie: {
             get: function () {
                 return _cookie;
@@ -144,35 +159,28 @@ function _Native() {
 
 function _NativeCore() {
     
-    let _callbackID = 10000000;
-    let _callbacks  = {};
+    let _callbackID = 10000000;      // 用于生成唯一的回调函数 ID 。
+    let _callbacks  = {};            // 按照 callbackID 保存的回调函数。
     let _dataType   = NativeTypeURL; // 交互的数据类型。
-    let _delegate   = null;
-    let _scheme     = "native";
+    let _delegate   = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
+    let _scheme     = "native";      // 使用 URL 交互时使用
     
     /**
-     * 注册一个 callback ，并返回其 ID ，如果 callback 不合法，返回 null 。
+     * 保存 callback ，并返回其唯一 ID ，如果 callback 不合法，返回 null 。
      * @param callback
      * @return {*}
      * @private
      */
-    function _dispatch(callback) {
+    function _uniqueID(callback) {
         if (!callback || (typeof callback !== 'function')) {
             return null;
         }
-        let uniqueID = "XZ" + (_callbackID++);
+        let uniqueID = "NT" + (_callbackID++);
         _callbacks[uniqueID] = callback;
         return uniqueID;
     }
-    
-    /**
-     * 执行指定 callbackID 对应的回调函数。
-     * 除第一个参数外，其他参数将作为回调函数的参数。
-     * @param callbackID 回调函数ID。
-     * @return {*} 回调函数的返回值。
-     * @private
-     */
-    function _execute(callbackID) {
+
+    function _dispatch(callbackID) {
         if (!callbackID || typeof callbackID !== "string") {
             return;
         }
@@ -231,7 +239,7 @@ function _NativeCore() {
     
     // 代理是函数。
     function _performByFunction(method, parameters, callback) {
-        let callbackID = _dispatch(callback);
+        let callbackID = _uniqueID(callback);
         window.setTimeout(function () {
             _delegate(method, parameters, callbackID);
         });
@@ -256,7 +264,7 @@ function _NativeCore() {
                 }
             }
         }
-        let callbackID = _dispatch(callback);
+        let callbackID = _uniqueID(callback);
         if (callbackID) {
             _arguments.push(callbackID);
         }
@@ -274,14 +282,14 @@ function _NativeCore() {
                 _arguments.push(parameters[i]);
             }
         }
-        let callbackID = _dispatch(callback);
+        let callbackID = _uniqueID(callback);
         if (callbackID) {
             _arguments.push(function () {
                 let parameters = [callbackID];
                 for (let i = 0; i < arguments.length; i++) {
                     parameters.push(arguments[i]);
                 }
-                _execute.apply(window, parameters);
+                _dispatch.apply(window, parameters);
             });
         }
         window.setTimeout(function () {
@@ -298,7 +306,7 @@ function _NativeCore() {
             parameters = [];
         }
         
-        let callbackID = _dispatch(callback);
+        let callbackID = _uniqueID(callback);
         
         if (callbackID) {
             parameters.push(callbackID);
@@ -322,13 +330,8 @@ function _NativeCore() {
     
     Object.defineProperties(this, {
         dispatch: {
-            get: function() {
-                return _dispatch;
-            }
-        },
-        execute: {
             get: function () {
-                return _execute;
+                return _dispatch;
             }
         },
         remove: {

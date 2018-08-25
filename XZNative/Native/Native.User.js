@@ -19,7 +19,7 @@ window.native.extend(function (configuration) {
         return this;
     }
     
-    class XZAppUser {
+    class _User {
         constructor(userID, userName, userInfo, userVersion) {
             this._id = userID;
             this._name = userName;
@@ -45,21 +45,26 @@ window.native.extend(function (configuration) {
     }
     
     // 定义用户
-    let _currentUser = new XZAppUser(configuration.currentUser.id, configuration.currentUser.name, configuration.currentUser.info, configuration.currentUser.version);
+    let _currentUser = new _User(
+        configuration.currentUser.id,
+        configuration.currentUser.name,
+        configuration.currentUser.info,
+        configuration.currentUser.version
+    );
     
     // 设置当前用户，App 行为。
     function _setCurrentUser(userInfo) {
-        _currentUser = new XZAppUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+        _currentUser = new _User(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
         _currentUserChange();
     }
     
-    (function () {
+    (function (native) {
         // 在页面隐藏时绑定显示时事件。
         // 页面显示时，从 cookie 读取信息。
         function _pageShow() {
-            let userInfo = JSON.parse(window.native.cookie.value(NativeUserCookieKey));
-            if (userInfo.id !== window.native.id || userInfo.version !== window.native.version) {
-                window.native.setCurrentUser(userInfo);
+            let userInfo = JSON.parse(native.cookie.value(NativeUserCookieKey));
+            if (userInfo.id !== native.currentUser.id || userInfo.version !== native.currentUser.version) {
+                native.setCurrentUser(userInfo);
             }
         }
         
@@ -71,7 +76,7 @@ window.native.extend(function (configuration) {
         
         // 绑定页面隐藏时的事件
         window.addEventListener('pagehide', _pageHide);
-    })();
+    })(this);
     
     
     return {

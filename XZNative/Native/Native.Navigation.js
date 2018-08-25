@@ -10,13 +10,15 @@ const NativeMethodSetNavigationBarTitleColor = "setNavigationBarTitleColor";
 const NativeMethodSetNavigationBarBackgroundColor = "setNavigationBarBackgroundColor";
 
 window.native.extend(function (configuration) {
-    // 3.4 Bar
-    function _NavigationBar(NavigationBarInfo) {
+
+    let _nativeCore = this.core;
+
+    function _NavigationBar(barInfo) {
         
-        let _title           = NavigationBarInfo.title;
-        let _titleColor      = NavigationBarInfo.titleColor;
-        let _backgroundColor = NavigationBarInfo.backgroundColor;
-        let _isHidden        = NavigationBarInfo.isHidden;
+        let _title           = barInfo.title;
+        let _titleColor      = barInfo.titleColor;
+        let _backgroundColor = barInfo.backgroundColor;
+        let _isHidden        = barInfo.isHidden;
         
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
@@ -25,7 +27,7 @@ window.native.extend(function (configuration) {
             }
             _title = newValue;
             if (needsSyncToApp) {
-                window.native.perform(NativeMethodSetNavigationBarTitle, [newValue]);
+                _nativeCore.perform(NativeMethodSetNavigationBarTitle, [newValue]);
             }
             return this;
         }
@@ -37,7 +39,7 @@ window.native.extend(function (configuration) {
             }
             _titleColor = newValue;
             if (needsSyncToApp) {
-                window.native.perform(NativeMethodSetNavigationBarTitleColor, [newValue]);
+                _nativeCore.perform(NativeMethodSetNavigationBarTitleColor, [newValue]);
             }
             return this;
         }
@@ -49,7 +51,7 @@ window.native.extend(function (configuration) {
             }
             _isHidden = newValue;
             if (needsSyncToApp) {
-                window.native.perform(NativeMethodSetNavigationBarHidden, [newValue, animated]);
+                _nativeCore.perform(NativeMethodSetNavigationBarHidden, [newValue, animated]);
             }
             return this;
         }
@@ -73,7 +75,7 @@ window.native.extend(function (configuration) {
             if (!needsSyncToApp) {
                 return this;
             }
-            window.native.perform(NativeMethodSetNavigationBarBackgroundColor, [newValue]);
+            _nativeCore.perform(NativeMethodSetNavigationBarBackgroundColor, [newValue]);
             return this;
         }
         
@@ -143,7 +145,7 @@ window.native.extend(function (configuration) {
         });
     }
     
-    function _Navigation(NavigationInfo) {
+    function _Navigation(info) {
         // 3.1 进入下级页面。
         let _push = function (url, animated) {
             if (typeof url !== 'string') {
@@ -163,7 +165,7 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return window.native.perform(NativeMethodPush, [url, animated], null);
+            return _nativeCore.perform(NativeMethodPush, [url, animated], null);
         };
         
         // 3.2 推出当前页面，使栈内页面数量 -1。
@@ -171,7 +173,7 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return window.native.perform(NativeMethodPop, [animated], null);
+            return _nativeCore.perform(NativeMethodPop, [animated], null);
         };
         
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
@@ -183,10 +185,10 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return window.native.perform(NativeMethodPopTo, [index, animated]);
+            return _nativeCore.perform(NativeMethodPopTo, [index, animated]);
         };
         
-        let _bar = new _NavigationBar(NavigationInfo.bar);
+        let _bar = new _NavigationBar(info.bar);
         
         Object.defineProperties(this, {
             push: {

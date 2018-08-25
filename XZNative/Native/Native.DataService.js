@@ -1,4 +1,5 @@
-// Native.Cache.js
+// Native.DataService.js
+// requires Native.js
 
 const NativeMethodCachedResourceForURL = "cachedResourceForURL";
 const NativeMethodNumberOfRowsInList = "numberOfRowsInList";
@@ -6,8 +7,10 @@ const NativeMethodDataForRowAtIndex = "dataForRowAtIndex";
 const NativeCachedResourceTypeImage = "image";
 
 window.native.extend(function () {
+
+    let _nativeCore = this.core;
     
-    function _DataService(native) {
+    function _DataService() {
         // 获取 list 的行数。
         // - list: string
         // - callback: (number)=>void
@@ -16,7 +19,7 @@ window.native.extend(function () {
                 NTLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
-            return native.perform(NativeMethodNumberOfRowsInList, [documentName, listName], callback);
+            return _nativeCore.perform(NativeMethodNumberOfRowsInList, [documentName, listName], callback);
         }
         
         // 加载数据
@@ -28,7 +31,7 @@ window.native.extend(function () {
                 NTLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
                 return null;
             }
-            return native.perform(NativeMethodDataForRowAtIndex, [documentName, listName, index], callback);
+            return _nativeCore.perform(NativeMethodDataForRowAtIndex, [documentName, listName, index], callback);
         }
     
         // 获取缓存。
@@ -55,7 +58,7 @@ window.native.extend(function () {
                 NTLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyleError);
                 return null;
             }
-            return native.perform(NativeMethodCachedResourceForURL, [url, cacheType], completion);
+            return _nativeCore.perform(NativeMethodCachedResourceForURL, [url, cacheType], completion);
         }
         
         Object.defineProperties(this, {
@@ -77,7 +80,7 @@ window.native.extend(function () {
         });
     }
     
-    let _dataService = new _DataService(this);
+    let _dataService = new _DataService();
     
     return {
         dataService: {

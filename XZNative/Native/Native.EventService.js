@@ -1,16 +1,18 @@
-// Native.Event.js
+// Native.EventService.js
+// requires Native.js
 
 const NativeMethodElementDidSelectRowAtIndex = "elementDidSelectRowAtIndex";
 const NativeMethodElementWasClicked = "elementWasClicked";
 const NativeMethodTrack = "track";
 
 
-
 window.native.extend(function () {
     
     // native 对象应该一直存在于内存中，拓展也应该一直存在于内存中（如果不是一直存在于内存中的拓展，可以考虑提供清理的方法。
+
+    let _nativeCore = this.core;
     
-    function _EventService(native) {
+    function _EventService() {
         
         /// 列表点击事件。
         function _elementDidSelectRowAtIndex(documentName, elementName, index, callback) {
@@ -18,7 +20,7 @@ window.native.extend(function () {
                 NTLog("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
                 return null;
             }
-            return native.perform(NativeMethodElementDidSelectRowAtIndex, [documentName, elementName, index], callback);
+            return _nativeCore.perform(NativeMethodElementDidSelectRowAtIndex, [documentName, elementName, index], callback);
         }
         
         /// 页面元素点击事件。
@@ -31,7 +33,7 @@ window.native.extend(function () {
                 callback = data;
                 data = null;
             }
-            return native.perform(NativeMethodElementWasClicked, [documentName, elementName, data], callback);
+            return _nativeCore.perform(NativeMethodElementWasClicked, [documentName, elementName, data], callback);
         }
         
         /// 事件埋点。
@@ -40,7 +42,7 @@ window.native.extend(function () {
                 NTLog("Method `track` first parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
-            return native.perform(NativeMethodTrack, [eventName, parameters]);
+            return _nativeCore.perform(NativeMethodTrack, [eventName, parameters]);
         }
         
         Object.defineProperties(this, {
@@ -62,7 +64,7 @@ window.native.extend(function () {
         });
     }
     
-    let _eventService = new _EventService(this);
+    let _eventService = new _EventService();
     
     return {
         eventService: {

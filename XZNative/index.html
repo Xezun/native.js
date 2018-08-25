@@ -8,20 +8,38 @@
     <script src="Native/Native.Theme.js"></script>
     <script src="Native/Native.Login.js"></script>
     <script src="Native/Native.User.js"></script>
+    <script src="Native/Native.Navigation.js"></script>
+    <script src="Native/Native.Networking.js"></script>
+    <script src="Native/Native.Open.js"></script>
+    <script src="Native/Native.EventService.js"></script>
+    <script src="Native/Native.DataService.js"></script>
+    <script src="Native/Native.Alert.js"></script>
 
     <script>
         native.register(function (method, parameters, callbackID) {
             NTLog("执行方法 "+ method);
-            native.core.execute(callbackID, {
+            native.dispatch(callbackID, {
                 currentTheme: "day",
                 currentUser: {
                     id: 123,
                     name: "John",
                     info: {},
                     version: 1
+                },
+                navigation: {
+                    bar: {
+                        title: "Test",
+                        titleColor: "#000",
+                        isHidden: false,
+                        backgroundColor: "#fff"
+                    }
+                },
+                networking: {
+                    status: "WiFi"
                 }
             });
-        }, NativeTypeFunction).ready(function () {
+        }, NativeTypeFunction);
+        native.ready(function () {
             NTLog("Did Ready.");
             NTLog("Theme: "+ native.currentTheme);
             NTLog("User: "+ native.currentUser.name);

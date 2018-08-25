@@ -5,11 +5,13 @@
 const NativeMethodHTTP = "http";
 const NativeNetworkStatusWiFi = "WiFi";
 
-window.native.extend(function (AppInfo) {
+window.native.extend(function (configuration) {
+
+    let _nativeCore = this.core;
     
-    function _Networking(NetworkingInfo) {
+    function _Networking(networkingInfo) {
         
-        let _status = NetworkingInfo.status;
+        let _status = networkingInfo.status;
         let _statusChangeHandlers = [];
         
         // HTTP 请求
@@ -18,7 +20,7 @@ window.native.extend(function (AppInfo) {
                 NTLog("Method `http` first parameter must be an request object.", NativeLogStyleError);
                 return null;
             }
-            return window.native.perform(NativeMethodHTTP, [request], callback);
+            return _nativeCore.perform(NativeMethodHTTP, [request], callback);
         }
         
         // 网络状态监听。
@@ -72,7 +74,7 @@ window.native.extend(function (AppInfo) {
         });
     }
     
-    let _networking = new _Networking(AppInfo.networking);
+    let _networking = new _Networking(configuration.networking);
     
     return {
         "networking": {

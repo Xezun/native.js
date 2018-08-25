@@ -7,6 +7,11 @@ interface _Native {
     cookie: _Cookie;
 
     core: _NativeCore;
+    perform(method: string, parameters: [any], callback?: () => void): string;
+    remove(callbackID: string): _Native;
+    dispatch(callbackID: string, ...args: any[]): any;
+
+
 
     register(nativeObject, nativeType): _Native;
 
@@ -25,12 +30,14 @@ interface _Native {
     currentUser: _User;
     setCurrentUser(newUser: object): void;
     currentUserChange(callback?: () => void): void;
+
+
 }
 
 interface _NativeCore {
-    execute(callbackID: string, ...args: any[]): any;
-    remove(callbackID: string): _Native;
-    perform(method: string, parameters: [any], callback: () => void): string;
+    dispatch(callbackID: string, ...args: any[]): any;
+    remove(callbackID: string): _NativeCore;
+    perform(method: string, parameters: [any], callback?: () => void): string;
 
     scheme: string;
 
