@@ -1,11 +1,11 @@
 // Native.d.ts
 
 function NTLog(message: any, style?: number): void;
-function NativeParseURLQuery(anObject: any): void;
+function NativeParseURLQuery(anObject: any): string;
 
-const native: _Native;
+const native: Native;
 
-interface _Native {
+interface Native {
 
     /**
      * 只读。方便读取 Cookie 的对象，优化了 Cookie 的读取性能。
@@ -21,16 +21,16 @@ interface _Native {
      * 所有与原生交互的操作，必须在 core.ready 之后进行。
      * 回调将在 ready 时执行，如果当前已经 ready 状态，则立即异步执行。
      * @param {() => void} callback 回调函数。
-     * @return {_Native}
+     * @return {Native}
      */
-    ready(callback: () => void): _Native;
+    ready(callback: () => void): Native;
 
     /**
      * 拓展 native 对象的方法。此方法的回调函数会在 core.ready 之后，但是在 ready(fn) 方法的回调函数之前执行。
      * @param callback 构造属性的函数。
-     * @return {_Native}
+     * @return {Native}
      */
-    extend(callback: (configuration: object) => object): _Native;
+    extend(callback: (configuration: object) => object): Native;
 
     // Theme
 
@@ -164,8 +164,8 @@ interface _NativeCore {
 
 interface _Cookie {
     value(key: string): any;
-    value(key: string, newValue: any): _Native;
-    synchronize(): _Native;
+    value(key: string, newValue: any): Native;
+    synchronize(): Native;
 }
 
 interface _User {
@@ -225,7 +225,7 @@ interface _NativeDataService {
      * @param {(sourcePath: string) => void} callback 获取缓存资源的回调，获得缓存路径
      * @return {string} 回调 ID
      */
-    cachedResourceForURL(url: string, cacheType?: _OMAppCacheType, callback?: (sourcePath: string) => void): string;
+    cachedResourceForURL(url: string, cacheType?: string, callback?: (sourcePath: string) => void): string;
 }
 
 interface _NativeEventService {
@@ -364,14 +364,14 @@ interface _NativeNavigationBar {
      *
      * @param {boolean} animated 是否展示动画效果
      */
-    hide(animated: boolean): _OMAppNavigationBar;
+    hide(animated: boolean): void;
 
     /**
      * 显示导航条。
      *
      * @param {boolean} animated 是否展示动画效果
      */
-    show(animated: boolean): _OMAppNavigationBar;
+    show(animated: boolean): void;
 
     /**
      * 仅供 App 同步导航条显示状态时使用。
@@ -379,7 +379,7 @@ interface _NativeNavigationBar {
      *
      * @param {boolean} isHidden 是否隐藏
      */
-    setHidden(isHidden: boolean): _OMAppNavigationBar;
+    setHidden(isHidden: boolean): void;
 
     /**
      * 仅供 App 同步导航条标题时使用。
@@ -387,7 +387,7 @@ interface _NativeNavigationBar {
      *
      * @param {string} title
      */
-    setTitle(title: string): _OMAppNavigationBar;
+    setTitle(title: string): void;
 
     /**
      * 仅供 App 同步导航条标题文字颜色时使用。
@@ -395,7 +395,7 @@ interface _NativeNavigationBar {
      *
      * @param {string} titleColor
      */
-    setTitleColor(titleColor: string): _OMAppNavigationBar;
+    setTitleColor(titleColor: string): void;
 
     /**
      * 仅供 App 同步导航条背景色时使用。
@@ -403,5 +403,5 @@ interface _NativeNavigationBar {
      *
      * @param {string} backgroundColor
      */
-    setBackgroundColor(backgroundColor: string): _OMAppNavigationBar;
+    setBackgroundColor(backgroundColor: string): void;
 }

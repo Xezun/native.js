@@ -16,6 +16,13 @@
     <script src="Native/Native.Alert.js"></script>
 
     <script>
+
+        NTLog("Version: " + Native.Version)
+
+        native.ready(function () {
+            NTLog(native.cookie.value("XZNative.version"));
+        });
+
         native.core.register(function (method, parameters, callbackID) {
             NTLog("执行方法 "+ method);
             switch (method) {
@@ -48,16 +55,6 @@
         }, NativeTypeFunction);
 
 
-        native.ready(function () {
-            NTLog("Did Ready.");
-            NTLog("Theme: "+ native.currentTheme);
-            NTLog("User: "+ native.currentUser.name);
-            NTLog(native.cookie.value("XZNative.version"));
-
-            native.cookie.value("XZNative.version", "1.1.0");
-
-            NTLog(native.cookie.value("XZNative.version"));
-        });
     </script>
 </head>
 <body>

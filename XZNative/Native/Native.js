@@ -24,6 +24,18 @@ const NativeMethodReady = "ready";
         }
     });
     
+    Object.defineProperty(window, "Native", {
+        get: function () {
+            return _Native;
+        }
+    });
+    
+    Object.defineProperty(Native, "version", {
+        get: function () {
+            return "1.0.0";
+        }
+    })
+    
 })();
 
 
