@@ -29,54 +29,25 @@ const NativeMethodReady = "ready";
 
 function _Native() {
     
-    let _core    = new _NativeCore(this);
-    let _cookie  = new _Cookie();
-    
-    let _isReady = false;
-    let _readyID = null;
-    
-    let _extensions = [];
-    let _readies = [];
-    
+    let _cookie        = new _Cookie();
     let _configuration = null;
+    let _extensions    = [];
+    let _readies       = [];
     
-    /**
-     * 注册 App 对象，以及 App 对象可接收的数据类型。
-     * @param delegate App 对象。
-     * @param dataType App 对象可接收的数据类型。
-     * @private
-     */
-    function _register(delegate, dataType) {
-        _core.delegate = delegate;
-        _core.dataType = dataType;
-        // 如果已经初始化，则不再初始化，仅仅是改变代理。
-        if (_isReady) {
-            return this;
+    let native = this;
+    
+    let _core = new _NativeCore(function (configuration) {
+        _configuration = configuration;
+        // 加载拓展，callback 中 this 指向 native 对象。。
+        while (_extensions.length > 0) {
+            let callback = _extensions.shift();
+            Object.defineProperties(native, callback.apply(native, [_configuration]));
         }
-        // 删除已经发起的 ready 事件。
-        if (!!_readyID) {
-            _core.remove(_readyID);
+        // 执行 ready，callback 中 this 指向 window 对象。。
+        while (_readies.length > 0) {
+            (_readies.shift()).apply(window);
         }
-        // 当前对象。
-        let native = this;
-        // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
-        $(document).ready(function () {
-            _readyID = _core.perform(NativeMethodReady, dataType, function (configuration) {
-                _isReady = true;
-                _configuration = configuration;
-                // 加载拓展。
-                while (_extensions.length > 0) {
-                    let callback = _extensions.shift();
-                    Object.defineProperties(native, callback.apply(native, [_configuration]));
-                }
-                // 执行 ready 。
-                while (_readies.length > 0) {
-                    (_readies.shift()).apply(window);
-                }
-            });
-        });
-        return this;
-    }
+    });
     
     /**
      * 绑定 ready 之后执行的操作。
@@ -86,7 +57,7 @@ function _Native() {
      */
     function _ready(callback) {
         // 如果 App 已经初始化，则异步执行 callback。
-        if (_isReady) {
+        if (_core.isReady) {
             window.setTimeout(callback);
             return this;
         }
@@ -104,7 +75,7 @@ function _Native() {
         if (typeof callback !== 'function') {
             return this;
         }
-        if (_isReady) {
+        if (_core.isReady) {
             Object.defineProperties(this, callback.apply(this, [_configuration]));
         } else {
             _extensions.push(callback);
@@ -118,29 +89,9 @@ function _Native() {
                 return _core;
             }
         },
-        perform: {
-            get: function () {
-                return _core.perform;
-            }
-        },
-        dispatch: {
-            get: function () {
-                return _core.dispatch;
-            }
-        },
-        remove: {
-            get: function () {
-                return _core.remove;
-            }
-        },
         cookie: {
             get: function () {
                 return _cookie;
-            }
-        },
-        register: {
-            get: function () {
-                return _register;
             }
         },
         ready: {
@@ -157,7 +108,7 @@ function _Native() {
     
 }
 
-function _NativeCore() {
+function _NativeCore(readyCompletion) {
     
     let _callbackID = 10000000;      // 用于生成唯一的回调函数 ID 。
     let _callbacks  = {};            // 按照 callbackID 保存的回调函数。
@@ -179,7 +130,13 @@ function _NativeCore() {
         _callbacks[uniqueID] = callback;
         return uniqueID;
     }
-
+    
+    /**
+     * 通过标识符调度指定回调函数。
+     * @param callbackID
+     * @return {*}
+     * @private
+     */
     function _dispatch(callbackID) {
         if (!callbackID || typeof callbackID !== "string") {
             return;
@@ -219,7 +176,7 @@ function _NativeCore() {
      * 调用 App 方法。
      * @param method App 方法。
      * @param parameters 方法参数。
-     * @param callback 回调函数
+     * @param callback 回调函数，回调函数将被临时保存起来。
      * @private
      */
     function _perform(method, parameters, callback) {
@@ -236,8 +193,7 @@ function _NativeCore() {
                 return NTLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
         }
     }
-    
-    // 代理是函数。
+
     function _performByFunction(method, parameters, callback) {
         let callbackID = _uniqueID(callback);
         window.setTimeout(function () {
@@ -246,7 +202,6 @@ function _NativeCore() {
         return callbackID;
     }
     
-    // 安卓对象可以接收基本数据类型。
     function _performByJSON(method, parameters, callback) {
         let _arguments = [];
         if (Array.isArray(parameters) && parameters.length > 0) {
@@ -274,7 +229,6 @@ function _NativeCore() {
         return callbackID;
     }
     
-    // 能接收任意数据类型的对象。
     function _performByObject(method, parameters, callback) {
         let _arguments = [];
         if (Array.isArray(parameters)) {
@@ -298,7 +252,6 @@ function _NativeCore() {
         return callbackID;
     }
     
-    // 没有代理，使用 URL 。
     function _performByURL(method, parameters, callback) {
         let url = _scheme + "://" + method;
         
@@ -328,6 +281,51 @@ function _NativeCore() {
         return callbackID;
     }
     
+    let _isReady = false;
+    let _readyID = null;
+    
+    /**
+     * 注册 App 对象，以及 App 对象可接收的数据类型。
+     * @param delegate App 对象。
+     * @param dataType App 对象可接收的数据类型。
+     * @private
+     */
+    function _register(delegate, dataType) {
+        _delegate = delegate;
+        _dataType = dataType;
+        // 如果已经初始化，则不再初始化，仅仅是改变代理。
+        if (_isReady) {
+            return this;
+        }
+        // 删除已经发起的 ready 事件。
+        if (!!_readyID) {
+            _remove(_readyID);
+        }
+        // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
+        function _documentIsReady() {
+            _readyID = _perform(NativeMethodReady, dataType, function (configuration) {
+                _isReady = true;
+                readyCompletion(configuration);
+            });
+        }
+        
+        // documentReady 判断不支持 IE 。
+        if (document.readyState === 'complete') {
+            window.setTimeout(function () {
+                _documentIsReady();
+            });
+        } else {
+            document.addEventListener("DOMContentLoaded", function _eventListener() {
+                document.removeEventListener("DOMContentLoaded", _eventListener);
+                window.setTimeout(function () {
+                    _documentIsReady();
+                });
+            }, false);
+        }
+        
+        return this;
+    }
+    
     Object.defineProperties(this, {
         dispatch: {
             get: function () {
@@ -350,6 +348,16 @@ function _NativeCore() {
             },
             set: function (newValue) {
                 _scheme = newValue;
+            }
+        },
+        isReady: {
+            get: function () {
+                return _isReady;
+            }
+        },
+        register: {
+            get: function () {
+                return _register;
             }
         },
         delegate: {

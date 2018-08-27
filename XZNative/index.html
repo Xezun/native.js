@@ -16,29 +16,38 @@
     <script src="Native/Native.Alert.js"></script>
 
     <script>
-        native.register(function (method, parameters, callbackID) {
+        native.core.register(function (method, parameters, callbackID) {
             NTLog("执行方法 "+ method);
-            native.dispatch(callbackID, {
-                currentTheme: "day",
-                currentUser: {
-                    id: 123,
-                    name: "John",
-                    info: {},
-                    version: 1
-                },
-                navigation: {
-                    bar: {
-                        title: "Test",
-                        titleColor: "#000",
-                        isHidden: false,
-                        backgroundColor: "#fff"
-                    }
-                },
-                networking: {
-                    status: "WiFi"
-                }
-            });
+            switch (method) {
+                case NativeMethodReady:
+                    native.core.dispatch(callbackID, {
+                        currentTheme: "default",
+                        currentUser: {
+                            id: 123,
+                            name: "John",
+                            info: {},
+                            version: 1
+                        },
+                        navigation: {
+                            bar: {
+                                title: "Test",
+                                titleColor: "#000",
+                                isHidden: false,
+                                backgroundColor: "#fff"
+                            }
+                        },
+                        networking: {
+                            status: "WiFi"
+                        }
+                    });
+                    break;
+                default:
+                    NTLog("Method: " + method);
+                    break;
+            }
         }, NativeTypeFunction);
+
+
         native.ready(function () {
             NTLog("Did Ready.");
             NTLog("Theme: "+ native.currentTheme);
