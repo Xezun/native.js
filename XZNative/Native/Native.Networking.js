@@ -17,7 +17,7 @@ window.native.extend(function (configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                NTLog("Method `http` first parameter must be an request object.", NativeLogStyleError);
+                NativeLog("Method `http` first parameter must be an request object.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodHTTP, [request], callback);

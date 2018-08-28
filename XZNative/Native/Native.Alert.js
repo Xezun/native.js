@@ -7,10 +7,10 @@ window.native.extend(function () {
     
     function _alert(message, callback) {
         if (!message || typeof message !== 'object') {
-            NTLog("Method `alert` first parameter must be an message object.", NativeLogStyleError);
+            NativeLog("Method `alert` first parameter must be an message object.", NativeLogStyleError);
             return null;
         }
-        return this.perform(NativeMethodAlert, [message], callback);
+        return this.core.perform(NativeMethodAlert, [message], callback);
     }
     
     return {

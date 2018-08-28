@@ -9,7 +9,7 @@ window.native.extend(function () {
     
     function _open(page, parameters) {
         if (typeof page !== 'string') {
-            NTLog("Method `open`'s page parameter must be a string value.", NativeLogStyleError);
+            NativeLog("Method `open`'s page parameter must be a string value.", NativeLogStyleError);
             return null;
         }
         let _arguments = [page];
@@ -33,7 +33,7 @@ window.native.extend(function () {
     
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            NTLog("Method `present` first parameter must be a string value.", NativeLogStyleError);
+            NativeLog("Method `present` first parameter must be a string value.", NativeLogStyleError);
             return null;
         }
         let animated = arg1;

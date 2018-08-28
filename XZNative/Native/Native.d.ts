@@ -1,11 +1,11 @@
 // Native.d.ts
 
-function NTLog(message: any, style?: number): void;
-function NativeParseURLQuery(anObject: any): string;
+declare function NativeLog(message: any, style?: number): void;
+declare function NativeParseURLQuery(anObject: any): string;
 
-const native: Native;
+declare const native: _Native;
 
-interface Native {
+interface _Native {
 
     /**
      * 只读。方便读取 Cookie 的对象，优化了 Cookie 的读取性能。
@@ -21,16 +21,14 @@ interface Native {
      * 所有与原生交互的操作，必须在 core.ready 之后进行。
      * 回调将在 ready 时执行，如果当前已经 ready 状态，则立即异步执行。
      * @param {() => void} callback 回调函数。
-     * @return {Native}
      */
-    ready(callback: () => void): Native;
+    ready(callback: () => void): void;
 
     /**
      * 拓展 native 对象的方法。此方法的回调函数会在 core.ready 之后，但是在 ready(fn) 方法的回调函数之前执行。
      * @param callback 构造属性的函数。
-     * @return {Native}
      */
-    extend(callback: (configuration: object) => object): Native;
+    extend(callback: (configuration: object) => object): void;
 
     // Theme
 
@@ -164,8 +162,8 @@ interface _NativeCore {
 
 interface _Cookie {
     value(key: string): any;
-    value(key: string, newValue: any): Native;
-    synchronize(): Native;
+    value(key: string, newValue: any): void;
+    synchronize(): void;
 }
 
 interface _User {

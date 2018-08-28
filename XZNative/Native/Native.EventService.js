@@ -17,7 +17,7 @@ window.native.extend(function () {
         /// 列表点击事件。
         function _elementDidSelectRowAtIndex(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'number') {
-                NTLog("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
+                NativeLog("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodElementDidSelectRowAtIndex, [documentName, elementName, index], callback);
@@ -26,7 +26,7 @@ window.native.extend(function () {
         /// 页面元素点击事件。
         function _elementWasClicked(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
-                NTLog("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyleError);
+                NativeLog("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
             if (typeof data === 'function') {
@@ -39,7 +39,7 @@ window.native.extend(function () {
         /// 事件埋点。
         function _track(eventName, parameters) {
             if (typeof eventName !== 'string') {
-                NTLog("Method `track` first parameter must be a string value.", NativeLogStyleError);
+                NativeLog("Method `track` first parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodTrack, [eventName, parameters]);

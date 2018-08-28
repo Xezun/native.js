@@ -202,7 +202,7 @@ function _NativeCore(readyCompletion) {
             case NativeTypeFunction:
                 return _performByFunction(method, parameters, callback);
             default:
-                return NTLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
+                return NativeLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
         }
     }
 
@@ -501,7 +501,7 @@ function _Cookie() {
  * @param message 输出的内容。
  * @param style 输出样式，可选。0，默认；1，警告；2，错误。
  */
-function NTLog(message, style) {
+function NativeLog(message, style) {
     if (typeof style !== "number" || style === NativeLogStyleDefault) {
         console.log("%c[Native]", "color: #357bbb; font-weight: bold;", message);
     } else if (style === NativeLogStyleWarning) {

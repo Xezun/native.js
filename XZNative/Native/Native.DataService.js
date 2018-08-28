@@ -16,7 +16,7 @@ window.native.extend(function () {
         // - callback: (number)=>void
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                NTLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyleError);
+                NativeLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodNumberOfRowsInList, [documentName, listName], callback);
@@ -28,7 +28,7 @@ window.native.extend(function () {
         // - callback: (data)=>void
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                NTLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
+                NativeLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodDataForRowAtIndex, [documentName, listName, index], callback);
@@ -38,7 +38,7 @@ window.native.extend(function () {
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                NTLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyleError);
+                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyleError);
                 return null;
             }
             // 检查 cacheType
@@ -55,7 +55,7 @@ window.native.extend(function () {
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                NTLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyleError);
+                NativeLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyleError);
                 return null;
             }
             return _nativeCore.perform(NativeMethodCachedResourceForURL, [url, cacheType], completion);

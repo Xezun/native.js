@@ -17,47 +17,71 @@
 
     <script>
 
-        NTLog("Version: " + Native.Version)
+        NativeLog("Version: " + Native.version);
 
         native.ready(function () {
-            NTLog(native.cookie.value("XZNative.version"));
+
+            $("#alert").click(function () {
+                native.alert({
+                    title: "This is an alert!",
+                    body: "This is alert body!",
+                    actions: ["OK", "Cancel"]
+                }, function (index) {
+                    NativeLog("alert: " + index);
+                });
+            });
         });
 
-        native.core.register(function (method, parameters, callbackID) {
-            NTLog("执行方法 "+ method);
-            switch (method) {
-                case NativeMethodReady:
-                    native.core.dispatch(callbackID, {
-                        currentTheme: "default",
-                        currentUser: {
-                            id: 123,
-                            name: "John",
-                            info: {},
-                            version: 1
-                        },
-                        navigation: {
-                            bar: {
-                                title: "Test",
-                                titleColor: "#000",
-                                isHidden: false,
-                                backgroundColor: "#fff"
-                            }
-                        },
-                        networking: {
-                            status: "WiFi"
-                        }
-                    });
-                    break;
-                default:
-                    NTLog("Method: " + method);
-                    break;
-            }
-        }, NativeTypeFunction);
+
+
 
 
     </script>
 </head>
 <body>
 
+<input type="button" value="Alert" id="alert">
+
 </body>
 </html>
+<script>
+    native.core.register(function (method, parameters, callbackID) {
+        NativeLog("执行方法 "+ method);
+        switch (method) {
+            case NativeMethodReady:
+                native.core.dispatch(callbackID, {
+                    currentTheme: "default",
+                    currentUser: {
+                        id: 123,
+                        name: "John",
+                        info: {},
+                        version: 1
+                    },
+                    navigation: {
+                        bar: {
+                            title: "Test",
+                            titleColor: "#000",
+                            isHidden: false,
+                            backgroundColor: "#fff"
+                        }
+                    },
+                    networking: {
+                        status: "WiFi"
+                    }
+                });
+                break;
+
+            case NativeMethodAlert:
+                if (confirm(JSON.stringify(parameters))) {
+                    native.core.dispatch(callbackID, 0);
+                } else {
+                    native.core.dispatch(callbackID, 1);
+                }
+                break;
+
+            default:
+                NativeLog("Method: " + method);
+                break;
+        }
+    }, NativeTypeFunction);
+</script>
