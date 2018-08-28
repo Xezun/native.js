@@ -16,7 +16,7 @@ window.native.extend(function () {
         if (parameters) {
             _arguments.push(parameters);
         }
-        return this.perform(NativeMethodOpen, _arguments);
+        return this.core.perform(NativeMethodOpen, _arguments);
     }
     
     return {
@@ -45,7 +45,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.perform(NativeMethodPresent, [url, animated], completion);
+        return this.core.perform(NativeMethodPresent, [url, animated], completion);
     }
     
     function _dismiss(arg1, arg2) {
@@ -58,7 +58,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.perform(NativeMethodDismiss, [animated], completion);
+        return this.core.perform(NativeMethodDismiss, [animated], completion);
     }
     
     return {

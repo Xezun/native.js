@@ -17,7 +17,7 @@ window.native.extend(function (configuration) {
         this.cookie.value(NativeCurrentThemeCookieKey, newValue);
         // 同步到 App 说明更改主题是由 JS 触发的，则不发送事件；否则就发送事件。
         if (needsSyncToApp || typeof needsSyncToApp === "undefined") {
-            this.perform(NativeMethodSetCurrentTheme, [newValue, animated], null);
+            this.core.perform(NativeMethodSetCurrentTheme, [newValue, animated], null);
         } else {
             _currentThemeChange();
         }

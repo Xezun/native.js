@@ -403,3 +403,24 @@ interface _NativeNavigationBar {
      */
     setBackgroundColor(backgroundColor: string): void;
 }
+
+interface _NativeConfiguration {
+    currentTheme: string,
+    currentUser: {
+        id: string,
+        name: string,
+        info: object,
+        version: string
+    },
+    navigation: {
+        bar: {
+            title: string,
+            titleColor: string,
+            isHidden: boolean,
+            backgroundColor: string
+        }
+    },
+    networking: {
+        status: string
+    }
+}
