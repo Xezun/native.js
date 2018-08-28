@@ -218,12 +218,12 @@ interface _NativeDataService {
 
     /**
      * 通过此接口让 App 缓存指定 URL 资源。
-     * @param {string} url 资源的 URL
+     * @param {string} remoteULR 资源的 URL
      * @param {string} cacheType 资源的类型
-     * @param {(sourcePath: string) => void} callback 获取缓存资源的回调，获得缓存路径
+     * @param {(cacheURL: string) => void} callback 获取缓存资源的回调，获得缓存路径
      * @return {string} 回调 ID
      */
-    cachedResourceForURL(url: string, cacheType?: string, callback?: (sourcePath: string) => void): string;
+    cachedResourceForURL(remoteULR: string, cacheType?: string, callback?: (cacheURL: string) => void): string;
 }
 
 interface _NativeEventService {
@@ -246,7 +246,7 @@ interface _NativeEventService {
      * @param {(isSelected: boolean) => void} callback 回调，表示元素是否可以被选中。
      * @return {string} 回调 ID
      */
-    elementWasClicked(documentName: string, elementName: string, data?: any, callback?: (isSelected: boolean) => void): string;
+    wasClickedOnElement(documentName: string, elementName: string, data?: any, callback?: (isSelected: boolean) => void): string;
     /**
      * 统计跟踪一条用户行为。
      *

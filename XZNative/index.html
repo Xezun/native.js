@@ -17,7 +17,7 @@
 
     <script>
 
-        NativeLog("Version: " + Native.version);
+        NativeLog("Native Version: " + Native.version);
 
         native.ready(function () {
 
@@ -30,6 +30,20 @@
                     NativeLog("alert: " + index);
                 });
             });
+
+            native.dataService.numberOfRowsInList("main", "test", function (number) {
+                for (let i = 0; i < number; i++) {
+                    native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+                        $("#dataService").append("<tr><td>" + data + "</td></tr>")
+                    })
+                }
+            });
+            
+            native.dataService.cachedResourceForURL("http://abc.com/xyz.jpg", NativeCachedResourceTypeImage, function (url) {
+                
+            });
+
+
         });
 
 
@@ -42,9 +56,16 @@
 
 <input type="button" value="Alert" id="alert">
 
+<table id="dataService" width="100%" border="1">
+
+</table>
+
 </body>
 </html>
+
+
 <script>
+    // 模拟 App 行为
     native.core.register(function (method, parameters, callbackID) {
         NativeLog("执行方法 "+ method);
         switch (method) {
@@ -79,6 +100,13 @@
                 }
                 break;
 
+            case NativeMethodNumberOfRowsInList:
+                native.core.dispatch(callbackID, 10);
+                break;
+
+            case NativeMethodDataForRowAtIndex:
+                native.core.dispatch(callbackID, "Row " + parameters[2]);
+                break;
             default:
                 NativeLog("Method: " + method);
                 break;

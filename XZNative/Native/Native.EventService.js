@@ -1,8 +1,8 @@
 // Native.EventService.js
 // requires Native.js
 
-const NativeMethodElementDidSelectRowAtIndex = "elementDidSelectRowAtIndex";
-const NativeMethodElementWasClicked = "elementWasClicked";
+const NativeMethodDidSelectRowAtIndex = "didSelectRowAtIndex";
+const NativeMethodWasClickedOnElement = "wasClickedOnElement";
 const NativeMethodTrack = "track";
 
 
@@ -15,16 +15,16 @@ window.native.extend(function () {
     function _EventService() {
         
         /// 列表点击事件。
-        function _elementDidSelectRowAtIndex(documentName, elementName, index, callback) {
+        function _didSelectRowAtIndex(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'number') {
                 NativeLog("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodElementDidSelectRowAtIndex, [documentName, elementName, index], callback);
+            return _nativeCore.perform(NativeMethodDidSelectRowAtIndex, [documentName, elementName, index], callback);
         }
         
         /// 页面元素点击事件。
-        function _elementWasClicked(documentName, elementName, data, callback) {
+        function _wasClickedOnElement(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
                 NativeLog("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyleError);
                 return null;
@@ -33,7 +33,7 @@ window.native.extend(function () {
                 callback = data;
                 data = null;
             }
-            return _nativeCore.perform(NativeMethodElementWasClicked, [documentName, elementName, data], callback);
+            return _nativeCore.perform(NativeMethodWasClickedOnElement, [documentName, elementName, data], callback);
         }
         
         /// 事件埋点。
@@ -46,14 +46,14 @@ window.native.extend(function () {
         }
         
         Object.defineProperties(this, {
-            elementDidSelectRowAtIndex: {
+            didSelectRowAtIndex: {
                 get: function () {
-                    return _elementDidSelectRowAtIndex;
+                    return _didSelectRowAtIndex;
                 }
             },
-            elementWasClicked: {
+            wasClickedOnElement: {
                 get: function () {
-                    return _elementWasClicked;
+                    return _wasClickedOnElement;
                 }
             },
             track: {

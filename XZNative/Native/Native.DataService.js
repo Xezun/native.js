@@ -2,9 +2,9 @@
 // requires Native.js
 
 const NativeMethodCachedResourceForURL = "cachedResourceForURL";
-const NativeMethodNumberOfRowsInList = "numberOfRowsInList";
-const NativeMethodDataForRowAtIndex = "dataForRowAtIndex";
-const NativeCachedResourceTypeImage = "image";
+const NativeMethodNumberOfRowsInList   = "numberOfRowsInList";
+const NativeMethodDataForRowAtIndex    = "dataForRowAtIndex";
+const NativeCachedResourceTypeImage    = "image";
 
 window.native.extend(function () {
 
