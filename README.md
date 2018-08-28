@@ -1,4 +1,4 @@
-# Onemena App／HTML 交互协议
+# Native App／HTML 交互框架
 
 ## 目录
 
