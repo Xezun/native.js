@@ -39,9 +39,13 @@
                 }
             });
             
-            native.dataService.cachedResourceForURL("http://abc.com/xyz.jpg", NativeCachedResourceTypeImage, function (url) {
-                
+            $("#cachedResourceForURL").click(function () {
+                native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+                    $("#cachedResourceForURLImage").attr("src", url);
+                });
             });
+            
+
 
 
         });
@@ -54,12 +58,13 @@
 </head>
 <body>
 
-<input type="button" value="Alert" id="alert">
+    <input type="button" value="Alert" id="alert">
 
-<table id="dataService" width="100%" border="1">
+    <table id="dataService" width="100%" border="1">
 
-</table>
-
+    </table>
+    <input type="button" value="Image" id="cachedResourceForURL" />
+    <img src="" alt="" id="cachedResourceForURLImage" />
 </body>
 </html>
 
@@ -107,6 +112,11 @@
             case NativeMethodDataForRowAtIndex:
                 native.core.dispatch(callbackID, "Row " + parameters[2]);
                 break;
+
+            case NativeMethodCachedResourceForURL:
+                native.core.dispatch(callbackID, parameters[0]);
+                break;
+
             default:
                 NativeLog("Method: " + method);
                 break;
