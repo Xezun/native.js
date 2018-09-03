@@ -157,11 +157,8 @@ function _NativeCore(readyCompletion) {
             return;
         }
         let callback = _callbacks[callbackID];
-        delete _callbacks[callbackID];
-        if (!callback) {
-            return;
-        }
-        if (typeof callback !== 'function') {
+        // delete _callbacks[callbackID];
+        if (!callback || typeof callback !== 'function') {
             return;
         }
         let parameters = [];
@@ -187,101 +184,66 @@ function _NativeCore(readyCompletion) {
     /**
      * 调用 App 方法。
      * @param method App 方法。
-     * @param parameters 方法参数。
-     * @param callback 回调函数，回调函数将被临时保存起来。
-     * @private
      */
-    function _perform(method, parameters, callback) {
+    function _perform(method) {
         switch (_dataType) {
             case NativeTypeURL:
-                return _performByURL(method, parameters, callback);
+                return _performByURL.apply(this, arguments);
             case NativeTypeJSON:
-                return _performByJSON(method, parameters, callback);
+                return _performByJSON.apply(this, arguments);
             case NativeTypeObject:
-                return _performByObject(method, parameters, callback);
+                return _performByObject.apply(this, arguments);
             case NativeTypeFunction:
-                return _performByFunction(method, parameters, callback);
+                return window.setTimeout(function () { _delegate.apply(window, arguments); });
             default:
                 return NativeLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
         }
     }
-
-    function _performByFunction(method, parameters, callback) {
-        let callbackID = _uniqueID(callback);
-        window.setTimeout(function () {
-            _delegate(method, parameters, callbackID);
-        });
-        return callbackID;
-    }
     
-    function _performByJSON(method, parameters, callback) {
-        let _arguments = [];
-        if (Array.isArray(parameters) && parameters.length > 0) {
-            for (let i = 0; i < parameters.length; i += 1) {
-                let value = parameters[i];
-                switch (typeof value) {
-                    case 'number':
-                    case 'string':
-                    case 'boolean':
-                        _arguments.push(value);
-                        break;
-                    default:
-                        _arguments.push(JSON.stringify(value));
-                        break;
-                }
+    function _performByJSON(method) {
+        let parameters = [];
+        for (let i = 1; i < arguments.length; i += 1) {
+            let argument = arguments[i];
+            switch (typeof argument) {
+                case 'number':
+                case 'string':
+                case 'boolean':
+                    parameters.push(argument);
+                    break;
+                case 'function':
+                    parameters.push(_uniqueID(argument));
+                    break;
+                default:
+                    parameters.push(JSON.stringify(argument));
+                    break;
             }
         }
-        let callbackID = _uniqueID(callback);
-        if (callbackID) {
-            _arguments.push(callbackID);
-        }
         window.setTimeout(function () {
-            _delegate[method].apply(window, _arguments);
+            _delegate[method].apply(window, parameters);
         });
-        return callbackID;
     }
     
-    function _performByObject(method, parameters, callback) {
-        let _arguments = [];
-        if (Array.isArray(parameters)) {
-            for (let i = 0; i < parameters.length; i++) {
-                _arguments.push(parameters[i]);
+    function _performByObject(method) {
+        let parameters = [];
+        for (let i = 1; i < arguments.length; i += 1) {
+            parameters.push(arguments[i]);
+        }
+        window.setTimeout(function () {
+            _delegate[method].apply(window, parameters);
+        });
+    }
+    
+    function _performByURL(method) {
+        let parameters = [];
+        for (let i = 1; i < arguments.length; i += 1) {
+            let argument = arguments[i];
+            if (typeof argument === 'function') {
+                parameters.push(_uniqueID(argument));
+            } else {
+                parameters.push(argument);
             }
         }
-        let callbackID = _uniqueID(callback);
-        if (callbackID) {
-            _arguments.push(function () {
-                let parameters = [callbackID];
-                for (let i = 0; i < arguments.length; i++) {
-                    parameters.push(arguments[i]);
-                }
-                _dispatch.apply(window, parameters);
-            });
-        }
-        window.setTimeout(function () {
-            _delegate[method].apply(window, _arguments);
-        });
-        return callbackID;
-    }
-    
-    function _performByURL(method, parameters, callback) {
-        let url = _scheme + "://" + method;
-        
-        if (!Array.isArray(parameters)) {
-            parameters = [];
-        }
-        
-        let callbackID = _uniqueID(callback);
-        
-        if (callbackID) {
-            parameters.push(callbackID);
-        }
-        
-        let queryString = NativeParseURLQuery(parameters);
-        if (queryString) {
-            url += ("?arguments=" + queryString);
-        }
-        
+        let url = _scheme + "://" + method + "?parameters=" + NativeParseURLQuery(parameters);
         let iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.setAttribute('src', url);
@@ -289,8 +251,6 @@ function _NativeCore(readyCompletion) {
         window.setTimeout(function () {
             document.body.removeChild(iframe);
         }, 2000);
-        
-        return callbackID;
     }
     
     let _isReady = false;

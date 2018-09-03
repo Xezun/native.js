@@ -44,14 +44,15 @@
                     $("#cachedResourceForURLImage").attr("src", url);
                 });
             });
-            
-
-
 
         });
 
 
-
+        native.core.perform("this", {"name": "John"}, function (progress) {
+            NativeLog("Progress: "+ progress);
+        }, function (data) {
+            NativeLog("Data: "+ data);
+        })
 
 
     </script>
@@ -65,6 +66,7 @@
     </table>
     <input type="button" value="Image" id="cachedResourceForURL" />
     <img src="" alt="" id="cachedResourceForURLImage" />
+
 </body>
 </html>
 
