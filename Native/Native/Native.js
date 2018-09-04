@@ -18,24 +18,26 @@ const NativeMethodReady = "ready";
 (function() {
     let _native = new _Native();
     
+    // window.native
     Object.defineProperty(window, "native", {
         get: function () {
             return _native;
         }
     });
     
+    // window.Native
     Object.defineProperty(window, "Native", {
         get: function () {
             return _Native;
         }
     });
     
-    Object.defineProperty(Native, "version", {
+    // native.version
+    Object.defineProperty(_Native, "version", {
         get: function () {
             return "1.0.0";
         }
-    })
-    
+    });
 })();
 
 
@@ -48,6 +50,7 @@ function _Native() {
     
     let native = this;
     
+    // native 作为单例，其核心 core 与自身互为引用。
     let _core = new _NativeCore(function (configuration) {
         _configuration = configuration;
         // 加载拓展，callback 中 this 指向 native 对象。。
@@ -128,57 +131,26 @@ function _NativeCore(readyCompletion) {
     let _delegate   = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
     let _scheme     = "native";      // 使用 URL 交互时使用
     
-    /**
-     * 保存 callback ，并返回其唯一 ID ，如果 callback 不合法，返回 null 。
-     * @param callback
-     * @return {*}
-     * @private
-     */
-    function _uniqueID(callback) {
-        if (!callback || (typeof callback !== 'function')) {
-            return null;
+    // 保存或读取 callback 。
+    function _callback(argument, needsRemove) {
+        switch (typeof argument === 'function') {
+            case "function":
+                let uniqueID = "NT" + (_callbackID++);
+                _callbacks[uniqueID] = argument;
+                return uniqueID;
+            case "string":
+                if (!_callbacks.hasOwnProperty(argument)) {
+                    return undefined;
+                }
+                let callback = _callbacks[argument];
+                if (needsRemove) {
+                    delete _callbacks[argument]
+                }
+                return callback;
+            default:
+                NativeLog("Only callback function or callback is allowed", NativeLogStyleError);
+                return undefined;
         }
-        let uniqueID = "NT" + (_callbackID++);
-        _callbacks[uniqueID] = callback;
-        return uniqueID;
-    }
-    
-    /**
-     * 通过标识符调度指定回调函数。
-     * @param callbackID
-     * @return {*}
-     * @private
-     */
-    function _dispatch(callbackID) {
-        if (!callbackID || typeof callbackID !== "string") {
-            return;
-        }
-        if (!_callbacks.hasOwnProperty(callbackID)) {
-            return;
-        }
-        let callback = _callbacks[callbackID];
-        // delete _callbacks[callbackID];
-        if (!callback || typeof callback !== 'function') {
-            return;
-        }
-        let parameters = [];
-        for (let i = 1; i < arguments.length; i++) {
-            parameters.push(arguments[i]);
-        }
-        return callback.apply(window, parameters);
-    }
-    
-    /**
-     * 删除一个已保存的回调函数。
-     * @param callbackID 回调函数的ID。
-     * @private
-     */
-    function _remove(callbackID) {
-        if (!callbackID || !_callbacks.hasOwnProperty(callbackID)) {
-            return;
-        }
-        delete _callbacks[callbackID];
-        return this;
     }
     
     /**
@@ -211,7 +183,7 @@ function _NativeCore(readyCompletion) {
                     parameters.push(argument);
                     break;
                 case 'function':
-                    parameters.push(_uniqueID(argument));
+                    parameters.push(_callback(argument));
                     break;
                 default:
                     parameters.push(JSON.stringify(argument));
@@ -238,7 +210,7 @@ function _NativeCore(readyCompletion) {
         for (let i = 1; i < arguments.length; i += 1) {
             let argument = arguments[i];
             if (typeof argument === 'function') {
-                parameters.push(_uniqueID(argument));
+                parameters.push(_callback(argument));
             } else {
                 parameters.push(argument);
             }
@@ -271,7 +243,7 @@ function _NativeCore(readyCompletion) {
         }
         // 删除已经发起的 ready 事件。
         if (!!_readyID) {
-            _remove(_readyID);
+            _callback(_readyID, false);
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
         function _documentIsReady() {
@@ -299,14 +271,9 @@ function _NativeCore(readyCompletion) {
     }
     
     Object.defineProperties(this, {
-        dispatch: {
+        callback: {
             get: function () {
-                return _dispatch;
-            }
-        },
-        remove: {
-            get: function () {
-                return _remove;
+                return _callback;
             }
         },
         perform: {
@@ -471,20 +438,35 @@ function NativeLog(message, style) {
     }
 }
 
-/**
- * 将任意对象转换为 URL 查询字符串。
- * @param anObject 对象。
- * @return {*}
- * @private
- */
+
+function NativeParseURLQueryValue(value) {
+    if (!value) {
+        return "";
+    }
+    switch (typeof value) {
+        case 'string':
+            return encodeURIComponent(value);
+        case 'undefined':
+            return '';
+        default:
+            return encodeURIComponent(JSON.stringify(value));
+    }
+}
+
+// 将任意对象转换为 URL 查询字符串。
 function NativeParseURLQuery(anObject) {
     if (!anObject) {
         return "";
     }
     // 1. 数组直接 JSON
     if (Array.isArray(anObject)) {
-        return encodeURIComponent(JSON.stringify(anObject));
+        let values = [];
+        for (let i = 0; i < anObject.length; i++) {
+            values.push(NativeParseURLQueryValue(anObject[i]));
+        }
+        return values.join("&");
     }
+    
     switch (typeof anObject) {
         case 'string':
             return encodeURIComponent(anObject);
@@ -502,11 +484,7 @@ function NativeParseURLQuery(anObject) {
                 if (!anObject[key]) {
                     continue;
                 }
-                if (typeof anObject[key] !== 'string') {
-                    queryString += ("=" + encodeURIComponent(JSON.stringify(anObject[key])));
-                } else {
-                    queryString += ("=" + encodeURIComponent(anObject[key]));
-                }
+                queryString += ("=" + NativeParseURLQueryValue(anObject[key]));
             }
             return queryString;
         case 'undefined':

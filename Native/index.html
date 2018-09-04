@@ -5,15 +5,15 @@
     <title>AppCore</title>
     <script src="Example/jquery-3.1.1.min.js"></script>
     <script src="Native/Native.js"></script>
-    <script src="Native/Native.Theme.js"></script>
-    <script src="Native/Native.Login.js"></script>
-    <script src="Native/Native.User.js"></script>
-    <script src="Native/Native.Navigation.js"></script>
-    <script src="Native/Native.Networking.js"></script>
-    <script src="Native/Native.Open.js"></script>
-    <script src="Native/Native.EventService.js"></script>
-    <script src="Native/Native.DataService.js"></script>
-    <script src="Native/Native.Alert.js"></script>
+    <!--<script src="Native/Native.Theme.js"></script>-->
+    <!--<script src="Native/Native.Login.js"></script>-->
+    <!--<script src="Native/Native.User.js"></script>-->
+    <!--<script src="Native/Native.Navigation.js"></script>-->
+    <!--<script src="Native/Native.Networking.js"></script>-->
+    <!--<script src="Native/Native.Open.js"></script>-->
+    <!--<script src="Native/Native.EventService.js"></script>-->
+    <!--<script src="Native/Native.DataService.js"></script>-->
+    <!--<script src="Native/Native.Alert.js"></script>-->
 
     <script>
 
@@ -21,38 +21,38 @@
 
         native.ready(function () {
 
-            $("#alert").click(function () {
-                native.alert({
-                    title: "This is an alert!",
-                    body: "This is alert body!",
-                    actions: ["OK", "Cancel"]
-                }, function (index) {
-                    NativeLog("alert: " + index);
-                });
-            });
-
-            native.dataService.numberOfRowsInList("main", "test", function (number) {
-                for (let i = 0; i < number; i++) {
-                    native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
-                        $("#dataService").append("<tr><td>" + data + "</td></tr>")
-                    })
-                }
-            });
-            
-            $("#cachedResourceForURL").click(function () {
-                native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
-                    $("#cachedResourceForURLImage").attr("src", url);
-                });
-            });
+//            $("#alert").click(function () {
+//                native.alert({
+//                    title: "This is an alert!",
+//                    body: "This is alert body!",
+//                    actions: ["OK", "Cancel"]
+//                }, function (index) {
+//                    NativeLog("alert: " + index);
+//                });
+//            });
+//
+//            native.dataService.numberOfRowsInList("main", "test", function (number) {
+//                for (let i = 0; i < number; i++) {
+//                    native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+//                        $("#dataService").append("<tr><td>" + data + "</td></tr>")
+//                    })
+//                }
+//            });
+//
+//            $("#cachedResourceForURL").click(function () {
+//                native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+//                    $("#cachedResourceForURLImage").attr("src", url);
+//                });
+//            });
 
         });
 
 
-        native.core.perform("this", {"name": "John"}, function (progress) {
-            NativeLog("Progress: "+ progress);
-        }, function (data) {
-            NativeLog("Data: "+ data);
-        })
+//        native.core.perform("this", {"name": "John"}, function (progress) {
+//            NativeLog("Progress: "+ progress);
+//        }, function (data) {
+//            NativeLog("Data: "+ data);
+//        })
 
 
     </script>
@@ -72,56 +72,58 @@
 
 
 <script>
+
     // 模拟 App 行为
-    native.core.register(function (method, parameters, callbackID) {
-        NativeLog("执行方法 "+ method);
-        switch (method) {
-            case NativeMethodReady:
-                native.core.dispatch(callbackID, {
-                    currentTheme: "default",
-                    currentUser: {
-                        id: 123,
-                        name: "John",
-                        info: {},
-                        version: 1
-                    },
-                    navigation: {
-                        bar: {
-                            title: "Test",
-                            titleColor: "#000",
-                            isHidden: false,
-                            backgroundColor: "#fff"
-                        }
-                    },
-                    networking: {
-                        status: "WiFi"
-                    }
-                });
-                break;
+//    native.core.register(function (method, parameters, callbackID) {
+//        NativeLog("执行方法 "+ method);
+//        switch (method) {
+//            case NativeMethodReady:
+//                native.core.dispatch(callbackID, {
+//                    currentTheme: "default",
+//                    currentUser: {
+//                        id: 123,
+//                        name: "John",
+//                        info: {},
+//                        version: 1
+//                    },
+//                    navigation: {
+//                        bar: {
+//                            title: "Test",
+//                            titleColor: "#000",
+//                            isHidden: false,
+//                            backgroundColor: "#fff"
+//                        }
+//                    },
+//                    networking: {
+//                        status: "WiFi"
+//                    }
+//                });
+//                break;
+//
+//            case NativeMethodAlert:
+//                if (confirm(JSON.stringify(parameters))) {
+//                    native.core.dispatch(callbackID, 0);
+//                } else {
+//                    native.core.dispatch(callbackID, 1);
+//                }
+//                break;
+//
+//            case NativeMethodNumberOfRowsInList:
+//                native.core.dispatch(callbackID, 10);
+//                break;
+//
+//            case NativeMethodDataForRowAtIndex:
+//                native.core.dispatch(callbackID, "Row " + parameters[2]);
+//                break;
+//
+//            case NativeMethodCachedResourceForURL:
+//                native.core.dispatch(callbackID, parameters[0]);
+//                break;
+//
+//            default:
+//                NativeLog("Method: " + method);
+//                break;
+//        }
+//    }, NativeTypeFunction);
 
-            case NativeMethodAlert:
-                if (confirm(JSON.stringify(parameters))) {
-                    native.core.dispatch(callbackID, 0);
-                } else {
-                    native.core.dispatch(callbackID, 1);
-                }
-                break;
-
-            case NativeMethodNumberOfRowsInList:
-                native.core.dispatch(callbackID, 10);
-                break;
-
-            case NativeMethodDataForRowAtIndex:
-                native.core.dispatch(callbackID, "Row " + parameters[2]);
-                break;
-
-            case NativeMethodCachedResourceForURL:
-                native.core.dispatch(callbackID, parameters[0]);
-                break;
-
-            default:
-                NativeLog("Method: " + method);
-                break;
-        }
-    }, NativeTypeFunction);
 </script>

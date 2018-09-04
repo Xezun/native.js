@@ -106,36 +106,41 @@ interface _Native {
     navigation: _NativeNavigation;
 }
 
+/**
+ * Native 核心功能。
+ * @private
+ */
 interface _NativeCore {
 
     /**
-     * 调度指定标识符对应的回调函数。
+     * 将回调函数通过唯一标识符保存起来。
      *
-     * @param {string} callbackID 回调函数的唯一标识符。
-     * @param args 回调函数所需的参数。
-     * @return any 回调函数的返回值。
+     * @param  func 待保存的回调函数。
+     * @return {string} 保存回调函数所使用的唯一标识符。
      */
-    dispatch(callbackID: string, ...args: any[]): any;
+    callback(func: (...arg: any[]) => any): string;
 
     /**
-     * 删除指定标识符对应的回调函数。
-     * @param {string} callbackID 标识符。
+     * 获取指定标识符对应的回调函数。
+     *
+     * @param {string} identifier 回调函数的唯一标识符。
+     * @param needsRemove 获取指定标识符对应的回调函数后是否移除该回调函数。
+     * @return 指定标识符对应的回调函数，如果不存在，则返回 undefined 。
      */
-    remove(callbackID: string): void;
+    callback(identifier: string, needsRemove?: boolean): (...arg: any[]) => any;
 
     /**
-     * 执行指定的原生方法。
+     * 执行原生方法。预定义字符串 method 与原生方法对应，原生代码比较该字符串并调用对应的方法。
      *
-     * @param {string} method 预定义的原生方法。
+     * @param {string} method 预定义的原生方法字符串。
      * @param parameters 原生方法所需的参数。
-     * @param {() => void} callback 回调函数，用于传递返回值。
-     * @return {string}
      */
     perform(method: string, ...parameters: any[]): void;
 
     /**
      * 注册已注入到 JS 环境注入的原生对象的方法。
      * 原生代码必须调用此方法注册已注入的对象，才能进行 JS 与原生代码按照既定规则交互。
+     *
      * @param nativeObject 一般是注入 JS 中的原生对象。
      * @param nativeType 交互方法或原生对象能接收的数据类型。
      */
