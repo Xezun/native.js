@@ -33,11 +33,29 @@ const NativeMethodReady = "ready";
     });
     
     // native.version
-    Object.defineProperty(_Native, "version", {
-        get: function () {
-            return "1.0.0";
+    Object.defineProperties(_Native, {
+        version: {
+            get: function () {
+                return "1.0.0";
+            }
+        },
+        log: {
+            get: function () {
+                return _log;
+            }
+        },
+        parseURLQueryValue: {
+            get: function () {
+                return _parseURLQueryValue;
+            }
+        },
+        parseURLQuery: {
+            get: function () {
+                return _parseURLQuery;
+            }
         }
     });
+    
 })();
 
 
@@ -51,7 +69,7 @@ function _Native() {
     let native = this;
     
     // native 作为单例，其核心 core 与自身互为引用。
-    let _core = new _NativeCore(function (configuration) {
+    let _core = new _CoreNative(function (configuration) {
         _configuration = configuration;
         // 加载拓展，callback 中 this 指向 native 对象。。
         while (_extensions.length > 0) {
@@ -123,28 +141,28 @@ function _Native() {
     
 }
 
-function _NativeCore(readyCompletion) {
+function _CoreNative(nativeWasReady) {
     
-    let _callbackID = 10000000;      // 用于生成唯一的回调函数 ID 。
-    let _callbacks  = {};            // 按照 callbackID 保存的回调函数。
-    let _dataType   = NativeTypeURL; // 交互的数据类型。
-    let _delegate   = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
-    let _scheme     = "native";      // 使用 URL 交互时使用
+    let _uniqueID       = 10000000;      // 用于生成唯一的回调函数 ID 。
+    let _keyedCallbacks = {};            // 按照 callbackID 保存的回调函数。
+    let _dataType       = NativeTypeURL; // 交互的数据类型。
+    let _delegate       = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
+    let _scheme         = "native";      // 使用 URL 交互时使用
     
     // 保存或读取 callback 。
     function _callback(argument, needsRemove) {
         switch (typeof argument === 'function') {
             case "function":
-                let uniqueID = "NT" + (_callbackID++);
-                _callbacks[uniqueID] = argument;
+                let uniqueID = "NT" + (_uniqueID++);
+                _keyedCallbacks[uniqueID] = argument;
                 return uniqueID;
             case "string":
-                if (!_callbacks.hasOwnProperty(argument)) {
+                if (!_keyedCallbacks.hasOwnProperty(argument)) {
                     return undefined;
                 }
-                let callback = _callbacks[argument];
+                let callback = _keyedCallbacks[argument];
                 if (needsRemove) {
-                    delete _callbacks[argument]
+                    delete _keyedCallbacks[argument]
                 }
                 return callback;
             default:
@@ -153,10 +171,7 @@ function _NativeCore(readyCompletion) {
         }
     }
     
-    /**
-     * 调用 App 方法。
-     * @param method App 方法。
-     */
+    // 调用 App 方法。
     function _perform(method) {
         switch (_dataType) {
             case NativeTypeURL:
@@ -172,6 +187,7 @@ function _NativeCore(readyCompletion) {
         }
     }
     
+    // 调用 App 方法前，将所有参数转换成 JSON 数据类型，number/string/boolean 类型除外。
     function _performByJSON(method) {
         let parameters = [];
         for (let i = 1; i < arguments.length; i += 1) {
@@ -215,6 +231,7 @@ function _NativeCore(readyCompletion) {
                 parameters.push(argument);
             }
         }
+        // native://login?parameters=["John", "pw123456"]
         let url = _scheme + "://" + method + "?parameters=" + NativeParseURLQuery(parameters);
         let iframe = document.createElement('iframe');
         iframe.style.display = 'none';
@@ -246,23 +263,23 @@ function _NativeCore(readyCompletion) {
             _callback(_readyID, false);
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
-        function _documentIsReady() {
+        function _documentWasReady() {
             _readyID = _perform(NativeMethodReady, dataType, function (configuration) {
                 _isReady = true;
-                readyCompletion(configuration);
+                nativeWasReady(configuration);
             });
         }
         
         // documentReady 判断不支持 IE 。
         if (document.readyState === 'complete') {
             window.setTimeout(function () {
-                _documentIsReady();
+                _documentWasReady();
             });
         } else {
             document.addEventListener("DOMContentLoaded", function _eventListener() {
                 document.removeEventListener("DOMContentLoaded", _eventListener);
                 window.setTimeout(function () {
-                    _documentIsReady();
+                    _documentWasReady();
                 });
             }, false);
         }
@@ -422,24 +439,23 @@ function _Cookie() {
 }
 
 
-
 /**
  * 函数，在控制台输出。
  * @param message 输出的内容。
  * @param style 输出样式，可选。0，默认；1，警告；2，错误。
  */
-function NativeLog(message, style) {
+function _log(message, style) {
     if (typeof style !== "number" || style === NativeLogStyleDefault) {
-        console.log("%c[Native]", "color: #357bbb; font-weight: bold;", message);
+        console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
     } else if (style === NativeLogStyleWarning) {
-        console.log("%c[Native] %c⚠️ " + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #f18f38");
+        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #f18f38");
     } else if (style === NativeLogStyleError) {
-        console.log("%c[Native] %c🚫 " + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #e95648");
+        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #e95648");
     }
 }
 
-
-function NativeParseURLQueryValue(value) {
+// 将任意值转换为 URL QueryValue 。
+function _parseURLQueryValue(value) {
     if (!value) {
         return "";
     }
@@ -454,23 +470,24 @@ function NativeParseURLQueryValue(value) {
 }
 
 // 将任意对象转换为 URL 查询字符串。
-function NativeParseURLQuery(anObject) {
+function _parseURLQuery(anObject) {
     if (!anObject) {
         return "";
     }
-    // 1. 数组直接 JSON
+    // [a,b,c] -> a&b&c
     if (Array.isArray(anObject)) {
         let values = [];
         for (let i = 0; i < anObject.length; i++) {
-            values.push(NativeParseURLQueryValue(anObject[i]));
+            values.push(_parseURLQueryValue(anObject[i]));
         }
         return values.join("&");
     }
     
     switch (typeof anObject) {
-        case 'string':
+        case 'string': // any string -> any%20string
             return encodeURIComponent(anObject);
-        case 'object':
+            
+        case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
             let queryString = "";
             for (let key in anObject) {
                 if (!anObject.hasOwnProperty(key)) {
@@ -484,7 +501,7 @@ function NativeParseURLQuery(anObject) {
                 if (!anObject[key]) {
                     continue;
                 }
-                queryString += ("=" + NativeParseURLQueryValue(anObject[key]));
+                queryString += ("=" + _parseURLQueryValue(anObject[key]));
             }
             return queryString;
         case 'undefined':
@@ -493,3 +510,5 @@ function NativeParseURLQuery(anObject) {
             return encodeURIComponent(JSON.stringify(anObject));
     }
 }
+
+
