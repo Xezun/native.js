@@ -1,10 +1,15 @@
 // XZNative.js
 
-
-const NativeTypeURL         = 0; // 使用 URL 方式交互。
-const NativeTypeJSON        = 1; // 使用代理，但是基本数据类型和 JSON 数据进行交互。
-const NativeTypeObject      = 2; // 代理使用对象进行交互。
-const NativeTypeFunction    = 3; // 代理为函数。
+const NativeType = {
+    // 使用 URL 方式交互。
+    url: "url",
+    // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+    android: "android",
+    // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+    iOS: "iOS",
+    // iOS WebKit 注入 js ，使用函数作为代理。
+    javascript: "javascript"
+};
 
 const NativeLogStyleDefault = 0;
 const NativeLogStyleWarning = 1;
@@ -145,7 +150,7 @@ function _CoreNative(nativeWasReady) {
     
     let _uniqueID       = 10000000;      // 用于生成唯一的回调函数 ID 。
     let _keyedCallbacks = {};            // 按照 callbackID 保存的回调函数。
-    let _dataType       = NativeTypeURL; // 交互的数据类型。
+    let _dataType       = NativeType.url; // 交互的数据类型。
     let _delegate       = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
     let _scheme         = "native";      // 使用 URL 交互时使用
     
@@ -174,13 +179,13 @@ function _CoreNative(nativeWasReady) {
     // 调用 App 方法。
     function _perform(method) {
         switch (_dataType) {
-            case NativeTypeURL:
+            case NativeType.url:
                 return _performByURL.apply(this, arguments);
-            case NativeTypeJSON:
+            case NativeType.android:
                 return _performByJSON.apply(this, arguments);
-            case NativeTypeObject:
+            case NativeType.iOS:
                 return _performByObject.apply(this, arguments);
-            case NativeTypeFunction:
+            case NativeType.javascript:
                 return window.setTimeout(function () { _delegate.apply(window, arguments); });
             default:
                 return NativeLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
@@ -393,7 +398,6 @@ function _Cookie() {
             if (_keyedCookies.hasOwnProperty(key)) {
                 return _keyedCookies[key];
             }
-            
             return undefined;
         }
         // 设置

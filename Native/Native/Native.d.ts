@@ -10,8 +10,21 @@ module native {
      * 只读。方便读取 Cookie 的对象，优化了 Cookie 的读取性能。
      */
     const cookie: {
-        value(key: string): any;
-        value(key: string, newValue: any): void;
+        /**
+         * 读取 Cookie 。
+         * @param {string} key 键名。
+         * @return {string} 值。
+         */
+        value(key: string): string;
+        /**
+         * 写入 Cookie 。
+         * @param {string} key 键。
+         * @param {string} newValue 值。
+         */
+        value(key: string, newValue: string): void;
+        /**
+         * 刷新并同步用来优化 Cookie 性能而使用的缓存。
+         */
         synchronize(): void;
     };
 
@@ -51,7 +64,7 @@ module native {
          * @param nativeObject 一般是注入 JS 中的原生对象。
          * @param nativeType 交互方法或原生对象能接收的数据类型。
          */
-        register(nativeObject, nativeType): void;
+        register(nativeObject: any | null, nativeType: NativeType): void;
 
         /**
          * URL 交互方式的协议头，默认 native 。
@@ -71,7 +84,7 @@ module native {
         /**
          * 原生对象能接收的数据类型。
          */
-        dataType: string;
+        dataType: NativeType;
     };
 
     /**
@@ -359,8 +372,15 @@ module Native {
     function parseURLQueryValue(aValue: any): string;
 }
 
-
-
+/**
+ * 原生对象的类型。
+ */
+declare enum NativeType {
+    url = "url",                // 使用 URL 方式交互。
+    android = "android",        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+    iOS = "iOS",                // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+    javascript = "javascript"   // iOS WebKit 注入 js ，使用函数作为代理。
+}
 
 
 
