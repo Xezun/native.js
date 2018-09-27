@@ -1,6 +1,6 @@
 // XZNative.js
 
-const NativeType = {
+const NativeType = Object.freeze({
     // 使用 URL 方式交互。
     url: "url",
     // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
@@ -9,16 +9,20 @@ const NativeType = {
     iOS: "iOS",
     // iOS WebKit 注入 js ，使用函数作为代理。
     javascript: "javascript"
-};
+});
 
-const NativeLogStyleDefault = 0;
-const NativeLogStyleWarning = 1;
-const NativeLogStyleError   = 2;
+const NativeLogStyle = Object.freeze({
+    default: 0,
+    warning: 1,
+    error: 2
+});
+
+const NativeMethod = Object.freeze({
+    ready: "ready"
+});
 
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
 // 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
-
-const NativeMethodReady = "ready";
 
 (function() {
     let _native = new _Native();
