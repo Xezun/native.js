@@ -4,16 +4,7 @@
     <meta charset="UTF-8">
     <title>AppCore</title>
     <script src="Example/jquery-3.1.1.min.js"></script>
-    <script src="native.js/native.js"></script>
-    <script src="native.js/native.Theme.js"></script>
-    <script src="native.js/native.Login.js"></script>
-    <script src="native.js/native.User.js"></script>
-    <script src="native.js/native.Navigation.js"></script>
-    <script src="native.js/native.Networking.js"></script>
-    <script src="native.js/native.Open.js"></script>
-    <script src="native.js/native.EventService.js"></script>
-    <script src="native.js/native.DataService.js"></script>
-    <script src="native.js/native.Alert.js"></script>
+    <script src="native/native.js"></script>
 
     <script>
 
@@ -23,39 +14,31 @@
         
         native.ready(function () {
 
-//            $("#alert").click(function () {
-//                native.alert({
-//                    title: "This is an alert!",
-//                    body: "This is alert body!",
-//                    actions: ["OK", "Cancel"]
-//                }, function (index) {
-//                    NativeLog("alert: " + index);
-//                });
-//            });
-//
-//            native.dataService.numberOfRowsInList("main", "test", function (number) {
-//                for (let i = 0; i < number; i++) {
-//                    native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
-//                        $("#dataService").append("<tr><td>" + data + "</td></tr>")
-//                    })
-//                }
-//            });
-//
-//            $("#cachedResourceForURL").click(function () {
-//                native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
-//                    $("#cachedResourceForURLImage").attr("src", url);
-//                });
-//            });
+           $("#alert").click(function () {
+               native.alert({
+                   title: "This is an alert!",
+                   body: "This is alert body!",
+                   actions: ["OK", "Cancel"]
+               }, function (index) {
+                   NativeLog("alert: " + index);
+               });
+           });
+
+           native.dataService.numberOfRowsInList("main", "test", function (number) {
+               for (let i = 0; i < number; i++) {
+                   native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+                       $("#dataService").append("<tr><td>" + data + "</td></tr>")
+                   })
+               }
+           });
+
+           $("#cachedResourceForURL").click(function () {
+               native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+                   $("#cachedResourceForURLImage").attr("src", url);
+               });
+           });
 
         });
-
-
-//        native.core.perform("this", {"name": "John"}, function (progress) {
-//            NativeLog("Progress: "+ progress);
-//        }, function (data) {
-//            NativeLog("Data: "+ data);
-//        })
-
 
     </script>
 </head>
