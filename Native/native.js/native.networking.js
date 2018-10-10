@@ -1,9 +1,9 @@
-// Native.Networking.js
-// requires Native.js
+// native.networking.js
+// requires native.js
 
-
-const NativeMethodHTTP = "http";
-const NativeNetworkStatusWiFi = "WiFi";
+const NativeNetworkStatus = Object.freeze({
+    WiFi: "WiFi"
+});
 
 window.native.extend(function (configuration) {
 
@@ -17,10 +17,10 @@ window.native.extend(function (configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                NativeLog("Method `http` first parameter must be an request object.", NativeLogStyleError);
+                Native.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodHTTP, [request], callback);
+            return _nativeCore.perform(NativeMethod.http, [request], callback);
         }
         
         // 网络状态监听。
@@ -43,7 +43,7 @@ window.native.extend(function (configuration) {
         Object.defineProperties(this, {
             isViaWiFi: {
                 get: function () {
-                    return (_status === NativeNetworkStatusWiFi);
+                    return (_status === NativeNetworkStatus.WiFi);
                 }
             },
             status: {

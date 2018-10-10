@@ -1,10 +1,9 @@
-// Native.DataService.js
-// requires Native.js
+// native.dataService.js
+// requires native.js
 
-const NativeMethodCachedResourceForURL = "cachedResourceForURL";
-const NativeMethodNumberOfRowsInList   = "numberOfRowsInList";
-const NativeMethodDataForRowAtIndex    = "dataForRowAtIndex";
-const NativeCachedResourceTypeImage    = "image";
+const NativeCachedResourceType = Object.freeze({
+    image: "image"
+});
 
 window.native.extend(function () {
 
@@ -16,10 +15,10 @@ window.native.extend(function () {
         // - callback: (number)=>void
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                NativeLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyleError);
+                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodNumberOfRowsInList, [documentName, listName], callback);
+            return _nativeCore.perform(NativeMethod.numberOfRowsInList, [documentName, listName], callback);
         }
         
         // 加载数据
@@ -28,37 +27,37 @@ window.native.extend(function () {
         // - callback: (data)=>void
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                NativeLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
+                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodDataForRowAtIndex, [documentName, listName, index], callback);
+            return _nativeCore.perform(NativeMethod.dataForRowAtIndex, [documentName, listName, index], callback);
         }
     
         // 获取缓存。
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyleError);
+                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             // 检查 cacheType
             switch (typeof cacheType) {
                 case 'function':
                     completion = cacheType;
-                    cacheType = NativeCachedResourceTypeImage;
+                    cacheType = NativeCachedResourceType.image;
                     break;
                 case 'string':
                     break;
                 default:
-                    cacheType = NativeCachedResourceTypeImage;
+                    cacheType = NativeCachedResourceType.image;
                     break;
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                NativeLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyleError);
+                Native.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodCachedResourceForURL, [url, cacheType], completion);
+            return _nativeCore.perform(NativeMethod.cachedResourceForURL, [url, cacheType], completion);
         }
         
         Object.defineProperties(this, {

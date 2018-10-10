@@ -1,22 +1,18 @@
-// Native.Open.js
-// requires Native.js
-
-const NativeMethodOpen    = "open";
-const NativeMethodPresent = "present";
-const NativeMethodDismiss = "dismiss";
+// native.open.js
+// requires native.js
 
 window.native.extend(function () {
     
     function _open(page, parameters) {
         if (typeof page !== 'string') {
-            NativeLog("Method `open`'s page parameter must be a string value.", NativeLogStyleError);
+            Native.log("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         let _arguments = [page];
         if (parameters) {
             _arguments.push(parameters);
         }
-        return this.core.perform(NativeMethodOpen, _arguments);
+        return this.core.perform(NativeMethod.open, _arguments);
     }
     
     return {
@@ -33,7 +29,7 @@ window.native.extend(function () {
     
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            NativeLog("Method `present` first parameter must be a string value.", NativeLogStyleError);
+            Native.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         let animated = arg1;
@@ -45,7 +41,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(NativeMethodPresent, [url, animated], completion);
+        return this.core.perform(NativeMethod.present, [url, animated], completion);
     }
     
     function _dismiss(arg1, arg2) {
@@ -58,7 +54,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(NativeMethodDismiss, [animated], completion);
+        return this.core.perform(NativeMethod.dismiss, [animated], completion);
     }
     
     return {

@@ -1,8 +1,5 @@
-// Native.Theme.js
-// requires Native.js
-
-const NativeCurrentThemeCookieKey        = "com.mlibai.native.cookie.currentTheme";
-const NativeMethodSetCurrentTheme = "setCurrentTheme";
+// native.theme.js
+// requires native.js
 
 window.native.extend(function (configuration) {
 
@@ -14,10 +11,10 @@ window.native.extend(function (configuration) {
     function _setCurrentTheme(newValue, animated, needsSyncToApp) {
         _currentTheme = newValue;
         // 将主题保存到 cookie 中.
-        this.cookie.value(NativeCurrentThemeCookieKey, newValue);
+        window.Native.cookie.value(NativeCookieKey.currentTheme, newValue);
         // 同步到 App 说明更改主题是由 JS 触发的，则不发送事件；否则就发送事件。
         if (needsSyncToApp || typeof needsSyncToApp === "undefined") {
-            this.core.perform(NativeMethodSetCurrentTheme, [newValue, animated], null);
+            this.core.perform(NativeMethod.setCurrentTheme, [newValue, animated], null);
         } else {
             _currentThemeChange();
         }
@@ -37,7 +34,7 @@ window.native.extend(function (configuration) {
     
     (function (native) {
         function _pageShow() {
-            let currentTheme = native.cookie.value(NativeCurrentThemeCookieKey);
+            let currentTheme = window.Native.cookie.value(NativeCookieKey.currentTheme);
             if (!currentTheme || currentTheme === native.currentTheme) {
                 return;
             }

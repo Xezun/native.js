@@ -1,10 +1,5 @@
-// Native.EventService.js
-// requires Native.js
-
-const NativeMethodDidSelectRowAtIndex = "didSelectRowAtIndex";
-const NativeMethodWasClickedOnElement = "wasClickedOnElement";
-const NativeMethodTrack = "track";
-
+// native.eventService.js
+// requires native.js
 
 window.native.extend(function () {
     
@@ -17,32 +12,32 @@ window.native.extend(function () {
         /// 列表点击事件。
         function _didSelectRowAtIndex(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'number') {
-                NativeLog("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyleError);
+                Native.log("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodDidSelectRowAtIndex, [documentName, elementName, index], callback);
+            return _nativeCore.perform(NativeMethod.didSelectRowAtIndex, [documentName, elementName, index], callback);
         }
         
         /// 页面元素点击事件。
         function _wasClickedOnElement(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
-                NativeLog("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyleError);
+                Native.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             if (typeof data === 'function') {
                 callback = data;
                 data = null;
             }
-            return _nativeCore.perform(NativeMethodWasClickedOnElement, [documentName, elementName, data], callback);
+            return _nativeCore.perform(NativeMethod.wasClickedOnElement, [documentName, elementName, data], callback);
         }
         
         /// 事件埋点。
         function _track(eventName, parameters) {
             if (typeof eventName !== 'string') {
-                NativeLog("Method `track` first parameter must be a string value.", NativeLogStyleError);
+                Native.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethodTrack, [eventName, parameters]);
+            return _nativeCore.perform(NativeMethod.track, [eventName, parameters]);
         }
         
         Object.defineProperties(this, {

@@ -1,36 +1,45 @@
 // Native.d.ts
 
-declare function NativeLog(message: any, style?: number): void;
-declare function NativeParseURLQuery(anObject: any): string;
+/// 与原生对象的交互方式类型。
+declare enum NativeType {
+    url = "url",                // 使用 URL 方式交互。
+    json = "json",        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+    object = "object",                // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+    javascript = "javascript"   // iOS WebKit 注入 js ，使用函数作为代理。
+}
+/// Native.log 样式。
+declare enum NativeLogStyle {
+    default = 0,
+    warning = 1,
+    error = 2
+}
 
-// declare const native: _Native;
-
-module native {
-    /**
-     * 只读。方便读取 Cookie 的对象，优化了 Cookie 的读取性能。
-     */
+/// native 类。
+declare module Native {
+    /// 版本。
+    const version: string;
+    /// 输出。
+    function log(message: string, style?: NativeLogStyle);
+    /// 将任意对象格式化成 URL Query 字符串，已转义。
+    function parseURLQuery(anObject: any): string;
+    /// 将任意值转换成 URL Query 键值，已转义。
+    function parseURLQueryValue(aValue: any): string;
+    /// 优化了 Cookie 的读取性能，方便读取 Cookie 的对象。
     const cookie: {
-        /**
-         * 读取 Cookie 。
-         * @param {string} key 键名。
-         * @return {string} 值。
-         */
+        /// 读取 Cookie 。
         value(key: string): string;
-        /**
-         * 写入 Cookie 。
-         * @param {string} key 键。
-         * @param {string} newValue 值。
-         */
+        /// 写入 Cookie 。
         value(key: string, newValue: string): void;
-        /**
-         * 刷新并同步用来优化 Cookie 性能而使用的缓存。
-         */
+        /// 刷新并同步用来优化 Cookie 性能而使用的缓存。
         synchronize(): void;
     };
 
-    /**
-     * 只读。核心功能，负责与原生代码交互的逻辑。
-     */
+}
+
+
+
+declare module native {
+    /// 核心功能，负责与原生代码交互的逻辑。
     const core: {
         /**
          * 将回调函数通过唯一标识符保存起来。
@@ -77,12 +86,12 @@ module native {
         isReady: boolean;
 
         /**
-         * 一般时原生对象，与 JS 进行交互的对象。
+         * 只读。一般时原生对象，与 JS 进行交互的对象。
          */
         delegate: any;
 
         /**
-         * 原生对象能接收的数据类型。
+         * 只读。原生对象能接收的数据类型、交互方式。
          */
         dataType: NativeType;
     };
@@ -99,6 +108,19 @@ module native {
      * @param callback 构造属性的函数。
      */
     function extend(callback: (configuration: object) => object): void;
+}
+
+
+declare enum NativeCachedResourceType {
+    image = "image"
+}
+
+declare enum NativeNetworkStatus {
+    WiFi = "WiFi"
+}
+
+/// native 对象。
+declare module native {
 
     // Theme
 
@@ -183,7 +205,7 @@ module native {
          * @param {(cacheURL: string) => void} callback 获取缓存资源的回调，获得缓存路径
          * @return {string} 回调 ID
          */
-        cachedResourceForURL(remoteULR: string, cacheType?: string, callback?: (cacheURL: string) => void): string;
+        cachedResourceForURL(remoteULR: string, cacheType?: NativeCachedResourceType, callback?: (cacheURL: string) => void): string;
     };
 
     /**
@@ -237,13 +259,13 @@ module native {
         /**
          * 只读。当前 App 接入网络的类型。
          */
-        status: string;
+        status: NativeNetworkStatus;
 
         /**
          * 仅供 App 同步导航条显示状态时使用。
          * - 调用此方法可能会触发 change 事件。
          */
-        setStatus(newType: string): void;
+        setStatus(newStatus: NativeNetworkStatus): void;
 
         statusChange(callback?: () => void): void;
 
@@ -365,22 +387,8 @@ module native {
     };
 }
 
-module Native {
-    const version: string;
-    function log(message: string, style?: number);
-    function parseURLQuery(anObject: any): string;
-    function parseURLQueryValue(aValue: any): string;
-}
 
-/**
- * 原生对象的类型。
- */
-declare enum NativeType {
-    url = "url",                // 使用 URL 方式交互。
-    android = "android",        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-    iOS = "iOS",                // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-    javascript = "javascript"   // iOS WebKit 注入 js ，使用函数作为代理。
-}
+
 
 
 

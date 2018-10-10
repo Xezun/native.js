@@ -1,24 +1,59 @@
-// XZNative.js
+// native.js
 
+/// 与原生交互的方式。
 const NativeType = Object.freeze({
     // 使用 URL 方式交互。
     url: "url",
     // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-    android: "android",
+    json: "json",
     // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-    iOS: "iOS",
-    // iOS WebKit 注入 js ，使用函数作为代理。
+    object: "object",
+    // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
     javascript: "javascript"
 });
 
+/// 输出样式。
 const NativeLogStyle = Object.freeze({
     default: 0,
     warning: 1,
     error: 2
 });
 
+/// 通用的原生支持的方法。
 const NativeMethod = Object.freeze({
-    ready: "ready"
+    ready: "ready",
+    alert: "alert",
+    // dataService
+    cachedResourceForURL: "cachedResourceForURL",
+    numberOfRowsInList: "numberOfRowsInList",
+    dataForRowAtIndex: "dataForRowAtIndex",
+    // eventService
+    wasClickedOnElement: "wasClickedOnElement",
+    didSelectRowAtIndex: "didSelectRowAtIndex",
+    track: "track",
+    // login
+    login: "login",
+    // navigation
+    push: "push",
+    pop: "pop",
+    popTo: "popTo",
+    setNavigationBarHidden: "setNavigationBarHidden",
+    setNavigationBarTitle: "setNavigationBarTitle",
+    setNavigationBarTitleColor: "setNavigationBarTitleColor",
+    setNavigationBarBackgroundColor: "setNavigationBarBackgroundColor",
+    // Networking
+    http: "http",
+    // Open
+    open: "open",
+    present: "present",
+    dismiss: "dismiss",
+    // theme
+    setCurrentTheme: "setCurrentTheme"
+});
+
+const NativeCookieKey = Object.freeze({
+    currentTheme: "com.mlibai.native.cookie.currentTheme",
+    currentUser: "com.mlibai.native.cookie.currentUser"
 });
 
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
@@ -26,7 +61,7 @@ const NativeMethod = Object.freeze({
 
 (function() {
     let _native = new _Native();
-    
+    let _cookie = new _Cookie();
     // window.native
     Object.defineProperty(window, "native", {
         get: function () {
@@ -40,7 +75,7 @@ const NativeMethod = Object.freeze({
             return _Native;
         }
     });
-    
+
     // native.version
     Object.defineProperties(_Native, {
         version: {
@@ -51,6 +86,11 @@ const NativeMethod = Object.freeze({
         log: {
             get: function () {
                 return _log;
+            }
+        },
+        cookie: {
+            get: function () {
+                return _cookie;
             }
         },
         parseURLQueryValue: {
@@ -70,7 +110,6 @@ const NativeMethod = Object.freeze({
 
 function _Native() {
     
-    let _cookie        = new _Cookie();
     let _configuration = null;
     let _extensions    = [];
     let _readies       = [];
@@ -125,15 +164,11 @@ function _Native() {
         return this;
     }
     
+    // 除以下方法外，其他方法原则上都应该留做原生方法的入口。
     Object.defineProperties(this, {
         core: {
             get: function () {
                 return _core;
-            }
-        },
-        cookie: {
-            get: function () {
-                return _cookie;
             }
         },
         ready: {
@@ -185,9 +220,9 @@ function _CoreNative(nativeWasReady) {
         switch (_dataType) {
             case NativeType.url:
                 return _performByURL.apply(this, arguments);
-            case NativeType.android:
+            case NativeType.json:
                 return _performByJSON.apply(this, arguments);
-            case NativeType.iOS:
+            case NativeType.object:
                 return _performByObject.apply(this, arguments);
             case NativeType.javascript:
                 return window.setTimeout(function () { _delegate.apply(window, arguments); });
@@ -273,7 +308,7 @@ function _CoreNative(nativeWasReady) {
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
         function _documentWasReady() {
-            _readyID = _perform(NativeMethodReady, dataType, function (configuration) {
+            _readyID = _perform(NativeMethod.ready, dataType, function (configuration) {
                 _isReady = true;
                 nativeWasReady(configuration);
             });
@@ -453,11 +488,11 @@ function _Cookie() {
  * @param style 输出样式，可选。0，默认；1，警告；2，错误。
  */
 function _log(message, style) {
-    if (typeof style !== "number" || style === NativeLogStyleDefault) {
+    if (typeof style !== "number" || style === NativeLogStyle.default) {
         console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
-    } else if (style === NativeLogStyleWarning) {
+    } else if (style === NativeLogStyle.warning) {
         console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #f18f38");
-    } else if (style === NativeLogStyleError) {
+    } else if (style === NativeLogStyle.error) {
         console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #e95648");
     }
 }

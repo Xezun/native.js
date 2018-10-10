@@ -1,16 +1,14 @@
-// Native.Alert.js
-// requires Native.js
-
-const NativeMethodAlert = "alert";
+// native.alert.js
+// requires native.js
 
 window.native.extend(function () {
     
     function _alert(message, callback) {
         if (!message || typeof message !== 'object') {
-            NativeLog("Method `alert` first parameter must be an message object.", NativeLogStyleError);
+            Native.log("Method `alert` first parameter must be an message object.", NativeLogStyle.error);
             return null;
         }
-        return this.core.perform(NativeMethodAlert, [message], callback);
+        return this.core.perform(NativeMethod.alert, [message], callback);
     }
     
     return {
@@ -20,4 +18,5 @@ window.native.extend(function () {
             }
         }
     };
+
 });

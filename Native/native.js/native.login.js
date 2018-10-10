@@ -1,16 +1,14 @@
-// Native.Login.js
-// requires Native.js
-
-const NativeMethodLogin = "login";
+// native.login.js
+// requires native.js
 
 window.native.extend(function () {
     
     function _login(callback) {
         if (!callback) {
-            NativeLog("Method `login` called without a callback is not allowed.", NativeLogStyleError);
+            Native.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
             return this;
         }
-        return this.core.perform(NativeMethodLogin, null, callback);
+        return this.core.perform(NativeMethod.login, null, callback);
     }
     
     return {

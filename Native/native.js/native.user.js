@@ -1,8 +1,5 @@
-// Native.User.js
-// requires Native.js
-
-
-const NativeUserCookieKey = "com.mlibai.native.cookie.currentUser";
+// native.user.js
+// requires native.js
 
 window.native.extend(function (configuration) {
     // 存储监听
@@ -52,17 +49,21 @@ window.native.extend(function (configuration) {
         configuration.currentUser.version
     );
     
+    // 保存 User 信息。
+    window.Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+
     // 设置当前用户，App 行为。
     function _setCurrentUser(userInfo) {
         _currentUser = new _User(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
         _currentUserChange();
+        window.cookie
     }
     
     (function (native) {
         // 在页面隐藏时绑定显示时事件。
         // 页面显示时，从 cookie 读取信息。
         function _pageShow() {
-            let userInfo = JSON.parse(native.cookie.value(NativeUserCookieKey));
+            let userInfo = JSON.parse(window.Native.cookie.value(NativeCookieKey.currentUser));
             if (userInfo.id !== native.currentUser.id || userInfo.version !== native.currentUser.version) {
                 native.setCurrentUser(userInfo);
             }
