@@ -1294,7 +1294,7 @@ window.native.extend(function () {
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             // 检查 cacheType

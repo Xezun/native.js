@@ -13,12 +13,17 @@
         }
         Native.log("Native Version: " + Native.version, NativeLogStyle.error);
 
-        let date2 = (new Date()).toUTCString()
+        let date2 = (new Date()).toUTCString();
         Native.cookie.value("date", date2);
 
-        native.ready(function() {
-            Native.log("native is ready：" + (new Date()).toUTCString());
+        $.holdReady(true);
 
+        native.ready(function() {
+            $.holdReady(false);
+            Native.log("native is ready：" + (new Date()).toUTCString());
+        });
+
+        $(function () {
             $("#http").click(function () {
                 native.http({
                     url: "./data.json",
@@ -32,44 +37,11 @@
                     }
                 });
             });
-            
+
             $("#open").click(function () {
                 native.open("momshop://product?id=1234")
             });
-
         });
-
-
-
-
-
-        // native.ready(function () {
-
-        //    $("#alert").click(function () {
-        //        native.alert({
-        //            title: "This is an alert!",
-        //            body: "This is alert body!",
-        //            actions: ["OK", "Cancel"]
-        //        }, function (index) {
-        //            NativeLog("alert: " + index);
-        //        });
-        //    });
-
-        //    native.dataService.numberOfRowsInList("main", "test", function (number) {
-        //        for (let i = 0; i < number; i++) {
-        //            native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
-        //                $("#dataService").append("<tr><td>" + data + "</td></tr>")
-        //            })
-        //        }
-        //    });
-
-        //    $("#cachedResourceForURL").click(function () {
-        //        native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
-        //            $("#cachedResourceForURLImage").attr("src", url);
-        //        });
-        //    });
-
-        // });
 
     </script>
 
@@ -103,8 +75,6 @@
 
 <script>
 
-    // 模拟 ready 事件。
-
     native.core.register(function(method, parameters) {
         if (method == NativeMethod.ready) {
             Native.log("native 初始化开始：" + (new Date()).toUTCString());
@@ -132,6 +102,7 @@
                     }
                 });
             }, Math.random() * 5000)
+
         } else if (method === NativeMethod.http) {
             let request = parameters[0];
 
@@ -166,6 +137,7 @@
                     });
                 }
             })
+
         } else if (method === NativeMethod.open) {
             Native.log("Open page: " + parameters[0]);
         }
@@ -224,4 +196,31 @@
 //        }
 //    }, NativeTypeFunction);
 
+    // native.ready(function () {
+
+    //    $("#alert").click(function () {
+    //        native.alert({
+    //            title: "This is an alert!",
+    //            body: "This is alert body!",
+    //            actions: ["OK", "Cancel"]
+    //        }, function (index) {
+    //            NativeLog("alert: " + index);
+    //        });
+    //    });
+
+    //    native.dataService.numberOfRowsInList("main", "test", function (number) {
+    //        for (let i = 0; i < number; i++) {
+    //            native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+    //                $("#dataService").append("<tr><td>" + data + "</td></tr>")
+    //            })
+    //        }
+    //    });
+
+    //    $("#cachedResourceForURL").click(function () {
+    //        native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+    //            $("#cachedResourceForURLImage").attr("src", url);
+    //        });
+    //    });
+
+    // });
 </script>
