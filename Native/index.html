@@ -26,7 +26,10 @@
                     headers: {"Custom-Header": "ABCDEFG"},
                     data: {}
                 }, function (response) {
-                    console.log(response.data)
+                    let jq = $("#httpDiv");
+                    for (let i = 0; i < response.data.length; i++) {
+                        jq.append("<div>" + response.data[i] + "</div>");
+                    }
                 });
             });
             
@@ -71,17 +74,20 @@
     </script>
 
     <style>
-        div {
+        body>div {
             width: 100%;
             text-align: center;
+            margin: 20px 0 0 0;
         }
+
+
     </style>
 </head>
 <body>
 
 <div>native.js</div>
 
-<div>
+<div id="httpDiv">
     <div><input type="button" value="http" id="http"></div>
 </div>
 

@@ -1,4 +1,24 @@
-# Native App／HTML 交互框架
+# native.js
+
+## 如何使用
+
+在 H5 页面中引入 `native.js` .
+
+```html
+<script src="./native/native.js"></script>
+```
+
+在 `ready` 回调中处理所有涉及到 JS 与原生交互的操作。
+
+```javascript
+native.ready(function() {
+    Native.log("native is ready：" + Native.version);
+});
+```
+
+*因为平台和环境的不同，JS 与原生交互的实现方式方式也不同。`native.js` 内部封装了几种常见的交互方式，并对外提供了统一的接口，方便 H5 页面的跨平台开发。*
+
+
 
 ## 目录
 
