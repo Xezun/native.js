@@ -7,6 +7,7 @@ declare enum NativeType {
     object = "object",                // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
     javascript = "javascript"   // iOS WebKit 注入 js ，使用函数作为代理。
 }
+
 /// Native.log 样式。
 declare enum NativeLogStyle {
     default = 0,
@@ -42,7 +43,7 @@ declare module native {
     /// 核心功能，负责与原生代码交互的逻辑。
     const core: {
         /**
-         * 将回调函数通过唯一标识符保存起来。
+         * 注册回调函数。
          *
          * @param  func 待保存的回调函数。
          * @return {string} 保存回调函数所使用的唯一标识符。
@@ -53,7 +54,7 @@ declare module native {
          * 获取指定标识符对应的回调函数。
          *
          * @param {string} identifier 回调函数的唯一标识符。
-         * @param needsRemove 获取指定标识符对应的回调函数后是否移除该回调函数。
+         * @param needsRemove 获取指定标识符对应的回调函数后是否移除该回调函数，默认移除。
          * @return 指定标识符对应的回调函数，如果不存在，则返回 undefined 。
          */
         callback(identifier: string, needsRemove?: boolean): (...arg: any[]) => any;
@@ -70,10 +71,10 @@ declare module native {
          * 注册已注入到 JS 环境注入的原生对象的方法。
          * 原生代码必须调用此方法注册已注入的对象，才能进行 JS 与原生代码按照既定规则交互。
          *
-         * @param nativeObject 一般是注入 JS 中的原生对象。
+         * @param delegate 一般是注入 JS 中的原生对象。
          * @param nativeType 交互方法或原生对象能接收的数据类型。
          */
-        register(nativeObject: any | null, nativeType: NativeType): void;
+        register(delegate: object | ((method: string, parameters: [any]) => void) | null, nativeType: NativeType): void;
 
         /**
          * URL 交互方式的协议头，默认 native 。
@@ -107,7 +108,7 @@ declare module native {
      * 拓展 native 对象的方法。此方法的回调函数会在 core.ready 之后，但是在 ready(fn) 方法的回调函数之前执行。
      * @param callback 构造属性的函数。
      */
-    function extend(callback: (configuration: object) => object): void;
+    function extend(callback: (configuration: _NativeConfiguration) => object): void;
 }
 
 
@@ -117,6 +118,15 @@ declare enum NativeCachedResourceType {
 
 declare enum NativeNetworkStatus {
     WiFi = "WiFi"
+}
+
+
+declare module native {
+    function login(callback: () => void): void;
+}
+
+declare module native {
+    function open(page: string): void;
 }
 
 /// native 对象。
@@ -385,6 +395,8 @@ declare module native {
             setBackgroundColor(backgroundColor: string): void;
         };
     };
+
+
 }
 
 

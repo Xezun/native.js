@@ -1,62 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
-    <title>AppCore</title>
-    <script src="Example/jquery-3.1.1.min.js"></script>
-    <script src="native/native.js"></script>
+    <title>native.js</title>
+    <script src="./Example/jquery-3.1.1.min.js"></script>
+    <script src="./native/native.js"></script>
 
     <script>
+        let date1 = Native.cookie.value("date");
+        if (date1) {
+            Native.log("上次访问日期：" + date1, NativeLogStyle.warning);
+        }
+        Native.log("Native Version: " + Native.version, NativeLogStyle.error);
 
-        Native.log("Native Version: " + Native.version);
-        Native.log("Warning Log Message", 1);
-        Native.log("Error Log Message", 2);
-        
-        native.ready(function () {
+        let date2 = (new Date()).toUTCString()
+        Native.cookie.value("date", date2);
 
-           $("#alert").click(function () {
-               native.alert({
-                   title: "This is an alert!",
-                   body: "This is alert body!",
-                   actions: ["OK", "Cancel"]
-               }, function (index) {
-                   NativeLog("alert: " + index);
-               });
-           });
+        native.ready(function() {
+            Native.log("native is ready：" + (new Date()).toUTCString());
 
-           native.dataService.numberOfRowsInList("main", "test", function (number) {
-               for (let i = 0; i < number; i++) {
-                   native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
-                       $("#dataService").append("<tr><td>" + data + "</td></tr>")
-                   })
-               }
-           });
-
-           $("#cachedResourceForURL").click(function () {
-               native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
-                   $("#cachedResourceForURLImage").attr("src", url);
-               });
-           });
+            $("#http").click(function () {
+                native.http({
+                    url: "./data.json",
+                    method: "GET",
+                    headers: {"Custom-Header": "ABCDEFG"},
+                    data: {}
+                }, function (response) {
+                    console.log(response.data)
+                });
+            });
+            
+            $("#open").click(function () {
+                native.open("momshop://product?id=1234")
+            });
 
         });
 
+
+
+
+
+        // native.ready(function () {
+
+        //    $("#alert").click(function () {
+        //        native.alert({
+        //            title: "This is an alert!",
+        //            body: "This is alert body!",
+        //            actions: ["OK", "Cancel"]
+        //        }, function (index) {
+        //            NativeLog("alert: " + index);
+        //        });
+        //    });
+
+        //    native.dataService.numberOfRowsInList("main", "test", function (number) {
+        //        for (let i = 0; i < number; i++) {
+        //            native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+        //                $("#dataService").append("<tr><td>" + data + "</td></tr>")
+        //            })
+        //        }
+        //    });
+
+        //    $("#cachedResourceForURL").click(function () {
+        //        native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+        //            $("#cachedResourceForURLImage").attr("src", url);
+        //        });
+        //    });
+
+        // });
+
     </script>
+
+    <style>
+        div {
+            width: 100%;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
-    <input type="button" value="Alert" id="alert">
+<div>native.js</div>
 
-    <table id="dataService" width="100%" border="1">
+<div>
+    <div><input type="button" value="http" id="http"></div>
+</div>
 
-    </table>
-    <input type="button" value="Image" id="cachedResourceForURL" />
-    <img src="" alt="" id="cachedResourceForURLImage" />
+<div>
+    <div><input type="button" value="Open" id="open"></div>
+</div>
+
+
 
 </body>
 </html>
 
 
 <script>
+
+    // 模拟 ready 事件。
+
+    native.core.register(function(method, parameters) {
+        if (method == NativeMethod.ready) {
+            Native.log("native 初始化开始：" + (new Date()).toUTCString());
+            // 使用延时来模拟 App 初始化过程。
+            setTimeout(function () {
+                Native.log("native 初始化完成：" + (new Date()).toUTCString());
+                parameters[0]({
+                    currentTheme: "default",
+                    currentUser: {
+                        id: 123,
+                        name: "John",
+                        info: {},
+                        version: 1
+                    },
+                    navigation: {
+                        bar: {
+                            title: "Test",
+                            titleColor: "#000",
+                            isHidden: false,
+                            backgroundColor: "#fff"
+                        }
+                    },
+                    networking: {
+                        status: "WiFi"
+                    }
+                });
+            }, Math.random() * 5000)
+        } else if (method === NativeMethod.http) {
+            let request = parameters[0];
+
+            let headers = {
+                "Api-Version": "",
+                "lang": 1,
+                "country": 1876,
+                "currencycode": "SAR",
+                "channel-id": 4,
+                "device-code": "76594ffa5a77276"
+            };
+            if (request.headers) {
+                for (let key in request.headers) {
+                    if (!request.headers.hasOwnProperty(key)) {
+                        continue;
+                    }
+                    headers[key] = request.headers[key];
+                }
+            }
+
+            $.ajax({
+                url: request.url,
+                method: request.method,
+                headers: headers,
+                success: function (data) {
+                    parameters[1](data);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    parameters[1]({
+                        code: 1,
+                        message: textStatus
+                    });
+                }
+            })
+        } else if (method === NativeMethod.open) {
+            Native.log("Open page: " + parameters[0]);
+        }
+    }, NativeType.javascript);
 
     // 模拟 App 行为
 //    native.core.register(function (method, parameters, callbackID) {

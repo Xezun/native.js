@@ -124,12 +124,12 @@ function _Native() {
     // native 作为单例，其核心 core 与自身互为引用。
     let _core = new _CoreNative(function (configuration) {
         _configuration = configuration;
-        // 加载拓展，callback 中 this 指向 native 对象。。
+        // 加载拓展，extension 中 this 指向 native 对象。。
         while (_extensions.length > 0) {
-            let callback = _extensions.shift();
-            Object.defineProperties(native, callback.apply(native, [_configuration]));
+            let extension = _extensions.shift();
+            Object.defineProperties(native, extension.apply(native, [_configuration]));
         }
-        // 执行 ready，callback 中 this 指向 window 对象。。
+        // 执行 ready，回调函数中 this 指向 window 对象。。
         while (_readies.length > 0) {
             (_readies.shift()).apply(window);
         }
@@ -216,12 +216,12 @@ function _CoreNative(nativeWasReady) {
                     return undefined;
                 }
                 let callback = _keyedCallbacks[argument];
-                if (needsRemove) {
+                if (needsRemove || typeof needsRemove === "undefined") {
                     delete _keyedCallbacks[argument]
                 }
                 return callback;
             default:
-                NativeLog("Only callback function or callback is allowed", NativeLogStyleError);
+                Native.log("Only callback function or callback is allowed", NativeLogStyle.error);
                 return undefined;
         }
     }
@@ -236,9 +236,15 @@ function _CoreNative(nativeWasReady) {
             case NativeType.object:
                 return _performByObject.apply(this, arguments);
             case NativeType.javascript:
-                return window.setTimeout(function () { _delegate.apply(window, arguments); });
+                let parameters = [];
+                for (let i = 1; i < arguments.length; i++) {
+                    parameters.push(arguments[i]);
+                }
+                return window.setTimeout(function () {
+                    _delegate.apply(window, [method, parameters]);
+                });
             default:
-                return NativeLog("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyleError);
+                return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
         }
     }
     
@@ -287,13 +293,13 @@ function _CoreNative(nativeWasReady) {
             }
         }
         // native://login?parameters=["John", "pw123456"]
-        let url = _scheme + "://" + method + "?parameters=" + NativeParseURLQuery(parameters);
-        let iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.setAttribute('src', url);
-        document.body.appendChild(iframe);
+        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQuery(parameters);
+        let nativeFrame = document.createElement('nativeFrame');
+        nativeFrame.style.display = 'none';
+        nativeFrame.setAttribute('src', url);
+        document.body.appendChild(nativeFrame);
         window.setTimeout(function () {
-            document.body.removeChild(iframe);
+            document.body.removeChild(nativeFrame);
         }, 2000);
     }
     
@@ -315,11 +321,11 @@ function _CoreNative(nativeWasReady) {
         }
         // 删除已经发起的 ready 事件。
         if (!!_readyID) {
-            _callback(_readyID, false);
+            _callback(_readyID, true);
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
         function _documentWasReady() {
-            _readyID = _perform(NativeMethod.ready, dataType, function (configuration) {
+            _readyID = _perform(NativeMethod.ready, function (configuration) {
                 _isReady = true;
                 nativeWasReady(configuration);
             });
@@ -458,10 +464,10 @@ function _Cookie() {
             if (typeof value !== "string") {
                 value = JSON.stringify(value);
             }
-            document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + "; expires=" + date.toGMTString();
+            document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString();
         } else {
             date.setTime(date.getTime() - 1);
-            document.cookie = encodeURIComponent(key) + "; expires=" + date.toGMTString();
+            document.cookie = encodeURIComponent(key) + "; expires=" + date.toUTCString();
         }
         if (!!_keyedCookies) {
             _keyedCookies[key] = value;
@@ -579,7 +585,11 @@ window.native.extend(function () {
             Native.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
             return this;
         }
-        return this.core.perform(NativeMethod.login, null, callback);
+        let that = this;
+        this.core.perform(NativeMethod.login, function (currentUser) {
+            that.setCurrentUser(currentUser);
+            callback();
+        });
     }
     
     return {
@@ -653,7 +663,6 @@ window.native.extend(function (configuration) {
     function _setCurrentUser(userInfo) {
         _currentUser = new _User(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
         _currentUserChange();
-        window.cookie
     }
     
     (function (native) {
@@ -720,7 +729,7 @@ window.native.extend(function (configuration) {
             }
             _title = newValue;
             if (needsSyncToApp) {
-                _nativeCore.perform(NativeMethod.setNavigationBarTitle, [newValue]);
+                _nativeCore.perform(NativeMethod.setNavigationBarTitle, newValue);
             }
             return this;
         }
@@ -732,7 +741,7 @@ window.native.extend(function (configuration) {
             }
             _titleColor = newValue;
             if (needsSyncToApp) {
-                _nativeCore.perform(NativeMethod.setNavigationBarTitleColor, [newValue]);
+                _nativeCore.perform(NativeMethod.setNavigationBarTitleColor, newValue);
             }
             return this;
         }
@@ -744,7 +753,7 @@ window.native.extend(function (configuration) {
             }
             _isHidden = newValue;
             if (needsSyncToApp) {
-                _nativeCore.perform(NativeMethod.setNavigationBarHidden, [newValue, animated]);
+                _nativeCore.perform(NativeMethod.setNavigationBarHidden, newValue, animated);
             }
             return this;
         }
@@ -768,7 +777,7 @@ window.native.extend(function (configuration) {
             if (!needsSyncToApp) {
                 return this;
             }
-            _nativeCore.perform(NativeMethod.setNavigationBarBackgroundColor, [newValue]);
+            _nativeCore.perform(NativeMethod.setNavigationBarBackgroundColor, newValue);
             return this;
         }
         
@@ -858,7 +867,7 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _nativeCore.perform(NativeMethod.push, [url, animated], null);
+            return _nativeCore.perform(NativeMethod.push, url, animated);
         };
         
         // 3.2 推出当前页面，使栈内页面数量 -1。
@@ -866,7 +875,7 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _nativeCore.perform(NativeMethod.pop, [animated], null);
+            return _nativeCore.perform(NativeMethod.pop, animated);
         };
         
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
@@ -878,7 +887,7 @@ window.native.extend(function (configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _nativeCore.perform(NativeMethod.popTo, [index, animated]);
+            return _nativeCore.perform(NativeMethod.popTo, index, animated);
         };
         
         let _bar = new _NavigationBar(info.bar);
@@ -942,7 +951,7 @@ window.native.extend(function (configuration) {
                 Native.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.http, [request], callback);
+            return _nativeCore.perform(NativeMethod.http, request, callback);
         }
         
         // 网络状态监听。
@@ -1019,16 +1028,12 @@ window.native.extend(function (configuration) {
 
 window.native.extend(function () {
     
-    function _open(page, parameters) {
+    function _open(page) {
         if (typeof page !== 'string') {
             Native.log("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
-        let _arguments = [page];
-        if (parameters) {
-            _arguments.push(parameters);
-        }
-        return this.core.perform(NativeMethod.open, _arguments);
+        return this.core.perform(NativeMethod.open, page);
     }
     
     return {
@@ -1062,7 +1067,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(NativeMethod.present, [url, animated], completion);
+        return this.core.perform(NativeMethod.present, url, animated, completion);
     }
     
     function _dismiss(arg1, arg2) {
@@ -1075,7 +1080,7 @@ window.native.extend(function () {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(NativeMethod.dismiss, [animated], completion);
+        return this.core.perform(NativeMethod.dismiss, animated, completion);
     }
     
     return {
@@ -1113,7 +1118,7 @@ window.native.extend(function (configuration) {
         window.Native.cookie.value(NativeCookieKey.currentTheme, newValue);
         // 同步到 App 说明更改主题是由 JS 触发的，则不发送事件；否则就发送事件。
         if (needsSyncToApp || typeof needsSyncToApp === "undefined") {
-            this.core.perform(NativeMethod.setCurrentTheme, [newValue, animated], null);
+            this.core.perform(NativeMethod.setCurrentTheme, newValue, animated);
         } else {
             _currentThemeChange();
         }
@@ -1192,7 +1197,7 @@ window.native.extend(function () {
                 Native.log("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.didSelectRowAtIndex, [documentName, elementName, index], callback);
+            return _nativeCore.perform(NativeMethod.didSelectRowAtIndex, documentName, elementName, index, callback);
         }
         
         /// 页面元素点击事件。
@@ -1205,7 +1210,7 @@ window.native.extend(function () {
                 callback = data;
                 data = null;
             }
-            return _nativeCore.perform(NativeMethod.wasClickedOnElement, [documentName, elementName, data], callback);
+            return _nativeCore.perform(NativeMethod.wasClickedOnElement, documentName, elementName, data, callback);
         }
         
         /// 事件埋点。
@@ -1214,7 +1219,7 @@ window.native.extend(function () {
                 Native.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.track, [eventName, parameters]);
+            return _nativeCore.perform(NativeMethod.track, eventName, parameters);
         }
         
         Object.defineProperties(this, {
@@ -1270,7 +1275,7 @@ window.native.extend(function () {
                 Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.numberOfRowsInList, [documentName, listName], callback);
+            return _nativeCore.perform(NativeMethod.numberOfRowsInList, documentName, listName, callback);
         }
         
         // 加载数据
@@ -1282,7 +1287,7 @@ window.native.extend(function () {
                 Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.dataForRowAtIndex, [documentName, listName, index], callback);
+            return _nativeCore.perform(NativeMethod.dataForRowAtIndex, documentName, listName, index, callback);
         }
     
         // 获取缓存。
@@ -1309,7 +1314,7 @@ window.native.extend(function () {
                 Native.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.cachedResourceForURL, [url, cacheType], completion);
+            return _nativeCore.perform(NativeMethod.cachedResourceForURL, url, cacheType, completion);
         }
         
         Object.defineProperties(this, {
@@ -1356,7 +1361,7 @@ window.native.extend(function () {
             Native.log("Method `alert` first parameter must be an message object.", NativeLogStyle.error);
             return null;
         }
-        return this.core.perform(NativeMethod.alert, [message], callback);
+        return this.core.perform(NativeMethod.alert, message, callback);
     }
     
     return {
