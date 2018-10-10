@@ -491,9 +491,9 @@ function _log(message, style) {
     if (typeof style !== "number" || style === NativeLogStyle.default) {
         console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
     } else if (style === NativeLogStyle.warning) {
-        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #f18f38");
+        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #f18f38");
     } else if (style === NativeLogStyle.error) {
-        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "background-color: #ffffff; color: #e95648");
+        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #e95648");
     }
 }
 
