@@ -76,6 +76,73 @@ const NativeCookieKey = Object.freeze({
         }
     });
 
+    function _log(message, style) {
+        if (typeof style !== "number" || style === NativeLogStyle.default) {
+            console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
+        } else if (style === NativeLogStyle.warning) {
+            console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #f18f38");
+        } else if (style === NativeLogStyle.error) {
+            console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #e95648");
+        }
+    }
+
+    // 将任意值转换为 URL QueryValue 。
+    function _parseURLQueryValue(value) {
+        if (!value) {
+            return "";
+        }
+        switch (typeof value) {
+            case 'string':
+                return encodeURIComponent(value);
+            case 'undefined':
+                return '';
+            default:
+                return encodeURIComponent(JSON.stringify(value));
+        }
+    }
+
+    // 将任意对象转换为 URL 查询字符串。
+    function _parseURLQuery(anObject) {
+        if (!anObject) {
+            return "";
+        }
+        // [a,b,c] -> a&b&c
+        if (Array.isArray(anObject)) {
+            let values = [];
+            for (let i = 0; i < anObject.length; i++) {
+                values.push(_parseURLQueryValue(anObject[i]));
+            }
+            return values.join("&");
+        }
+
+        switch (typeof anObject) {
+            case 'string': // any string -> any%20string
+                return encodeURIComponent(anObject);
+
+            case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
+                let queryString = "";
+                for (let key in anObject) {
+                    if (!anObject.hasOwnProperty(key)) {
+                        continue;
+                    }
+                    if (queryString.length > 0) {
+                        queryString += ("&" + encodeURIComponent(key));
+                    } else {
+                        queryString = encodeURIComponent(key);
+                    }
+                    if (!anObject[key]) {
+                        continue;
+                    }
+                    queryString += ("=" + _parseURLQueryValue(anObject[key]));
+                }
+                return queryString;
+            case 'undefined':
+                return '';
+            default:
+                return encodeURIComponent(JSON.stringify(anObject));
+        }
+    }
+
     // native.version
     Object.defineProperties(_Native, {
         version: {
@@ -205,19 +272,19 @@ function _CoreNative(nativeWasReady) {
     let _scheme         = "native";      // 使用 URL 交互时使用
     
     // 保存或读取 callback 。
-    function _callback(argument, needsRemove) {
-        switch (typeof argument === 'function') {
+    function _callback(callbackOrID, needsRemove) {
+        switch (typeof callbackOrID) {
             case "function":
                 let uniqueID = "NT" + (_uniqueID++);
-                _keyedCallbacks[uniqueID] = argument;
+                _keyedCallbacks[uniqueID] = callbackOrID;
                 return uniqueID;
             case "string":
-                if (!_keyedCallbacks.hasOwnProperty(argument)) {
+                if (!_keyedCallbacks.hasOwnProperty(callbackOrID)) {
                     return undefined;
                 }
-                let callback = _keyedCallbacks[argument];
+                let callback = _keyedCallbacks[callbackOrID];
                 if (needsRemove || typeof needsRemove === "undefined") {
-                    delete _keyedCallbacks[argument]
+                    delete _keyedCallbacks[callbackOrID]
                 }
                 return callback;
             default:
@@ -500,77 +567,7 @@ function _Cookie() {
 }
 
 
-// ======================================
-// ======================================
-// ======================================
-// MARK: - Functions
 
-function _log(message, style) {
-    if (typeof style !== "number" || style === NativeLogStyle.default) {
-        console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
-    } else if (style === NativeLogStyle.warning) {
-        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #f18f38");
-    } else if (style === NativeLogStyle.error) {
-        console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #e95648");
-    }
-}
-
-// 将任意值转换为 URL QueryValue 。
-function _parseURLQueryValue(value) {
-    if (!value) {
-        return "";
-    }
-    switch (typeof value) {
-        case 'string':
-            return encodeURIComponent(value);
-        case 'undefined':
-            return '';
-        default:
-            return encodeURIComponent(JSON.stringify(value));
-    }
-}
-
-// 将任意对象转换为 URL 查询字符串。
-function _parseURLQuery(anObject) {
-    if (!anObject) {
-        return "";
-    }
-    // [a,b,c] -> a&b&c
-    if (Array.isArray(anObject)) {
-        let values = [];
-        for (let i = 0; i < anObject.length; i++) {
-            values.push(_parseURLQueryValue(anObject[i]));
-        }
-        return values.join("&");
-    }
-    
-    switch (typeof anObject) {
-        case 'string': // any string -> any%20string
-            return encodeURIComponent(anObject);
-            
-        case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
-            let queryString = "";
-            for (let key in anObject) {
-                if (!anObject.hasOwnProperty(key)) {
-                    continue;
-                }
-                if (queryString.length > 0) {
-                    queryString += ("&" + encodeURIComponent(key));
-                } else {
-                    queryString = encodeURIComponent(key);
-                }
-                if (!anObject[key]) {
-                    continue;
-                }
-                queryString += ("=" + _parseURLQueryValue(anObject[key]));
-            }
-            return queryString;
-        case 'undefined':
-            return '';
-        default:
-            return encodeURIComponent(JSON.stringify(anObject));
-    }
-}
 
 
 // ======================================

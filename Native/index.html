@@ -16,14 +16,8 @@
         let date2 = (new Date()).toUTCString();
         Native.cookie.value("date", date2);
 
-        $.holdReady(true);
-
-        native.ready(function() {
-            $.holdReady(false);
-            Native.log("native is ready：" + (new Date()).toUTCString());
-        });
-
         $(function () {
+            // 网络请求
             $("#http").click(function () {
                 native.http({
                     url: "./data.json",
@@ -38,10 +32,39 @@
                 });
             });
 
+            // 点击事件1
+            $("#event1").click(function () {
+                native.eventService.wasClickedOnElement("EventPage", "ProductSelectButton", {"id": 1234}, function () {
+                    Native.log("打开商品规格页回调。");
+                });
+            });
+
+            // 点击事件2
+            $("#event2").click(function () {
+                native.eventService.wasClickedOnElement("EventPage", "ProductDetailButton", {"id": 5678}, function () {
+                    Native.log("进入商品详情页页回调。");
+                });
+            });
+
+            // 埋点事件
+            $("#event3").click(function () {
+                native.eventService.track("TrackName", {"id": 123});
+            });
+
+
             $("#open").click(function () {
                 native.open("momshop://product?id=1234")
             });
         });
+
+        $.holdReady(true);
+
+        native.ready(function() {
+            $.holdReady(false);
+            Native.log("native is ready：" + (new Date()).toUTCString());
+        });
+
+
 
     </script>
 
@@ -67,10 +90,21 @@
     <div><input type="button" value="Open" id="open"></div>
 </div>
 
-
+<div>
+    <div><input type="button" value="打开商品规格选择页" id="event1"></div>
+    <div><input type="button" value="打开商品详情页" id="event2"></div>
+    <div><input type="button" value="埋点事件" id="event3"></div>
+</div>
 
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 <script>
@@ -140,6 +174,31 @@
 
         } else if (method === NativeMethod.open) {
             Native.log("Open page: " + parameters[0]);
+        } else if (method === NativeMethod.wasClickedOnElement) {
+            switch (parameters[0]) {
+                case "EventPage":
+                    switch (parameters[1]) {
+                        case "ProductSelectButton":
+                            Native.log("展示商品规格选择页：" + parameters[2].id);
+                            break;
+
+                        case "ProductDetailButton":
+                            Native.log("展示商品详情页：" + parameters[2].id);
+                            break;
+
+                        default: break;
+                    }
+
+                    let callback = parameters[3];
+                    if (callback) {
+                        callback()
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } else if (method === NativeMethod.track) {
+            Native.log("埋点：" + parameters[0] + " 参数：" + JSON.stringify(parameters[1]));
         }
     }, NativeType.javascript);
 
