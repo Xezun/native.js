@@ -20,7 +20,7 @@
             // 网络请求
             $("#http").click(function () {
                 native.http({
-                    url: "./data.json",
+                    url: "./data.json?rnd="+Math.random(),
                     method: "GET",
                     headers: {"Custom-Header": "ABCDEFG"},
                     data: {}
@@ -55,10 +55,11 @@
             $("#open").click(function () {
                 native.open("momshop://product?id=1234")
             });
+
         });
 
-        $.holdReady(true);
 
+        $.holdReady(true);
         native.ready(function() {
             $.holdReady(false);
             Native.log("native is ready：" + (new Date()).toUTCString());
@@ -111,6 +112,7 @@
 
     native.core.register(function(method, parameters) {
         if (method == NativeMethod.ready) {
+
             Native.log("native 初始化开始：" + (new Date()).toUTCString());
             // 使用延时来模拟 App 初始化过程。
             setTimeout(function () {
@@ -193,6 +195,9 @@
                     if (callback) {
                         callback()
                     }
+                    break;
+
+                case "EventPage2":
                     break;
                 default:
                     break;
