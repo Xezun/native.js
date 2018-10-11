@@ -78,11 +78,11 @@ const NativeCookieKey = Object.freeze({
 
     function _log(message, style) {
         if (typeof style !== "number" || style === NativeLogStyle.default) {
-            console.log("%c[Native] " + message, "color: #357bbb; font-weight: bold;");
+            console.log("[Native] " + message);
         } else if (style === NativeLogStyle.warning) {
-            console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #f18f38");
+            console.warn("[Native] " + message);
         } else if (style === NativeLogStyle.error) {
-            console.log("%c[Native] %c" + message, "color: #357bbb; font-weight: bold;", "color: #e95648");
+            console.error("[Native] " + message);
         }
     }
 
@@ -307,9 +307,10 @@ function _CoreNative(nativeWasReady) {
                 for (let i = 1; i < arguments.length; i++) {
                     parameters.push(arguments[i]);
                 }
-                return window.setTimeout(function () {
+                window.setTimeout(function () {
                     _delegate.apply(window, [method, parameters]);
                 });
+                return;
             default:
                 return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
         }
@@ -360,7 +361,7 @@ function _CoreNative(nativeWasReady) {
             }
         }
         // native://login?parameters=["John", "pw123456"]
-        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQuery(parameters);
+        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryValue(parameters);
         let nativeFrame = document.createElement('nativeFrame');
         nativeFrame.style.display = 'none';
         nativeFrame.setAttribute('src', url);
@@ -368,6 +369,10 @@ function _CoreNative(nativeWasReady) {
         window.setTimeout(function () {
             document.body.removeChild(nativeFrame);
         }, 2000);
+
+        if (typeof _delegate === "function") {
+            _delegate(url);
+        }
     }
     
     let _isReady = false;
@@ -394,6 +399,7 @@ function _CoreNative(nativeWasReady) {
         function _documentWasReady() {
             _readyID = _perform(NativeMethod.ready, function (configuration) {
                 _isReady = true;
+                _readyID = null;
                 nativeWasReady(configuration);
             });
         }
