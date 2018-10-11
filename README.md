@@ -1,6 +1,8 @@
 # native.js
 
-## 如何使用
+## HTML
+
+### 如何使用
 
 在 H5 页面中引入 `native.js` .
 
@@ -16,8 +18,44 @@ native.ready(function() {
 });
 ```
 
-*因为平台和环境的不同，JS 与原生交互的实现方式方式也不同。`native.js` 内部封装了几种常见的交互方式，并对外提供了统一的接口，方便 H5 页面的跨平台开发。*
+通过 `native.core` 的 `perform(method, args...)` 方法，可以直接调用原生平台的方法。
+比如，调用原生的登录方法，则可如下调用。
 
+```javascript
+native.core.perform("login", {"account": "foo", "password": "bar"}, function () {
+
+});
+```
+
+`native.core` 是与原生交互的核心功能，将 JS 调用的 method 通过消息机制传递给原生，并由原生来解析消息并执行相应的方法。
+但是不同平台、环境的交互方式存在差异，为了解决此问题，`native.js` 在核心部分封装了几种常见的交互方式，并对外提供了统一的接口，从而实现跨平台开发。
+
+
+
+```javascript
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 交互机制
 
 
 ## 目录
