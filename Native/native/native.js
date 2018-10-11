@@ -362,7 +362,7 @@ function _CoreNative(nativeWasReady) {
         }
         // native://login?parameters=["John", "pw123456"]
         let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryValue(parameters);
-        let nativeFrame = document.createElement('nativeFrame');
+        let nativeFrame = document.createElement('iframe');
         nativeFrame.style.display = 'none';
         nativeFrame.setAttribute('src', url);
         document.body.appendChild(nativeFrame);
