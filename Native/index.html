@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <title>native.js</title>
     <script src="./Example/jquery-3.1.1.min.js"></script>
-    <script src="./native/native.js"></script>
+    <!--<script type="module" src="./native/native.js"></script>-->
 
     <script>
+        import { native, Native } from "./native/native.js";
+
+        // import Native from "./native/native.js";
+        // import NativeType from "./native/native.js";
+
         let date1 = Native.cookie.value("date");
         if (date1) {
             Native.log("上次访问日期：" + date1, NativeLogStyle.warning);
@@ -111,7 +116,7 @@
 
     // 模拟 URL 交互方式。
 
-    
+
 
     native.core.register(function (url) {
         Native.log(url);

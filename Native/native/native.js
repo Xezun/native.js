@@ -1,5 +1,7 @@
 // native.js
 
+export { native, Native, NativeType, NativeLogStyle }
+
 /// 与原生交互的方式。
 const NativeType = Object.freeze({
     // 使用 URL 方式交互。
@@ -59,16 +61,21 @@ const NativeCookieKey = Object.freeze({
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
 // 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
 
-(function() {
+const native = (function () {
     let _native = new _Native();
-    let _cookie = new _Cookie();
     // window.native
     Object.defineProperty(window, "native", {
         get: function () {
             return _native;
         }
     });
-    
+    return _native;
+})();
+
+const Native = (function() {
+
+    let _cookie = new _Cookie();
+
     // window.Native
     Object.defineProperty(window, "Native", {
         get: function () {
@@ -171,7 +178,8 @@ const NativeCookieKey = Object.freeze({
             }
         }
     });
-    
+
+    return _Native;
 })();
 
 
@@ -581,7 +589,7 @@ function _Cookie() {
 // ======================================
 // MARK: - login
 
-window.native.extend(function () {
+native.extend(function () {
     
     function _login(callback) {
         if (!callback) {
@@ -611,7 +619,7 @@ window.native.extend(function () {
 // ======================================
 // MARK: - User
 
-window.native.extend(function (configuration) {
+native.extend(function (configuration) {
     // 存储监听
     let _currentUserChangeHandlers = [];
     
@@ -660,7 +668,7 @@ window.native.extend(function (configuration) {
     );
     
     // 保存 User 信息。
-    window.Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+    Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
 
     // 设置当前用户，App 行为。
     function _setCurrentUser(userInfo) {
@@ -714,7 +722,7 @@ window.native.extend(function (configuration) {
 // ======================================
 // MARK: - navigation
 
-window.native.extend(function (configuration) {
+native.extend(function (configuration) {
 
     let _nativeCore = this.core;
 
@@ -939,7 +947,7 @@ const NativeNetworkStatus = Object.freeze({
     WiFi: "WiFi"
 });
 
-window.native.extend(function (configuration) {
+native.extend(function (configuration) {
 
     let _nativeCore = this.core;
     
@@ -1029,7 +1037,7 @@ window.native.extend(function (configuration) {
 // ======================================
 // MARK: - Open
 
-window.native.extend(function () {
+native.extend(function () {
     
     function _open(page) {
         if (typeof page !== 'string') {
@@ -1054,7 +1062,7 @@ window.native.extend(function () {
 // ======================================
 // MARK: - Present
 
-window.native.extend(function () {
+native.extend(function () {
     
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
@@ -1108,7 +1116,7 @@ window.native.extend(function () {
 // ======================================
 // MARK: - Theme
 
-window.native.extend(function (configuration) {
+native.extend(function (configuration) {
 
     let _currentTheme = configuration.currentTheme;
 
@@ -1186,7 +1194,7 @@ window.native.extend(function (configuration) {
 // ======================================
 // MARK: - Event Service
 
-window.native.extend(function () {
+native.extend(function () {
     
     // native 对象应该一直存在于内存中，拓展也应该一直存在于内存中（如果不是一直存在于内存中的拓展，可以考虑提供清理的方法。
 
@@ -1265,7 +1273,7 @@ const NativeCachedResourceType = Object.freeze({
     image: "image"
 });
 
-window.native.extend(function () {
+native.extend(function () {
 
     let _nativeCore = this.core;
     
@@ -1357,7 +1365,7 @@ window.native.extend(function () {
 // ======================================
 // MARK: - Alert
 
-window.native.extend(function () {
+native.extend(function () {
     
     function _alert(message, callback) {
         if (!message || typeof message !== 'object') {
