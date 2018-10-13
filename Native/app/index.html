@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>native.js</title>
+    <script src="./js/jquery-3.1.1.min.js"></script>
+    <script src="./js/js.js"></script>
+
+    <style>
+        body>div {
+            width: 100%;
+            text-align: center;
+            margin: 20px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+
+<div>native.js</div>
+
+<div id="httpDiv">
+    <div><input type="button" value="http" id="http"></div>
+</div>
+
+<div>
+    <div><input type="button" value="Open" id="open"></div>
+</div>
+
+<div>
+    <div><input type="button" value="打开商品规格选择页" id="event1"></div>
+    <div><input type="button" value="打开商品详情页" id="event2"></div>
+    <div><input type="button" value="埋点事件" id="event3"></div>
+</div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+<script>
+    // JS 模拟 App 行为。
+
+    // 模拟 URL 交互方式。
+
+    // 模拟 App 行为
+//    native.core.register(function (method, parameters, callbackID) {
+//        NativeLog("执行方法 "+ method);
+//        switch (method) {
+//            case NativeMethodReady:
+//                native.core.dispatch(callbackID, {
+//                    currentTheme: "default",
+//                    currentUser: {
+//                        id: 123,
+//                        name: "John",
+//                        info: {},
+//                        version: 1
+//                    },
+//                    navigation: {
+//                        bar: {
+//                            title: "Test",
+//                            titleColor: "#000",
+//                            isHidden: false,
+//                            backgroundColor: "#fff"
+//                        }
+//                    },
+//                    networking: {
+//                        status: "WiFi"
+//                    }
+//                });
+//                break;
+//
+//            case NativeMethodAlert:
+//                if (confirm(JSON.stringify(parameters))) {
+//                    native.core.dispatch(callbackID, 0);
+//                } else {
+//                    native.core.dispatch(callbackID, 1);
+//                }
+//                break;
+//
+//            case NativeMethodNumberOfRowsInList:
+//                native.core.dispatch(callbackID, 10);
+//                break;
+//
+//            case NativeMethodDataForRowAtIndex:
+//                native.core.dispatch(callbackID, "Row " + parameters[2]);
+//                break;
+//
+//            case NativeMethodCachedResourceForURL:
+//                native.core.dispatch(callbackID, parameters[0]);
+//                break;
+//
+//            default:
+//                NativeLog("Method: " + method);
+//                break;
+//        }
+//    }, NativeTypeFunction);
+
+    // native.ready(function () {
+
+    //    $("#alert").click(function () {
+    //        native.alert({
+    //            title: "This is an alert!",
+    //            body: "This is alert body!",
+    //            actions: ["OK", "Cancel"]
+    //        }, function (index) {
+    //            NativeLog("alert: " + index);
+    //        });
+    //    });
+
+    //    native.dataService.numberOfRowsInList("main", "test", function (number) {
+    //        for (let i = 0; i < number; i++) {
+    //            native.dataService.dataForRowAtIndex("main", "test", i, function (data) {
+    //                $("#dataService").append("<tr><td>" + data + "</td></tr>")
+    //            })
+    //        }
+    //    });
+
+    //    $("#cachedResourceForURL").click(function () {
+    //        native.dataService.cachedResourceForURL("https://img0.bdstatic.com/static/searchresult/img/logo-2X_b99594a.png", "image", function (url) {
+    //            $("#cachedResourceForURLImage").attr("src", url);
+    //        });
+    //    });
+
+    // });
+</script>

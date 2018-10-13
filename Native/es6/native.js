@@ -1,9 +1,7 @@
 // native.js
 
-export { native, Native, NativeType, NativeLogStyle }
-
 /// 与原生交互的方式。
-const NativeType = Object.freeze({
+export const NativeType = Object.freeze({
     // 使用 URL 方式交互。
     url: "url",
     // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
@@ -15,7 +13,7 @@ const NativeType = Object.freeze({
 });
 
 /// 输出样式。
-const NativeLogStyle = Object.freeze({
+export const NativeLogStyle = Object.freeze({
     default: 0,
     warning: 1,
     error: 2
@@ -61,7 +59,7 @@ const NativeCookieKey = Object.freeze({
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
 // 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
 
-const native = (function () {
+export const native = (function () {
     let _native = new _Native();
     // window.native
     Object.defineProperty(window, "native", {
@@ -72,7 +70,7 @@ const native = (function () {
     return _native;
 })();
 
-const Native = (function() {
+export const Native = (function() {
 
     let _cookie = new _Cookie();
 
