@@ -22,11 +22,11 @@ native.ready(function() {
 // 业务逻辑：JQ示例
 
 $(function () {
-    console.log()
+
     // 网络请求
     $("#http").click(function () {
         native.http({
-            url: "./data.json?rnd="+Math.random(),
+            url: "./dat/data.json?rnd="+Math.random(),
             method: "GET",
             headers: {"Custom-Header": "ABCDEFG"},
             data: {}
@@ -54,143 +54,165 @@ $(function () {
 
     // 埋点事件
     $("#event3").click(function () {
-        native.eventService.track("TrackName", {"id": 123});
+        native.eventService.track("ItemClick", {"id": 123});
     });
 
-
-    $("#open").click(function () {
-        native.open("momshop://product?id=1234")
+    $("#delegate").change(function () {
+        setDelegate($(this).val());
     });
 
 });
 
 
 
-// 模拟 App 操作：基于 URL 的操作方式。
 
-native.core.register(function (url) {
-    Native.log(url);
-    if (url.substr(0, 14) === "native://ready") {
-        let id = url.substr(32, 10);
-        let cb = native.core.callback(id);
-        cb({
-            currentTheme: "default",
-            currentUser: {
-                id: 123,
-                name: "John",
-                info: {},
-                version: 1
-            },
-            navigation: {
-                bar: {
-                    title: "Test",
-                    titleColor: "#000",
-                    isHidden: false,
-                    backgroundColor: "#fff"
+
+
+
+// JS 模拟 App 操作
+
+setDelegate("javascript");
+
+function setDelegate(type) {
+    switch (type) {
+        case "url":
+            // 模拟 App 操作：基于 URL 的操作方式。
+            native.core.register(function (url) {
+                Native.log(url);
+                if (url.substr(0, 14) === "native://ready") {
+                    let id = url.substr(32, 10);
+                    let cb = native.core.callback(id);
+                    cb({
+                        currentTheme: "default",
+                        currentUser: {
+                            id: 123,
+                            name: "John",
+                            info: {},
+                            version: 1
+                        },
+                        navigation: {
+                            bar: {
+                                title: "Test",
+                                titleColor: "#000",
+                                isHidden: false,
+                                backgroundColor: "#fff"
+                            }
+                        },
+                        networking: {
+                            status: "WiFi"
+                        }
+                    });
                 }
-            },
-            networking: {
-                status: "WiFi"
-            }
-        });
+            }, NativeType.url);
+            break;
+
+        case "javascript":
+            // 模拟 App 操作：JS 环境模拟 App 操作。
+            native.core.register(function(method, parameters) {
+                let methods = method.split("/");
+                switch (methods[0]) {
+                    case "ready":
+                        Native.log("App 已完成初始化！", NativeLogStyle.warning);
+                        let callback = native.core.callback(parameters[0]);
+                        callback({
+                            currentTheme: "default",
+                            currentUser: {
+                                id: 123,
+                                name: "John",
+                                info: {},
+                                version: 1
+                            },
+                            navigation: {
+                                bar: {
+                                    title: "Test",
+                                    titleColor: "#000",
+                                    isHidden: false,
+                                    backgroundColor: "#fff"
+                                }
+                            },
+                            networking: {
+                                status: "WiFi"
+                            }
+                        });
+                        break;
+
+                    case "networking":
+                        let request = parameters[0];
+                        let headers = {
+                            "Api-Version": "",
+                            "lang": 1,
+                            "country": 1876,
+                            "currencyCode": "SAR",
+                            "channel-id": 4,
+                            "device-code": "76594ffa5a77276"
+                        };
+                        if (request.headers) {
+                            for (let key in request.headers) {
+                                if (!request.headers.hasOwnProperty(key)) {
+                                    continue;
+                                }
+                                headers[key] = request.headers[key];
+                            }
+                        }
+                        $.ajax({
+                            url: request.url,
+                            method: request.method,
+                            headers: headers,
+                            success: function (data) {
+                                native.core.callback(parameters[1])(data);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                native.core.callback(parameters[1])({
+                                    code: 1,
+                                    message: textStatus
+                                });
+                            }
+                        });
+                        Native.log("App 执行网络请求：" + request.url, NativeLogStyle.warning);
+                        break;
+
+                    case "eventservice":
+                        switch (methods[1]) {
+                            case "wasclickedonelement":
+                                switch (parameters[0]) {
+                                    case "EventPage":
+                                        switch (parameters[1]) {
+                                            case "ProductSelectButton":
+                                                Native.log("App 展示商品规格选择页：" + parameters[2].id, NativeLogStyle.warning);
+                                                break;
+
+                                            case "ProductDetailButton":
+                                                Native.log("App 展示商品详情页：" + parameters[2].id, NativeLogStyle.warning);
+                                                break;
+
+                                            default: break;
+                                        }
+
+                                        let callback = native.core.callback(parameters[3]);
+                                        if (callback) {
+                                            callback()
+                                        }
+                                        break;
+
+                                    case "EventPage2":
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                break;
+                            case "track":
+                                Native.log("App 执行埋点操作：" + parameters[0] + "(" + JSON.stringify(parameters[1]) + ")", NativeLogStyle.warning);
+                                break;
+                            default: break;
+                        }
+
+                    case "dataservice":
+
+                    default: break;
+                }
+            }, NativeType.javascript);
+
+            break
+        default: break;
     }
-}, NativeType.url);
-
-// 模拟 App 操作：JS 环境模拟 App 操作。
-
-// native.core.register(function(method, parameters) {
-//     if (method == NativeMethod.ready) {
-//
-//         Native.log("native 初始化开始：" + (new Date()).toUTCString());
-//         // 使用延时来模拟 App 初始化过程。
-//         setTimeout(function () {
-//             Native.log("native 初始化完成：" + (new Date()).toUTCString());
-//             parameters[0]({
-//                 currentTheme: "default",
-//                 currentUser: {
-//                     id: 123,
-//                     name: "John",
-//                     info: {},
-//                     version: 1
-//                 },
-//                 navigation: {
-//                     bar: {
-//                         title: "Test",
-//                         titleColor: "#000",
-//                         isHidden: false,
-//                         backgroundColor: "#fff"
-//                     }
-//                 },
-//                 networking: {
-//                     status: "WiFi"
-//                 }
-//             });
-//         }, Math.random() * 5000)
-//
-//     } else if (method === NativeMethod.http) {
-//         let request = parameters[0];
-//
-//         let headers = {
-//             "Api-Version": "",
-//             "lang": 1,
-//             "country": 1876,
-//             "currencycode": "SAR",
-//             "channel-id": 4,
-//             "device-code": "76594ffa5a77276"
-//         };
-//         if (request.headers) {
-//             for (let key in request.headers) {
-//                 if (!request.headers.hasOwnProperty(key)) {
-//                     continue;
-//                 }
-//                 headers[key] = request.headers[key];
-//             }
-//         }
-//
-//         $.ajax({
-//             url: request.url,
-//             method: request.method,
-//             headers: headers,
-//             success: function (data) {
-//                 parameters[1](data);
-//             },
-//             error: function (XMLHttpRequest, textStatus, errorThrown) {
-//                 parameters[1]({
-//                     code: 1,
-//                     message: textStatus
-//                 });
-//             }
-//         })
-//
-//     } else if (method === NativeMethod.open) {
-//         Native.log("Open page: " + parameters[0]);
-//     } else if (method === NativeMethod.wasClickedOnElement) {
-//         switch (parameters[0]) {
-//             case "EventPage":
-//                 switch (parameters[1]) {
-//                     case "ProductSelectButton":
-//                         Native.log("展示商品规格选择页：" + parameters[2].id);
-//                         break;
-//
-//                     case "ProductDetailButton":
-//                         Native.log("展示商品详情页：" + parameters[2].id);
-//                         break;
-//
-//                     default: break;
-//                 }
-//
-//                 let callback = parameters[3];
-//                 if (callback) {
-//                     callback()
-//                 }
-//                 break;
-//
-//             case "EventPage2":
-//                 break;
-//             default:
-//                 break;
-//         }
-//     } else if (method === NativeMethod.track) {
-//         Native.log("埋点：" + parameters[0] + " 参数：" + JSON.stringify(parameters[1]));
-//     }
-// }, NativeType.javascript);
+}

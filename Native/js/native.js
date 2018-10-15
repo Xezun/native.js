@@ -59,7 +59,7 @@ const NativeMethod = (function(){
             })
         }),
         networking: Object.freeze({
-            http: "http"
+            http: "networking/http"
         }),
         open: "open",
         present: "present",
@@ -340,7 +340,7 @@ function _CoreNative(nativeWasReady) {
             case NativeType.object:
                 return _performByObject.apply(this, arguments);
             case NativeType.javascript:
-                return _performByJavaScript(this, arguments);
+                return _performByJavaScript.apply(this, arguments);
             default:
                 return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
         }
