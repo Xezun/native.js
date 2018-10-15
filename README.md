@@ -22,6 +22,7 @@ native.ready(function() {
 比如，调用原生的登录方法，则可如下调用。
 
 ```javascript
+// 示例：执行原生的 login 方法。
 native.core.perform("login", {"account": "foo", "password": "bar"}, function () {
 
 });
