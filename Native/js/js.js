@@ -22,6 +22,7 @@ native.ready(function() {
 // 业务逻辑：JQ示例
 
 $(function () {
+    console.log()
     // 网络请求
     $("#http").click(function () {
         native.http({

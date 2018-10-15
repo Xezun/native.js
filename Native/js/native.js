@@ -3,14 +3,10 @@
 /// 与原生交互的方式。
 const NativeType = (function(){
    let _NativeType = Object.freeze({
-        // 使用 URL 方式交互。
-        url: "url",
-        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-        json: "json",
-        // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-        object: "object",
-        // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
-        javascript: "javascript"
+        url: "url", // 使用 URL 方式交互。
+        json: "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+        object: "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+        javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
     });
     Object.defineProperty(window, "NativeType", {
         get: function () {
@@ -64,7 +60,7 @@ const NativeMethod = (function(){
         open: "open",
         present: "present",
         dismiss: "dismiss",
-        // theme
+        // Theme
         setCurrentTheme: "setCurrentTheme"
     });
     Object.defineProperty(window, "NativeMethod", {
@@ -115,11 +111,11 @@ const Native = (function() {
 
     function _log(message, style) {
         if (typeof style !== "number" || style === NativeLogStyle.default) {
-            console.log("[Native] " + message);
+            console.log("%c[Native]%c %s", "color: #123; font-weight: bold;", "color: #999999", message);
         } else if (style === NativeLogStyle.warning) {
-            console.warn("[Native] " + message);
+            console.log("%c[Native]%c %s", "color: #123; font-weight: bold;", "color: #fe7e3c", message);
         } else if (style === NativeLogStyle.error) {
-            console.error("[Native] " + message);
+            console.log("%c[Native]%c %s", "color: #123; font-weight: bold;", "color: #d8463c", message);
         }
     }
 
