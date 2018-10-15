@@ -4,9 +4,9 @@
 
 let date1 = Native.cookie.value("date");
 if (date1) {
-    Native.log("上次访问日期：" + date1, NativeLogStyle.warning);
+    Native.log("上次访问日期：" + date1);
 }
-Native.log("Native Version: " + Native.version, NativeLogStyle.warning);
+Native.log("Native Version: " + Native.version);
 
 let date2 = (new Date()).toUTCString();
 Native.cookie.value("date", date2);

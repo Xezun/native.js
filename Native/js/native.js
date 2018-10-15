@@ -1,60 +1,92 @@
 // native.js
 
 /// 与原生交互的方式。
-const NativeType = Object.freeze({
-    // 使用 URL 方式交互。
-    url: "url",
-    // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-    json: "json",
-    // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-    object: "object",
-    // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
-    javascript: "javascript"
-});
+const NativeType = (function(){
+   let _NativeType = Object.freeze({
+        // 使用 URL 方式交互。
+        url: "url",
+        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+        json: "json",
+        // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+        object: "object",
+        // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
+        javascript: "javascript"
+    });
+    Object.defineProperty(window, "NativeType", {
+        get: function () {
+            return _NativeType;
+        }
+    });
+   return _NativeType;
+})();
 
 /// 输出样式。
-const NativeLogStyle = Object.freeze({
-    default: 0,
-    warning: 1,
-    error: 2
-});
+const NativeLogStyle = (function(){
+    let _NativeLogStyle = Object.freeze({
+        default: 0,
+        warning: 1,
+        error: 2
+    });
+    Object.defineProperty(window, "NativeLogStyle", {
+        get: function () {
+            return _NativeLogStyle;
+        }
+    });
+    return _NativeLogStyle;
+})();
 
 /// 通用的原生支持的方法。
-const NativeMethod = Object.freeze({
-    ready: "ready",
-    alert: "alert",
-    // dataService
-    cachedResourceForURL: "cachedResourceForURL",
-    numberOfRowsInList: "numberOfRowsInList",
-    dataForRowAtIndex: "dataForRowAtIndex",
-    // eventService
-    wasClickedOnElement: "wasClickedOnElement",
-    didSelectRowAtIndex: "didSelectRowAtIndex",
-    track: "track",
-    // login
-    login: "login",
-    // navigation
-    push: "push",
-    pop: "pop",
-    popTo: "popTo",
-    setNavigationBarHidden: "setNavigationBarHidden",
-    setNavigationBarTitle: "setNavigationBarTitle",
-    setNavigationBarTitleColor: "setNavigationBarTitleColor",
-    setNavigationBarBackgroundColor: "setNavigationBarBackgroundColor",
-    // Networking
-    http: "http",
-    // Open
-    open: "open",
-    present: "present",
-    dismiss: "dismiss",
-    // theme
-    setCurrentTheme: "setCurrentTheme"
-});
+const NativeMethod = (function(){
+    let _NativeMethod = Object.freeze({
+        ready: "ready",
+        alert: "alert",
+        // dataService
+        cachedResourceForURL: "cachedResourceForURL",
+        numberOfRowsInList: "numberOfRowsInList",
+        dataForRowAtIndex: "dataForRowAtIndex",
+        // eventService
+        wasClickedOnElement: "wasClickedOnElement",
+        didSelectRowAtIndex: "didSelectRowAtIndex",
+        track: "track",
+        // login
+        login: "login",
+        // navigation
+        push: "push",
+        pop: "pop",
+        popTo: "popTo",
+        setNavigationBarHidden: "setNavigationBarHidden",
+        setNavigationBarTitle: "setNavigationBarTitle",
+        setNavigationBarTitleColor: "setNavigationBarTitleColor",
+        setNavigationBarBackgroundColor: "setNavigationBarBackgroundColor",
+        // Networking
+        http: "http",
+        // Open
+        open: "open",
+        present: "present",
+        dismiss: "dismiss",
+        // theme
+        setCurrentTheme: "setCurrentTheme"
+    });
+    Object.defineProperty(window, "NativeMethod", {
+        get: function () {
+            return _NativeMethod;
+        }
+    });
+    return _NativeMethod;
+})();
 
-const NativeCookieKey = Object.freeze({
-    currentTheme: "com.mlibai.native.cookie.currentTheme",
-    currentUser: "com.mlibai.native.cookie.currentUser"
-});
+const NativeCookieKey = (function(){
+    let _NativeCookieKey = Object.freeze({
+        currentTheme: "com.mlibai.native.cookie.currentTheme",
+        currentUser: "com.mlibai.native.cookie.currentUser"
+    });
+    Object.defineProperty(window, "NativeCookieKey", {
+        get: function () {
+            return _NativeCookieKey;
+        }
+    });
+    return _NativeCookieKey;
+})();
 
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
 // 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
