@@ -1,6 +1,6 @@
 // js.js
 
-import { native, Native } from "./native.js";
+// Native.js 静态方法。
 
 let date1 = Native.cookie.value("date");
 if (date1) {
@@ -10,6 +10,16 @@ Native.log("Native Version: " + Native.version, NativeLogStyle.warning);
 
 let date2 = (new Date()).toUTCString();
 Native.cookie.value("date", date2);
+
+// native.ready
+
+$.holdReady(true);  // 暂停 JQ
+native.ready(function() {
+    $.holdReady(false); // 恢复 JQ
+    Native.log("native is ready：" + (new Date()).toUTCString());
+});
+
+// 业务逻辑：JQ示例
 
 $(function () {
     // 网络请求
@@ -54,16 +64,8 @@ $(function () {
 });
 
 
-$.holdReady(true);
-native.ready(function() {
-    $.holdReady(false);
-    Native.log("native is ready：" + (new Date()).toUTCString());
-});
 
-
-
-
-
+// 模拟 App 操作：基于 URL 的操作方式。
 
 native.core.register(function (url) {
     Native.log(url);
@@ -91,8 +93,9 @@ native.core.register(function (url) {
             }
         });
     }
-
 }, NativeType.url);
+
+// 模拟 App 操作：JS 环境模拟 App 操作。
 
 // native.core.register(function(method, parameters) {
 //     if (method == NativeMethod.ready) {
