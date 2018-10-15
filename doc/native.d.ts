@@ -15,6 +15,8 @@ declare enum NativeLogStyle {
     error = 2
 }
 
+declare function NTLog(message: string, style: NativeLogStyle): void;
+
 /// native 类。
 declare module Native {
     /// 版本。
@@ -36,6 +38,7 @@ declare module Native {
     };
 
 }
+
 
 
 
