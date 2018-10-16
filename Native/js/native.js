@@ -37,25 +37,25 @@ const NativeMethod = (function(){
         ready: "ready",
         alert: "alert",
         dataService: Object.freeze({
-            cachedResourceForURL: "dataService/cachedResourceForURL".toLowerCase(),
-            numberOfRowsInList: "dataService/numberOfRowsInList".toLowerCase(),
-            dataForRowAtIndex: "dataService/dataForRowAtIndex".toLowerCase()
+            cachedResourceForURL: "dataService/cachedResourceForURL",
+            numberOfRowsInList: "dataService/numberOfRowsInList",
+            dataForRowAtIndex: "dataService/dataForRowAtIndex"
         }),
         eventService: Object.freeze({
-            track: "eventService/track".toLowerCase(),
-            wasClickedOnElement: "eventService/wasClickedOnElement".toLowerCase(),
-            didSelectRowAtIndex: "eventService/didSelectRowAtIndex".toLowerCase()
+            track: "eventService/track",
+            wasClickedOnElement: "eventService/documentElementWasClicked",
+            didSelectRowAtIndex: "eventService/didSelectRowAtIndex"
         }),
         login: "login",
         navigation: Object.freeze({
             push: "navigation/push",
             pop: "navigation/pop",
-            popTo: "navigation/popTo".toLowerCase(),
+            popTo: "navigation/popTo",
             bar: Object.freeze({
-                setHidden: "navigation/bar/setHidden".toLowerCase(),
-                setTitle: "navigation/bar/setTitle".toLowerCase(),
-                setTitleColor: "navigation/bar/setTitleColor".toLowerCase(),
-                setBackgroundColor: "navigation/bar/setBackgroundColor".toLowerCase()
+                setHidden: "navigation/bar/setHidden",
+                setTitle: "navigation/bar/setTitle",
+                setTitleColor: "navigation/bar/setTitleColor",
+                setBackgroundColor: "navigation/bar/setBackgroundColor"
             })
         }),
         networking: Object.freeze({

@@ -212,7 +212,7 @@ function setDelegate(type) {
                 }
             }, NativeType.javascript);
 
-            break
+            break;
         default: break;
     }
 }
