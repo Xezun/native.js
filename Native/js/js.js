@@ -23,6 +23,8 @@ native.ready(function() {
 
 $(function () {
 
+    console.log(native.currentUser.name);
+
     // 网络请求
     $("#http").click(function () {
         native.http({

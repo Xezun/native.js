@@ -672,30 +672,31 @@ native.extend(function (configuration) {
         }
         return this;
     }
-    
-    class _User {
-        constructor(userID, userName, userInfo, userVersion) {
-            this._id = userID;
-            this._name = userName;
-            this._info = userInfo;
-            this._version = userVersion;
-        }
-        
-        get id() {
-            return this._id;
-        }
-        
-        get name() {
-            return this._name;
-        }
-        
-        get info() {
-            return this._info;
-        }
-        
-        get version() {
-            return this._version;
-        }
+
+
+    function _User(id, name, info, version) {
+        Object.defineProperties(this, {
+            "id": {
+                get: function () {
+                    return id;
+                }
+            },
+            "name": {
+                get: function () {
+                    return name;
+                }
+            },
+            "info": {
+                get: function () {
+                    return info;
+                }
+            },
+            "version": {
+                get: function () {
+                    return version;
+                }
+            }
+        })
     }
     
     // 定义用户
