@@ -161,10 +161,10 @@ function setDelegate(type) {
                             method: request.method,
                             headers: headers,
                             success: function (data) {
-                                native.core.callback(parameters[1])(data);
+                                window.native.core.callback(parameters[1])(data);
                             },
                             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                                native.core.callback(parameters[1])({
+                                window.native.core.callback(parameters[1])({
                                     code: 1,
                                     message: textStatus
                                 });
@@ -190,7 +190,7 @@ function setDelegate(type) {
                                             default: break;
                                         }
 
-                                        let callback = native.core.callback(parameters[3]);
+                                        let callback = window.native.core.callback(parameters[3]);
                                         if (callback) {
                                             callback()
                                         }
@@ -212,7 +212,7 @@ function setDelegate(type) {
 
                     default: break;
                 }
-            }, NativeType.javascript);
+            }, window.NativeType.javascript);
 
             break;
         default: break;
