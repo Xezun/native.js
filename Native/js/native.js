@@ -2,18 +2,23 @@
 
 /// 与原生交互的方式。
 const NativeType = (function(){
-   let _NativeType = Object.freeze({
+   let _NativeMode = Object.freeze({
         url: "url",              // 使用 URL 方式交互。
         json: "json",            // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
         object: "object",        // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
         javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
     });
-    Object.defineProperty(window, "NativeType", {
+    Object.defineProperty(window, "NativeMode", {
         get: function () {
-            return _NativeType;
+            return _NativeMode;
         }
     });
-   return _NativeType;
+    Object.defineProperty(window, "NativeType", {
+        get: function () {
+            return _NativeMode;
+        }
+    });
+   return _NativeMode;
 })();
 
 /// 输出样式。
@@ -304,7 +309,7 @@ function _CoreNative(nativeWasReady) {
     
     let _uniqueID       = 10000000;      // 用于生成唯一的回调函数 ID 。
     let _keyedCallbacks = {};            // 按照 callbackID 保存的回调函数。
-    let _dataType       = NativeType.url; // 交互的数据类型。
+    let _mode           = NativeMode.url; // 交互的数据类型。
     let _delegate       = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
     let _scheme         = "native";      // 使用 URL 交互时使用
     
@@ -332,14 +337,14 @@ function _CoreNative(nativeWasReady) {
     
     // 调用 App 方法。
     function _perform(method) {
-        switch (_dataType) {
-            case NativeType.url:
+        switch (_mode) {
+            case NativeMode.url:
                 return _performByURL.apply(this, arguments);
-            case NativeType.json:
+            case NativeMode.json:
                 return _performByJSON.apply(this, arguments);
-            case NativeType.object:
+            case NativeMode.object:
                 return _performByObject.apply(this, arguments);
-            case NativeType.javascript:
+            case NativeMode.javascript:
                 return _performByJavaScript.apply(this, arguments);
             default:
                 return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
@@ -431,9 +436,9 @@ function _CoreNative(nativeWasReady) {
      * @param dataType App 对象可接收的数据类型。
      * @private
      */
-    function _register(delegate, dataType) {
+    function _register(delegate, mode) {
         _delegate = delegate;
-        _dataType = dataType;
+        _mode = mode;
         // 如果已经初始化，则不再初始化，仅仅是改变代理。
         if (_isReady) {
             return this;
@@ -505,12 +510,12 @@ function _CoreNative(nativeWasReady) {
                 _delegate = newValue;
             }
         },
-        dataType: {
+        mode: {
             get: function () {
-                return _dataType;
+                return _mode;
             },
             set: function (newValue) {
-                _dataType = newValue;
+                _mode = newValue;
             }
         }
     });

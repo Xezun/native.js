@@ -13,10 +13,75 @@
 在 `ready` 回调中处理所有涉及到 JS 与原生交互的操作。
 
 ```javascript
-native.ready(function() {
+window.native.ready(function() {
     Native.log("native is ready：" + Native.version);
 });
 ```
+
+### 交互方法
+
+
+- ready(fn: () -> void): void
+
+    - 说明
+    - 参数
+    - 示例
+
+- extend(fn: (config: object) -> void): void
+
+    - 说明
+    - 参数
+    - 示例
+
+- core: NativeCore
+
+    - callback(identifier: string): void
+
+        - 说明
+        - 参数
+        - 示例
+
+    - perform(method: string, args...: any): void
+
+        - 说明
+        - 参数
+        - 示例
+
+    - register(delegate: any, mode: string): void
+
+        - 说明
+        - 参数
+        - 示例
+
+    - scheme: string
+    - isReady: bool
+    - delegate: any
+    - mode: string
+
+- login(fn: () -> void): void
+
+    - 说明
+    - 参数
+    - 示例
+
+- currentUser: NativeUser
+
+- navigation: NativeNavigation
+
+    - bar: NativeNavigationBar
+    - push(url: string, animated: bool): void
+    - pop(animated: bool): void
+    - popTo(index: number, animated: bool): void
+
+- networking: NativeNetworing
+
+    - isViaWiFi: bool
+    - status: string
+    - isReachable: bool
+    - statusChange(fn: () -> void): void
+    - http(request: object, fn: () -> void): void
+
+
 
 通过 `native.core` 的 `perform(method, args...)` 方法，可以直接调用原生平台的方法。
 比如，调用原生的登录方法，则可如下调用。
