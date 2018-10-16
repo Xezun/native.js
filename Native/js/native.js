@@ -43,7 +43,7 @@ const NativeMethod = (function(){
         }),
         eventService: Object.freeze({
             track: "eventService/track",
-            wasClickedOnElement: "eventService/documentElementWasClicked",
+            documentElementWasClicked: "eventService/documentElementWasClicked",
             didSelectRowAtIndex: "eventService/didSelectRowAtIndex"
         }),
         login: "login",
@@ -1252,7 +1252,7 @@ native.extend(function () {
         }
         
         /// 页面元素点击事件。
-        function _wasClickedOnElement(documentName, elementName, data, callback) {
+        function _documentElementWasClicked(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
                 Native.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
@@ -1261,7 +1261,7 @@ native.extend(function () {
                 callback = data;
                 data = null;
             }
-            return _nativeCore.perform(NativeMethod.eventService.wasClickedOnElement, documentName, elementName, data, callback);
+            return _nativeCore.perform(NativeMethod.eventService.documentElementWasClicked, documentName, elementName, data, callback);
         }
         
         /// 事件埋点。
@@ -1279,9 +1279,9 @@ native.extend(function () {
                     return _didSelectRowAtIndex;
                 }
             },
-            wasClickedOnElement: {
+            documentElementWasClicked: {
                 get: function () {
-                    return _wasClickedOnElement;
+                    return _documentElementWasClicked;
                 }
             },
             track: {

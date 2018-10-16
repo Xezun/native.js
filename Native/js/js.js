@@ -42,14 +42,14 @@ $(function () {
 
     // 点击事件1
     $("#event1").click(function () {
-        native.eventService.wasClickedOnElement("EventPage", "ProductSelectButton", {"id": 1234}, function () {
+        native.eventService.documentElementWasClicked("EventPage", "ProductSelectButton", {"id": 1234}, function () {
             Native.log("打开商品规格页回调。");
         });
     });
 
     // 点击事件2
     $("#event2").click(function () {
-        native.eventService.wasClickedOnElement("EventPage", "ProductDetailButton", {"id": 5678}, function () {
+        native.eventService.documentElementWasClicked("EventPage", "ProductDetailButton", {"id": 5678}, function () {
             Native.log("进入商品详情页页回调。");
         });
     });
@@ -173,9 +173,9 @@ function setDelegate(type) {
                         Native.log("App 执行网络请求：" + request.url, NativeLogStyle.warning);
                         break;
 
-                    case "eventservice":
+                    case "eventService":
                         switch (methods[1]) {
-                            case "wasclickedonelement":
+                            case "documentElementWasClicked":
                                 switch (parameters[0]) {
                                     case "EventPage":
                                         switch (parameters[1]) {
@@ -208,7 +208,7 @@ function setDelegate(type) {
                             default: break;
                         }
 
-                    case "dataservice":
+                    case "dataService": break
 
                     default: break;
                 }
