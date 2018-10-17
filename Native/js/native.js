@@ -434,7 +434,7 @@ function _CoreNative(nativeWasReady) {
     /**
      * 注册 App 对象，以及 App 对象可接收的数据类型。
      * @param delegate App 对象。
-     * @param dataType App 对象可接收的数据类型。
+     * @param mode App 对象可接收的数据类型。
      * @private
      */
     function _register(delegate, mode) {
@@ -450,7 +450,7 @@ function _CoreNative(nativeWasReady) {
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
         function _documentWasReady() {
-            _readyID = _perform(NativeMethod.ready, function (configuration) {
+            _readyID = _perform(window.NativeMethod.ready, function (configuration) {
                 _isReady = true;
                 _readyID = null;
                 nativeWasReady(configuration);
@@ -463,12 +463,14 @@ function _CoreNative(nativeWasReady) {
                 _documentWasReady();
             });
         } else {
-            document.addEventListener("DOMContentLoaded", function _eventListener() {
+            function _eventListener() {
                 document.removeEventListener("DOMContentLoaded", _eventListener);
-                window.setTimeout(function () {
-                    _documentWasReady();
-                });
-            }, false);
+                window.removeEventListener("load", _eventListener);
+                _documentWasReady();
+            }
+            document.addEventListener("DOMContentLoaded", _eventListener);
+            // WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
+            window.addEventListener("load", _eventListener);
         }
         
         return this;
