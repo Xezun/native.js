@@ -56,12 +56,28 @@ $(function () {
 
     // 埋点事件
     $("#event3").click(function () {
+        native.navigation.bar.title = "Navig";
         native.eventService.track("ItemClick", {"id": 123});
     });
 
     $("#delegate").change(function () {
         setDelegate($(this).val());
     });
+
+    
+    native.dataService.cachedResourceForURL("http://www.baidu.com/image.png", "image", function (cachePath) {
+        
+    });
+    
+    native.currentThemeChange(function () {
+        
+    })
+
+    native.currentUserChange(function () {
+        
+    });
+
+    Native.log(Native.parseURLQuery({"name": "John", "age": 12, "school": "Best One"}));
 
 });
 
@@ -105,7 +121,7 @@ function setDelegate(type) {
                         }
                     });
                 }
-            }, NativeType.url);
+            }, NativeMode.url);
             break;
 
         case "javascript":
@@ -212,7 +228,7 @@ function setDelegate(type) {
 
                     default: break;
                 }
-            }, window.NativeType.javascript);
+            }, window.NativeMode.javascript);
 
             break;
         default: break;

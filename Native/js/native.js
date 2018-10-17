@@ -1,7 +1,7 @@
 // native.js
 
 /// 与原生交互的方式。
-const NativeType = (function(){
+const NativeMode = (function(){
    let _NativeMode = Object.freeze({
         url: "url",              // 使用 URL 方式交互。
         json: "json",            // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
@@ -10,12 +10,6 @@ const NativeType = (function(){
     });
     Object.defineProperty(window, "NativeMode", {
         get: function () {
-            return _NativeMode;
-        }
-    });
-    Object.defineProperty(window, "NativeType", {
-        get: function () {
-            window.Native.log("NativeType 已重命名为 NativeMode ，在未来的版本可能被弃用，请使用新的名称！", NativeLogStyle.warning);
             return _NativeMode;
         }
     });
@@ -93,6 +87,12 @@ const NativeCookieKey = (function(){
     return _NativeCookieKey;
 })();
 
+const NativeCachedResourceType = Object.freeze({
+    image: "image"
+});
+
+
+
 const Native = (function() {
 
     let _cookie = new _Cookie();
@@ -106,11 +106,11 @@ const Native = (function() {
 
     function _log(message, style) {
         if (typeof style !== "number" || style === NativeLogStyle.default) {
-            console.log("%c[Native]%c %s", "color: #004ee2; font-weight: bold;", "color: #999999", message);
+            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
         } else if (style === NativeLogStyle.warning) {
-            console.log("%c[Native]%c %s", "color: #004ee2; font-weight: bold;", "color: #fe7e3c", message);
+            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
         } else if (style === NativeLogStyle.error) {
-            console.log("%c[Native]%c %s", "color: #004ee2; font-weight: bold;", "color: #d8463c", message);
+            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
         }
     }
 
@@ -1316,10 +1316,6 @@ native.extend(function () {
 // ======================================
 // ======================================
 // MARK: - Data Service
-
-const NativeCachedResourceType = Object.freeze({
-    image: "image"
-});
 
 native.extend(function () {
 

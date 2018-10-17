@@ -1,10 +1,10 @@
 // Native.d.ts
 
 /// 与原生对象的交互方式类型。
-declare enum NativeType {
+declare enum NativeMode {
     url = "url",                // 使用 URL 方式交互。
-    json = "json",        // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-    object = "object",                // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+    json = "json",              // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+    object = "object",          // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
     javascript = "javascript"   // iOS WebKit 注入 js ，使用函数作为代理。
 }
 
@@ -15,7 +15,14 @@ declare enum NativeLogStyle {
     error = 2
 }
 
-declare function NTLog(message: string, style: NativeLogStyle): void;
+
+declare enum NativeCachedResourceType {
+    image = "image"
+}
+
+declare enum NativeNetworkStatus {
+    WiFi = "WiFi"
+}
 
 /// native 类。
 declare module Native {
@@ -39,10 +46,22 @@ declare module Native {
 
 }
 
-
-
-
 declare module native {
+    /**
+     * 所有与原生交互的操作，必须在 core.ready 之后进行。
+     * 回调将在 ready 时执行，如果当前已经 ready 状态，则立即异步执行。
+     * 回调函数中，this 指向 window 。
+     * @param {() => void} fn 回调函数。
+     */
+    function ready(fn: () => void): void;
+
+    /**
+     * 拓展 native 对象的方法。此方法的回调函数会在 core.ready 之后，但是在 ready(fn) 方法的回调函数之前执行。
+     * 在回调函数中 this 指向当前 native 对象。
+     * @param callback 构造属性的函数。
+     */
+    function extend(callback: (configuration: NativeConfiguration) => object): void;
+
     /// 核心功能，负责与原生代码交互的逻辑。
     const core: {
         /**
@@ -75,9 +94,9 @@ declare module native {
          * 原生代码必须调用此方法注册已注入的对象，才能进行 JS 与原生代码按照既定规则交互。
          *
          * @param delegate 一般是注入 JS 中的原生对象。
-         * @param nativeType 交互方法或原生对象能接收的数据类型。
+         * @param mode 交互方法或原生对象能接收的数据类型。
          */
-        register(delegate: object | ((method: string, parameters: [any]) => void) | null, nativeType: NativeType): void;
+        register(delegate: object | ((method: string, parameters: [any]) => void) | null, mode: NativeMode): void;
 
         /**
          * URL 交互方式的协议头，默认 native 。
@@ -97,40 +116,187 @@ declare module native {
         /**
          * 只读。原生对象能接收的数据类型、交互方式。
          */
-        dataType: NativeType;
+        mode: NativeMode;
     };
-
-    /**
-     * 所有与原生交互的操作，必须在 core.ready 之后进行。
-     * 回调将在 ready 时执行，如果当前已经 ready 状态，则立即异步执行。
-     * @param {() => void} callback 回调函数。
-     */
-    function ready(callback: () => void): void;
-
-    /**
-     * 拓展 native 对象的方法。此方法的回调函数会在 core.ready 之后，但是在 ready(fn) 方法的回调函数之前执行。
-     * @param callback 构造属性的函数。
-     */
-    function extend(callback: (configuration: _NativeConfiguration) => object): void;
-}
-
-
-declare enum NativeCachedResourceType {
-    image = "image"
-}
-
-declare enum NativeNetworkStatus {
-    WiFi = "WiFi"
 }
 
 
 declare module native {
-    function login(callback: () => void): void;
+    function login(fn: () => void): void;
 }
 
 declare module native {
-    function open(page: string): void;
+    /**
+     * 当前用户。
+     */
+    const currentUser: NativeUser;
+
+    /**
+     * 设置当前用户。
+     * @param {Object} newUser
+     */
+    function setCurrentUser(newUser: NativeUser): void;
+
+    function currentUserChange(fn: () => void): void;
+    function currentUserChange(): void;
 }
+
+interface NativeUser {
+    readonly id: string;
+    readonly name: string;
+    readonly info: object;
+    readonly version: string;
+}
+
+interface NativeNavigation {
+    readonly bar: NativeNavigationBar;
+    /**
+     * App 页面导航行为，进入下级页面，导航栈 +1。
+     * @param {string} url 下级页面的 URL
+     * @param {boolean} animated 是否展示转场动画
+     */
+    push(url: string, animated: boolean): void;
+
+    /**
+     * App 页面导航行为，弹出导航栈顶页面 -1。
+     * @param {boolean} animated 是否展示转场动画
+     */
+    pop(animated: boolean): void;
+
+    /**
+     * App 页面导航行为，弹出导航栈内页面到指定页面。导航栈以 HTML 页面计算。
+     * @param {number} index 页面在栈内的索引
+     * @param {boolean} animated 是否展示转场动画
+     */
+    popTo(index: number, animated: boolean): void;
+}
+
+interface NativeNavigationBar {
+    /**
+     * 可写。设置或获取导航条是否隐藏。
+     * - 直接修改属性，会同步到 App 。
+     */
+    isHidden: boolean;
+    /**
+     * 可写。设置或获取导航条标题。
+     * - 直接修改属性，会同步到 App 。
+     */
+    title: string;
+    /**
+     * 可写。设置或获取标题文字颜色。
+     * - 直接修改属性，会同步到 App 。
+     */
+    titleColor: string;
+    /**
+     * 可写。设置或获取导航条背景色。
+     * - 直接修改属性，会同步到 App 。
+     */
+    backgroundColor: string;
+    /**
+     * 隐藏导航条。
+     *
+     * @param {boolean} animated 是否展示动画效果
+     */
+    hide(animated: boolean): void;
+    /**
+     * 显示导航条。
+     *
+     * @param {boolean} animated 是否展示动画效果
+     */
+    show(animated: boolean): void;
+
+    setHidden(isHidden: boolean): void;
+    setTitle(title: string): void;
+    setTitleColor(titleColor: string): void;
+    setBackgroundColor(backgroundColor: string): void;
+}
+
+
+declare module native {
+    /**
+     * 页面导航管理。
+     */
+    const navigation: NativeNavigation;
+}
+
+interface NativeNetworking {
+    /**
+     * 只读。网络是否已连通互联网。
+     */
+    readonly isReachable: boolean;
+
+    /**
+     * 是否通过 Wi-Fi 上网。
+     */
+    readonly isViaWiFi: boolean;
+
+    /**
+     * 只读。当前 App 接入网络的类型。
+     */
+    readonly status: NativeNetworkStatus;
+
+    /**
+     * 仅供 App 同步导航条显示状态时使用。
+     * - 调用此方法可能会触发 change 事件。
+     */
+    setStatus(newStatus: NativeNetworkStatus): void;
+
+    statusChange(): void;
+    statusChange(fn: () => void): void;
+
+    /**
+     * 发送网络请求。
+     * @param {NativeHTTPRequest} request 网络请求对象
+     * @param {(response: NativeHTTPResponse) => void} callback 网络请求回调
+     * @return {string} 回调 ID
+     */
+    http(request: NativeHTTPRequest, callback: (response: NativeHTTPResponse) => void): string;
+}
+
+interface NativeHTTPRequest {
+    url:        string;
+    method:     string;
+    data?:      object;
+    headers?:   object;
+}
+
+interface NativeHTTPResponse {
+    code: number;
+    message: string;
+    contentType: string;
+    data?: any;
+}
+
+declare module native {
+    /**
+     * 网络。
+     */
+    const networking: NativeNetworking;
+
+    /**
+     * HTML 发送 App 网络请求。
+     * @param {NativeHTTPResponse} request
+     * @param {(response: _NativeHTTPResponse) => void} callback
+     */
+    function http(request: NativeHTTPRequest, callback: (response: NativeHTTPResponse) => void): void;
+}
+
+
+declare module native {
+    function open(url: string): void;
+}
+
+declare module native {
+    function present(url: string): void;
+    function present(url: string, animated: boolean): void;
+    function present(url: string, animated: boolean, completion: () => void): void;
+    function present(url: string, completion: () => void): void;
+    function dismiss(url: string): void;
+    function dismiss(url: string, animated: boolean): void;
+    function dismiss(url: string, animated: boolean, completion: () => void): void;
+    function dismiss(url: string, completion: () => void): void;
+}
+
 
 /// native 对象。
 declare module native {
@@ -144,9 +310,10 @@ declare module native {
 
     /**
      * 发送或注册主题变更事件。
-     * @param {() => void} callback 回调函数。
+     * @param {() => void} fn 回调函数。
      */
-    function currentThemeChange(callback?: () => void): void;
+    function currentThemeChange(fn: () => void): void;
+    function currentThemeChange(): void;
 
     /**
      * 设置当前主题。
@@ -155,38 +322,13 @@ declare module native {
      * @param {boolean} toApp 是否同步到 App 。
      */
     function setCurrentTheme(newTheme: string, animated: boolean, toApp: boolean): void;
+}
 
-    // User
-    /**
-     * 当前用户。
-     */
-    const currentUser: {
-        id: number;
-        name: string;
-        info: object;
-        version: string;
-    };
 
-    /**
-     * 设置当前用户。
-     * @param {Object} newUser
-     */
-    function setCurrentUser(newUser: object): void;
 
-    /**
-     * 发送或注册当前用户变更事件。
-     * @param {() => void} callback
-     */
-    function currentUserChange(callback?: () => void): void;
 
-    /**
-     * 调用 App 原生 alert 方法。
-     * @param {_NativeAlertMessage} message 需要 alert 的消息内容
-     * @param {(index: number) => void} callback 按钮事件
-     * @return {string} 回调 ID
-     */
-    function alert(message: _NativeAlertMessage, callback?: (index: number) => void): string;
 
+declare module native {
     /**
      * 数据服务。
      */
@@ -255,154 +397,21 @@ declare module native {
         track(event: string, parameters?: object): string;
     };
 
-    /**
-     * 网络。
-     */
-    const networking: {
-        /**
-         * 只读。网络是否已连通互联网。
-         */
-        isReachable: boolean;
-
-        /**
-         * 是否通过 Wi-Fi 上网。
-         */
-        isViaWiFi: boolean;
-
-        /**
-         * 只读。当前 App 接入网络的类型。
-         */
-        status: NativeNetworkStatus;
-
-        /**
-         * 仅供 App 同步导航条显示状态时使用。
-         * - 调用此方法可能会触发 change 事件。
-         */
-        setStatus(newStatus: NativeNetworkStatus): void;
-
-        statusChange(callback?: () => void): void;
-
-        /**
-         * 发送网络请求。
-         * @param {_NativeHTTPRequest} request 网络请求对象
-         * @param {(response: _NativeHTTPResponse) => void} callback 网络请求回调
-         * @return {string} 回调 ID
-         */
-        http(request: _NativeHTTPRequest, callback: (response: _NativeHTTPResponse) => void): string;
-    };
-
-    /**
-     * HTML 发送 App 网络请求。
-     * @param {_NativeHTTPRequest} request
-     * @param {(response: _NativeHTTPResponse) => void} callback
-     */
-    function http(request: _NativeHTTPRequest, callback: (response: _NativeHTTPResponse) => void): void;
-
-
-    /**
-     * 页面导航管理。
-     */
-    const navigation: {
-        /**
-         * App 页面导航行为，进入下级页面，导航栈 +1。
-         * @param {string} url 下级页面的 URL
-         * @param {boolean} animated 是否展示转场动画
-         */
-        push(url: string, animated: boolean): void;
-
-        /**
-         * App 页面导航行为，弹出导航栈顶页面 -1。
-         * @param {boolean} animated 是否展示转场动画
-         */
-        pop(animated: boolean): void;
-
-        /**
-         * App 页面导航行为，弹出导航栈内页面到指定页面。导航栈以 HTML 页面计算。
-         * @param {number} index 页面在栈内的索引
-         * @param {boolean} animated 是否展示转场动画
-         */
-        popTo(index: number, animated: boolean): void;
-
-        /**
-         * 只读。导航条对象。
-         */
-        bar: {
-            /**
-             * 可写。设置或获取导航条是否隐藏。
-             * - 直接修改属性，会同步到 App 。
-             */
-            isHidden: boolean;
-
-            /**
-             * 可写。设置或获取导航条标题。
-             * - 直接修改属性，会同步到 App 。
-             */
-            title: string;
-
-            /**
-             * 可写。设置或获取标题文字颜色。
-             * - 直接修改属性，会同步到 App 。
-             */
-            titleColor: string;
-
-            /**
-             * 可写。设置或获取导航条背景色。
-             * - 直接修改属性，会同步到 App 。
-             */
-            backgroundColor: string;
-
-            /**
-             * 隐藏导航条。
-             *
-             * @param {boolean} animated 是否展示动画效果
-             */
-            hide(animated: boolean): void;
-
-            /**
-             * 显示导航条。
-             *
-             * @param {boolean} animated 是否展示动画效果
-             */
-            show(animated: boolean): void;
-
-            /**
-             * 仅供 App 同步导航条显示状态时使用。
-             * - 调用此方法可能会触发 change 事件。
-             *
-             * @param {boolean} isHidden 是否隐藏
-             */
-            setHidden(isHidden: boolean): void;
-
-            /**
-             * 仅供 App 同步导航条标题时使用。
-             * - 调用此方法可能会触发 change 事件。
-             *
-             * @param {string} title
-             */
-            setTitle(title: string): void;
-
-            /**
-             * 仅供 App 同步导航条标题文字颜色时使用。
-             * - 调用此方法可能会触发 change 事件。
-             *
-             * @param {string} titleColor
-             */
-            setTitleColor(titleColor: string): void;
-
-            /**
-             * 仅供 App 同步导航条背景色时使用。
-             * - 调用此方法可能会触发 change 事件。
-             *
-             * @param {string} backgroundColor
-             */
-            setBackgroundColor(backgroundColor: string): void;
-        };
-    };
-
 
 }
 
 
+
+declare module native {
+
+    /**
+     * 调用 App 原生 alert 方法。
+     * @param {NativeAlertMessage} message 需要 alert 的消息内容
+     * @param {(index: number) => void} callback 按钮事件
+     * @return {string} 回调 ID
+     */
+    function alert(message: NativeAlertMessage, callback?: (index: number) => void): string;
+}
 
 
 
@@ -410,7 +419,7 @@ declare module native {
 /**
  * 描述 alert 的接口。
  */
-interface _NativeAlertMessage {
+interface NativeAlertMessage {
     /**
      * alert 标题。
      */
@@ -428,23 +437,11 @@ interface _NativeAlertMessage {
 }
 
 
-interface _NativeHTTPRequest {
-    url:        string;
-    method:     string;
-    data?:      object;
-    headers?:   object;
-}
-
-interface _NativeHTTPResponse {
-    code: number;
-    message: string;
-    contentType: string;
-    data?: any;
-}
 
 
 
-interface _NativeConfiguration {
+
+interface NativeConfiguration {
     currentTheme: string,
     currentUser: {
         id: string,
