@@ -1,16 +1,20 @@
 # native.js API 文档
 
+## 说明
+
+一般情况下，HTML 与 App 交互，并不是从 App 创建 `WebView` 对象后立即就可以进行交互操作，而且不同的平台处理交互的方式也不尽相同。为了解决此问题，框架 `native.js` 提供了统一的交互接口，并在内部实现与 App 的不同交互方式，简化 HTML 与 App 的交互操作。
+
 ## HTML
 
 ### 如何使用
 
-在 H5 页面中引入 `native.js` .
+下载 `native.js` 到项目中，然后引入到 HTML 页面中.
 
 ```html
 <script src="./native/native.js"></script>
 ```
 
-在 `ready` 回调中处理所有涉及到 JS 与原生交互的操作。
+在 `ready` 回调中处理所有涉及到 JavaScript 与 App 交互的操作。
 
 ```javascript
 window.native.ready(function() {
@@ -18,16 +22,74 @@ window.native.ready(function() {
 });
 ```
 
-### 交互方法
+### 交互机制
 
+#### 运行流程
 
-- ready(fn: () -> void): void
+1. App 创建 `WebView` 并加载 HTML 页面。
+2. HTML 加载 `native.js` 框架，创建 `native` 对象。
+3. 包装所有跨平台交互操作在 `native.ready()` 中，等待执行。
+4. App 在 `WebView` 注册交互方式（注入 JavaScript 代码 `native.core.register()`，根据交互方式不同，此时未必能直接进行交互操作）。
+5. `native` 按照步骤4中的交互方式，在合适的时机向 App 发送 `ready` 消息，请求初始化 `native` 对象。
+6. App 响应 `native` 的初始化消息，并执行回调（`native.core.callback()`）；`native` 初始化完成后，按顺序逐一执行步骤3中包装的操作。
+7. 调用 `native` 的交互方法，App 就可以按照步骤4中约定的交互方式收到交互的消息，然后执行消息代表的操作，从而实现交互。
+
+#### HTML 需要将所有操作放到 `native.ready()` 回调中，或者保证所有交互操作是在 `native` 对象 `ready` 之后进行。
+
+不同的框架有不同的实现机制，为了保证执行顺序，不同的框架需采用不同的方法。下面是两个例子，关于如何保证 `native.js` 框架与其它框架的执行顺序。
+
+1. JQuery
+
+因为 JQuery 提供了暂停的方法，所以可以在不改变原有编程风格的前提下，通过暂停来实现  `native` 与 JQuery 的顺序执行。
+
+```javascript
+// 使用 JQuery 实现业务逻辑
+$(function() {
+    // 业务逻辑。
+});
+
+// 暂停 JQuery.ready 事件执行。。
+$.holdReady(true);
+
+ // 在 native 初始化后，恢复 JQuery.ready
+native.ready(function() {
+    $.holdReady(false); 
+});
+```
+
+2. AngularJS
+
+AngularJS 没有暂停执行的方法，但是可以设置它不自动执行，然后在 `native` 初始化后再启动即可。
+
+```javascript
+// 1. 禁止 AngularJS 自动执行：在 HTML 代码中，去掉标签上的 `ng-app` 属性。
+
+// 2. 使用 AngularJS 实现业务逻辑。
+var app = angular.module('App', []);
+app.controller('main', function($scope) {
+    // 业务逻辑代码
+});
+
+// 3. 使用 `angular.bootstrap` 方法在 `native.ready` 中启动 AngularJS 模块。
+native.ready(function () {
+    // 在 angular.ready 中启动模块
+    angular.element(document).ready(function () {
+        // 第一个参数表示模块的根 DOM 元素。
+        // 第二个参数就是模块名字。
+        angular.bootstrap(document.body, ['App']);
+    });
+});
+```
+
+### 接口文档
+
+- ready(fn)
 
     - 说明
     - 参数
     - 示例
 
-- extend(fn: (config: object) -> void): void
+- extend(fn)
 
     - 说明
     - 参数
@@ -35,10 +97,31 @@ window.native.ready(function() {
 
 - core: NativeCore
 
-    - callback(identifier: string): void
+    - callback(fn): string
 
         - 说明
+
+        注册回调函数，并获取回调函数的标识符。
+
         - 参数
+
+        | fn | Function | 1.0.0 | 回调函数 |
+
+        
+        
+        - 示例   
+
+    - callback(identifier[, needsRemove])
+
+        - 说明
+
+        通过标识符获取已注册的回调函数。
+
+        - 参数
+
+        | identifier | String | 1.0.0 | 回调函数的标识符 |
+        | needsRemove | Bool | 1.0.0 | 是否需要删除，默认 true |
+
         - 示例
 
     - perform(method: string, args...: any): void
