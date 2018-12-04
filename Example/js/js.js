@@ -2,7 +2,7 @@
 
 // Native.js 静态方法。
 
-let date1 = Native.cookie.value("date");
+let date1 = window.Native.cookie.value("date");
 if (date1) {
     Native.log("上次访问日期：" + date1);
 }

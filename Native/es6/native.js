@@ -1,30 +1,31 @@
 // native.js
+// ES5 转换 https://babeljs.io/repl
 
 /// 与原生交互的方式。
-const NativeMode = (function(){
-   let _NativeMode = Object.freeze({
-        url: "url",              // 使用 URL 方式交互。
-        json: "json",            // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-        object: "object",        // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+const NativeMode = (function() {
+    let _NativeMode = Object.freeze({
+        url: "url", // 使用 URL 方式交互。
+        json: "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+        object: "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
         javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
     });
-    Object.defineProperty(window, "NativeMode", {
-        get: function () {
+    _NativeDefineProperty(window, "NativeMode", {
+        get: function() {
             return _NativeMode;
         }
     });
-   return _NativeMode;
+    return _NativeMode;
 })();
 
 /// 输出样式。
-const NativeLogStyle = (function(){
+const NativeLogStyle = (function() {
     let _NativeLogStyle = Object.freeze({
         default: 0,
         warning: 1,
         error: 2
     });
-    Object.defineProperty(window, "NativeLogStyle", {
-        get: function () {
+    _NativeDefineProperty(window, "NativeLogStyle", {
+        get: function() {
             return _NativeLogStyle;
         }
     });
@@ -32,7 +33,7 @@ const NativeLogStyle = (function(){
 })();
 
 /// 通用的原生支持的方法。
-const NativeMethod = (function(){
+const NativeMethod = (function() {
     let _NativeMethod = Object.freeze({
         ready: "ready",
         alert: "alert",
@@ -66,21 +67,21 @@ const NativeMethod = (function(){
         dismiss: "dismiss",
         setCurrentTheme: "setCurrentTheme"
     });
-    Object.defineProperty(window, "NativeMethod", {
-        get: function () {
+    _NativeDefineProperty(window, "NativeMethod", {
+        get: function() {
             return _NativeMethod;
         }
     });
     return _NativeMethod;
 })();
 
-const NativeCookieKey = (function(){
+const NativeCookieKey = (function() {
     let _NativeCookieKey = Object.freeze({
         currentTheme: "com.mlibai.native.cookie.currentTheme",
         currentUser: "com.mlibai.native.cookie.currentUser"
     });
-    Object.defineProperty(window, "NativeCookieKey", {
-        get: function () {
+    _NativeDefineProperty(window, "NativeCookieKey", {
+        get: function() {
             return _NativeCookieKey;
         }
     });
@@ -91,28 +92,16 @@ const NativeCachedResourceType = Object.freeze({
     image: "image"
 });
 
-
-
 const Native = (function() {
 
     let _cookie = new _Cookie();
 
     // window.Native
-    Object.defineProperty(window, "Native", {
-        get: function () {
+    _NativeDefineProperty(window, "Native", {
+        get: function() {
             return _Native;
         }
     });
-
-    function _log(message, style) {
-        if (typeof style !== "number" || style === NativeLogStyle.default) {
-            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
-        } else if (style === NativeLogStyle.warning) {
-            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
-        } else if (style === NativeLogStyle.error) {
-            console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
-        }
-    }
 
     // 将任意值转换为 URL QueryValue 。
     function _parseURLQueryValue(value) {
@@ -172,29 +161,29 @@ const Native = (function() {
     }
 
     // native.version
-    Object.defineProperties(_Native, {
+    _NativeDefineProperties(_Native, {
         version: {
-            get: function () {
+            get: function() {
                 return "1.0.0";
             }
         },
         log: {
-            get: function () {
-                return _log;
+            get: function() {
+                return _NativeLog;
             }
         },
         cookie: {
-            get: function () {
+            get: function() {
                 return _cookie;
             }
         },
         parseURLQueryValue: {
-            get: function () {
+            get: function() {
                 return _parseURLQueryValue;
             }
         },
         parseURLQuery: {
-            get: function () {
+            get: function() {
                 return _parseURLQuery;
             }
         }
@@ -206,11 +195,11 @@ const Native = (function() {
 // ready 方法用于需要在 AppCore 初始化后执行的操作。
 // 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
 
-const native = (function () {
+const native = (function() {
     let _native = new Native();
     // window.native
-    Object.defineProperty(window, "native", {
-        get: function () {
+    _NativeDefineProperty(window, "native", {
+        get: function() {
             return _native;
         }
     });
@@ -223,28 +212,66 @@ const native = (function () {
 // ======================================
 // MARK: - Native
 
+function _NativeLog(message, style) {
+    if (typeof style !== "number" || style === 0) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
+    } else if (style === 1) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
+    } else if (style === 2) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
+    }
+}
+
+function _NativeDefineProperty(object, propertyName, propertyList) {
+    if (typeof object === "undefined") {
+        return _NativeLog("The first arguments must be an Object.", 2);
+    }
+    if (typeof propertyName !== "string") {
+        return _NativeLog("The property name must be a string.", 2);
+    }
+    if (object.hasOwnProperty(propertyName)) {
+        return _NativeLog("The property to be defined is already exist.", 2);
+    }
+    Object.defineProperty(object, propertyName, propertyList);
+}
+
+function _NativeDefineProperties(object, propertyList) {
+    if (typeof object === "undefined") {
+        return _NativeLog("The first arguments must be an Object.", 2);
+    }
+    if (typeof propertyList !== "object") {
+        return _NativeLog("The second property must be an Object.", 2);
+    }
+    for (let propertyName in propertyList) {
+        if (!propertyList.hasOwnProperty(propertyName)) {
+            continue;
+        }
+        _NativeDefineProperty(object, propertyName, propertyList[propertyName]);
+    }
+}
+
 function _Native() {
-    
+
     let _configuration = null;
-    let _extensions    = [];
-    let _readies       = [];
-    
+    let _extensions = [];
+    let _readies = [];
+
     let native = this;
-    
+
     // native 作为单例，其核心 core 与自身互为引用。
-    let _core = new _CoreNative(function (configuration) {
+    let _core = new _CoreNative(function(configuration) {
         _configuration = configuration;
         // 加载拓展，extension 中 this 指向 native 对象。。
         while (_extensions.length > 0) {
             let extension = _extensions.shift();
-            Object.defineProperties(native, extension.apply(native, [_configuration]));
+            _NativeDefineProperties(native, extension.apply(native, [_configuration]));
         }
         // 执行 ready，回调函数中 this 指向 window 对象。。
         while (_readies.length > 0) {
             (_readies.shift()).apply(window);
         }
     });
-    
+
     /**
      * 绑定 ready 之后执行的操作。
      * @param callback
@@ -260,7 +287,7 @@ function _Native() {
         _readies.push(callback);
         return this;
     }
-    
+
     /**
      * 拓展 AppCore 的方法，拓展函数中，this 指向 native 。
      * @param callback
@@ -272,32 +299,32 @@ function _Native() {
             return this;
         }
         if (_core.isReady) {
-            Object.defineProperties(this, callback.apply(this, [_configuration]));
+            _NativeDefineProperties(this, callback.apply(this, [_configuration]));
         } else {
             _extensions.push(callback);
         }
         return this;
     }
-    
+
     // 除以下方法外，其他方法原则上都应该留做原生方法的入口。
-    Object.defineProperties(this, {
+    _NativeDefineProperties(this, {
         core: {
-            get: function () {
+            get: function() {
                 return _core;
             }
         },
         ready: {
-            get: function () {
+            get: function() {
                 return _ready;
             }
         },
         extend: {
-            get: function () {
+            get: function() {
                 return _extend;
             }
         }
     });
-    
+
 }
 
 
@@ -307,13 +334,13 @@ function _Native() {
 // MARK: - CoreNative
 
 function _CoreNative(nativeWasReady) {
-    
-    let _uniqueID       = 10000000;      // 用于生成唯一的回调函数 ID 。
-    let _keyedCallbacks = {};            // 按照 callbackID 保存的回调函数。
-    let _mode           = NativeMode.url; // 交互的数据类型。
-    let _delegate       = null;          // 事件代理，一般为原生注入到 JS 环境中的对象。
-    let _scheme         = "native";      // 使用 URL 交互时使用
-    
+
+    let _uniqueID = 10000000; // 用于生成唯一的回调函数 ID 。
+    let _keyedCallbacks = {}; // 按照 callbackID 保存的回调函数。
+    let _mode = NativeMode.url; // 交互的数据类型。
+    let _delegate = null; // 事件代理，一般为原生注入到 JS 环境中的对象。
+    let _scheme = "native"; // 使用 URL 交互时使用
+
     // 保存或读取 callback 。
     function _callback(callbackOrID, needsRemove) {
         switch (typeof callbackOrID) {
@@ -335,7 +362,7 @@ function _CoreNative(nativeWasReady) {
                 return undefined;
         }
     }
-    
+
     // 调用 App 方法。
     function _perform(method) {
         switch (_mode) {
@@ -368,7 +395,7 @@ function _CoreNative(nativeWasReady) {
         nativeFrame.style.display = 'none';
         nativeFrame.setAttribute('src', url);
         document.body.appendChild(nativeFrame);
-        window.setTimeout(function () {
+        window.setTimeout(function() {
             document.body.removeChild(nativeFrame);
         }, 2000);
 
@@ -376,7 +403,7 @@ function _CoreNative(nativeWasReady) {
             _delegate(url);
         }
     }
-    
+
     // 调用 App 方法前，将所有参数转换成 JSON 数据类型，number/string/boolean 类型除外。
     function _performByJSON(method) {
         let parameters = [method];
@@ -398,13 +425,13 @@ function _CoreNative(nativeWasReady) {
         }
         _performByObject.apply(this, parameters);
     }
-    
+
     function _performByObject(method) {
         let parameters = [];
         for (let i = 1; i < arguments.length; i += 1) {
             parameters.push(arguments[i]);
         }
-        window.setTimeout(function () {
+        window.setTimeout(function() {
             let array = method.split("/");
             let object = _delegate;
             for (let i = 0; i < array.length; i++) {
@@ -413,7 +440,7 @@ function _CoreNative(nativeWasReady) {
             object.apply(window, parameters);
         });
     }
-    
+
     function _performByJavaScript(method) {
         let parameters = [];
         for (let i = 1; i < arguments.length; i++) {
@@ -423,14 +450,14 @@ function _CoreNative(nativeWasReady) {
                 parameters.push(arguments[i]);
             }
         }
-        window.setTimeout(function () {
+        window.setTimeout(function() {
             _delegate.apply(window, [method, parameters]);
         });
     }
-    
+
     let _isReady = false;
     let _readyID = null;
-    
+
     /**
      * 注册 App 对象，以及 App 对象可接收的数据类型。
      * @param delegate App 对象。
@@ -450,16 +477,16 @@ function _CoreNative(nativeWasReady) {
         }
         // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
         function _documentWasReady() {
-            _readyID = _perform(window.NativeMethod.ready, function (configuration) {
+            _readyID = _perform(window.NativeMethod.ready, function(configuration) {
                 _isReady = true;
                 _readyID = null;
                 nativeWasReady(configuration);
             });
         }
-        
+
         // documentReady 判断不支持 IE 。
         if (document.readyState === 'complete') {
-            window.setTimeout(function () {
+            window.setTimeout(function() {
                 _documentWasReady();
             });
         } else {
@@ -472,52 +499,52 @@ function _CoreNative(nativeWasReady) {
             // WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
             window.addEventListener("load", _eventListener);
         }
-        
+
         return this;
     }
-    
-    Object.defineProperties(this, {
+
+    _NativeDefineProperties(this, {
         callback: {
-            get: function () {
+            get: function() {
                 return _callback;
             }
         },
         perform: {
-            get: function () {
+            get: function() {
                 return _perform;
             }
         },
         scheme: {
-            get: function () {
+            get: function() {
                 return _scheme;
             },
-            set: function (newValue) {
+            set: function(newValue) {
                 _scheme = newValue;
             }
         },
         isReady: {
-            get: function () {
+            get: function() {
                 return _isReady;
             }
         },
         register: {
-            get: function () {
+            get: function() {
                 return _register;
             }
         },
         delegate: {
-            get: function () {
+            get: function() {
                 return _delegate;
             },
-            set: function (newValue) {
+            set: function(newValue) {
                 _delegate = newValue;
             }
         },
         mode: {
-            get: function () {
+            get: function() {
                 return _mode;
             },
-            set: function (newValue) {
+            set: function(newValue) {
                 _mode = newValue;
             }
         }
@@ -533,7 +560,7 @@ function _CoreNative(nativeWasReady) {
 function _Cookie() {
     // 缓存
     let _keyedCookies = null;
-    
+
     /**
      * 如果 Cookie 缓存不存在，则读取并缓存 Cookie 。
      * @private
@@ -542,13 +569,13 @@ function _Cookie() {
         if (!!_keyedCookies) {
             return;
         }
-        
+
         // 缓存只在当前 runLoop 中生效。
         _keyedCookies = {};
-        window.setTimeout(function () {
+        window.setTimeout(function() {
             _keyedCookies = null;
         });
-        
+
         let cookieStore = document.cookie;
         if (!cookieStore) {
             return;
@@ -559,7 +586,7 @@ function _Cookie() {
             if (!Array.isArray(tmp) || tmp.length === 0) {
                 continue;
             }
-            
+
             let name = decodeURIComponent(tmp[0]);
             if (tmp.length > 1) {
                 _keyedCookies[name] = decodeURIComponent(tmp[1]);
@@ -568,7 +595,7 @@ function _Cookie() {
             }
         }
     }
-    
+
     /**
      * 读取或设置指定键存储在 Cookie 中的值。
      * @param key 键名。
@@ -602,7 +629,7 @@ function _Cookie() {
         }
         return this;
     }
-    
+
     /**
      * 同步最新的 Cookie 。
      * @return {_synchronize}
@@ -612,15 +639,15 @@ function _Cookie() {
         _keyedCookies = null;
         return this;
     }
-    
-    Object.defineProperties(this, {
+
+    _NativeDefineProperties(this, {
         value: {
-            get: function () {
+            get: function() {
                 return _value;
             }
         },
         synchronize: {
-            get: function () {
+            get: function() {
                 return _synchronize;
             }
         }
@@ -629,30 +656,28 @@ function _Cookie() {
 
 
 
-
-
 // ======================================
 // ======================================
 // ======================================
 // MARK: - login
 
-native.extend(function () {
-    
+native.extend(function() {
+
     function _login(callback) {
         if (!callback) {
             Native.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
             return this;
         }
         let that = this;
-        this.core.perform(NativeMethod.login, function (currentUser) {
+        this.core.perform(NativeMethod.login, function(currentUser) {
             that.setCurrentUser(currentUser);
             callback();
         });
     }
-    
+
     return {
         login: {
-            get: function () {
+            get: function() {
                 return _login;
             }
         }
@@ -666,10 +691,10 @@ native.extend(function () {
 // ======================================
 // MARK: - User
 
-native.extend(function (configuration) {
+native.extend(function(configuration) {
     // 存储监听
     let _currentUserChangeHandlers = [];
-    
+
     function _currentUserChange(callback) {
         if (typeof callback === "function") {
             _currentUserChangeHandlers.push(callback);
@@ -683,30 +708,30 @@ native.extend(function (configuration) {
 
 
     function _User(id, name, info, version) {
-        Object.defineProperties(this, {
+        _NativeDefineProperties(this, {
             "id": {
-                get: function () {
+                get: function() {
                     return id;
                 }
             },
             "name": {
-                get: function () {
+                get: function() {
                     return name;
                 }
             },
             "info": {
-                get: function () {
+                get: function() {
                     return info;
                 }
             },
             "version": {
-                get: function () {
+                get: function() {
                     return version;
                 }
             }
         })
     }
-    
+
     // 定义用户
     let _currentUser = new _User(
         configuration.currentUser.id,
@@ -714,7 +739,7 @@ native.extend(function (configuration) {
         configuration.currentUser.info,
         configuration.currentUser.version
     );
-    
+
     // 保存 User 信息。
     Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
 
@@ -723,8 +748,8 @@ native.extend(function (configuration) {
         _currentUser = new _User(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
         _currentUserChange();
     }
-    
-    (function (native) {
+
+    (function(native) {
         // 在页面隐藏时绑定显示时事件。
         // 页面显示时，从 cookie 读取信息。
         function _pageShow() {
@@ -733,31 +758,31 @@ native.extend(function (configuration) {
                 native.setCurrentUser(userInfo);
             }
         }
-        
+
         // 页面第一次隐藏后，监听页面显示事件。
         function _pageHide() {
             window.addEventListener('pageshow', _pageShow);
             window.removeEventListener('pagehide', _pageHide);
         }
-        
+
         // 绑定页面隐藏时的事件
         window.addEventListener('pagehide', _pageHide);
     })(this);
-    
-    
+
+
     return {
         setCurrentUser: {
-            get: function () {
+            get: function() {
                 return _setCurrentUser;
             }
         },
         currentUserChange: {
-            get: function () {
+            get: function() {
                 return _currentUserChange;
             }
         },
         currentUser: {
-            get: function () {
+            get: function() {
                 return _currentUser;
             }
         }
@@ -770,17 +795,17 @@ native.extend(function (configuration) {
 // ======================================
 // MARK: - navigation
 
-native.extend(function (configuration) {
+native.extend(function(configuration) {
 
     let _nativeCore = this.core;
 
     function _NavigationBar(barInfo) {
-        
-        let _title           = barInfo.title;
-        let _titleColor      = barInfo.titleColor;
+
+        let _title = barInfo.title;
+        let _titleColor = barInfo.titleColor;
         let _backgroundColor = barInfo.backgroundColor;
-        let _isHidden        = barInfo.isHidden;
-        
+        let _isHidden = barInfo.isHidden;
+
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
                 Native.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
@@ -792,7 +817,7 @@ native.extend(function (configuration) {
             }
             return this;
         }
-        
+
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
                 Native.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
@@ -804,7 +829,7 @@ native.extend(function (configuration) {
             }
             return this;
         }
-        
+
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
                 Native.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
@@ -816,17 +841,17 @@ native.extend(function (configuration) {
             }
             return this;
         }
-        
+
         function _hide(animated) {
             _setHidden(true, animated, true);
             return this;
         }
-        
+
         function _show(animated) {
             _setHidden(false, animated, true);
             return this;
         }
-        
+
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
                 Native.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
@@ -839,76 +864,76 @@ native.extend(function (configuration) {
             _nativeCore.perform(NativeMethod.navigation.bar.setBackgroundColor, newValue);
             return this;
         }
-        
-        Object.defineProperties(this, {
+
+        _NativeDefineProperties(this, {
             title: {
-                get: function () {
+                get: function() {
                     return _title;
                 },
-                set: function (newValue) {
+                set: function(newValue) {
                     _setTitle(newValue, true);
                 }
             },
             titleColor: {
-                get: function () {
+                get: function() {
                     return _titleColor;
                 },
-                set: function (newValue) {
+                set: function(newValue) {
                     _setTitleColor(newValue, true);
                 }
             },
             backgroundColor: {
-                get: function () {
+                get: function() {
                     return _backgroundColor;
                 },
-                set: function (newValue) {
+                set: function(newValue) {
                     _setBackgroundColor(newValue, true);
                 }
             },
             isHidden: {
-                get: function () {
+                get: function() {
                     return _isHidden;
                 },
-                set: function (newValue) {
+                set: function(newValue) {
                     _setHidden(newValue, false, true);
                 }
             },
             setTitle: {
-                get: function () {
+                get: function() {
                     return _setTitle;
                 }
             },
             setTitleColor: {
-                get: function () {
+                get: function() {
                     return _setTitleColor;
                 }
             },
             setBackgroundColor: {
-                get: function () {
+                get: function() {
                     return _setBackgroundColor;
                 }
             },
             setHidden: {
-                get: function () {
+                get: function() {
                     return _setHidden;
                 }
             },
             hide: {
-                get: function () {
+                get: function() {
                     return _hide;
                 }
             },
             show: {
-                get: function () {
+                get: function() {
                     return _show;
                 }
             }
         });
     }
-    
+
     function _Navigation(info) {
         // 3.1 进入下级页面。
-        let _push = function (url, animated) {
+        let _push = function(url, animated) {
             if (typeof url !== 'string') {
                 Native.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
                 return null;
@@ -928,17 +953,17 @@ native.extend(function (configuration) {
             }
             return _nativeCore.perform(NativeMethod.navigation.push, url, animated);
         };
-        
+
         // 3.2 推出当前页面，使栈内页面数量 -1。
-        let _pop = function (animated) {
+        let _pop = function(animated) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
             return _nativeCore.perform(NativeMethod.navigation.pop, animated);
         };
-        
+
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
-        let _popTo = function (index, animated) {
+        let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
                 Native.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
                 return;
@@ -948,38 +973,38 @@ native.extend(function (configuration) {
             }
             return _nativeCore.perform(NativeMethod.navigation.popTo, index, animated);
         };
-        
+
         let _bar = new _NavigationBar(info.bar);
-        
-        Object.defineProperties(this, {
+
+        _NativeDefineProperties(this, {
             push: {
-                get: function () {
+                get: function() {
                     return _push;
                 }
             },
             pop: {
-                get: function () {
+                get: function() {
                     return _pop;
                 }
             },
             popTo: {
-                get: function () {
+                get: function() {
                     return _popTo;
                 }
             },
             bar: {
-                get: function () {
+                get: function() {
                     return _bar;
                 }
             }
         });
     }
-    
+
     let _navigation = new _Navigation(configuration.navigation);
-    
+
     return {
         'navigation': {
-            get: function () {
+            get: function() {
                 return _navigation;
             }
         }
@@ -995,15 +1020,15 @@ const NativeNetworkStatus = Object.freeze({
     WiFi: "WiFi"
 });
 
-native.extend(function (configuration) {
+native.extend(function(configuration) {
 
     let _nativeCore = this.core;
-    
+
     function _Networking(networkingInfo) {
-        
+
         let _status = networkingInfo.status;
         let _statusChangeHandlers = [];
-        
+
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
@@ -1012,7 +1037,7 @@ native.extend(function (configuration) {
             }
             return _nativeCore.perform(NativeMethod.networking.http, request, callback);
         }
-        
+
         // 网络状态监听。
         function _statusChange(callback) {
             if (typeof callback === "function") {
@@ -1023,57 +1048,57 @@ native.extend(function (configuration) {
                 _statusChangeHandlers[i].call(window);
             }
         }
-        
+
         // 供 App 切换状态
         function _setStatus(newValue) {
             _status = newValue;
             _statusChange();
         }
-        
-        Object.defineProperties(this, {
+
+        _NativeDefineProperties(this, {
             isViaWiFi: {
-                get: function () {
+                get: function() {
                     return (_status === NativeNetworkStatus.WiFi);
                 }
             },
             status: {
-                get: function () {
+                get: function() {
                     return _status;
                 }
             },
             isReachable: {
-                get: function () {
+                get: function() {
                     return !!_status
                 }
             },
             statusChange: {
-                get: function () {
+                get: function() {
                     return _statusChange;
                 }
             },
             http: {
-                get: function () {
+                get: function() {
                     return _http;
                 }
             },
             setStatus: {
-                get: function () {
+                get: function() {
                     return _setStatus;
                 }
             }
         });
     }
-    
+
     let _networking = new _Networking(configuration.networking);
-    
+
     return {
         "networking": {
-            get: function () {
+            get: function() {
                 return _networking;
             }
         },
         "http": {
-            get: function () {
+            get: function() {
                 return _networking.http;
             }
         }
@@ -1085,8 +1110,8 @@ native.extend(function (configuration) {
 // ======================================
 // MARK: - Open
 
-native.extend(function () {
-    
+native.extend(function() {
+
     function _open(page) {
         if (typeof page !== 'string') {
             Native.log("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
@@ -1094,10 +1119,10 @@ native.extend(function () {
         }
         return this.core.perform(NativeMethod.open, page);
     }
-    
+
     return {
         open: {
-            get: function () {
+            get: function() {
                 return _open;
             }
         }
@@ -1110,8 +1135,8 @@ native.extend(function () {
 // ======================================
 // MARK: - Present
 
-native.extend(function () {
-    
+native.extend(function() {
+
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
             Native.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
@@ -1128,7 +1153,7 @@ native.extend(function () {
         }
         return this.core.perform(NativeMethod.present, url, animated, completion);
     }
-    
+
     function _dismiss(arg1, arg2) {
         let animated = arg1;
         let completion = arg2;
@@ -1141,20 +1166,20 @@ native.extend(function () {
         }
         return this.core.perform(NativeMethod.dismiss, animated, completion);
     }
-    
+
     return {
         present: {
-            get: function () {
+            get: function() {
                 return _present;
             }
         },
         dismiss: {
-            get: function () {
+            get: function() {
                 return _dismiss;
             }
         }
     }
-    
+
 });
 
 
@@ -1164,12 +1189,12 @@ native.extend(function () {
 // ======================================
 // MARK: - Theme
 
-native.extend(function (configuration) {
+native.extend(function(configuration) {
 
     let _currentTheme = configuration.currentTheme;
 
     let _currentThemeChangeHandlers = [];
-    
+
     // 设置当前主题。
     function _setCurrentTheme(newValue, animated, needsSyncToApp) {
         _currentTheme = newValue;
@@ -1182,10 +1207,13 @@ native.extend(function (configuration) {
             _currentThemeChange();
         }
     }
-    
+
     function _currentThemeChange(callback, animated) {
         if (typeof callback === 'function') {
-            _currentThemeChangeHandlers.push({"callback": callback, "animated": animated});
+            _currentThemeChangeHandlers.push({
+                "callback": callback,
+                "animated": animated
+            });
             return this;
         }
         for (let i = 0; i < _currentThemeChangeHandlers.length; i++) {
@@ -1194,8 +1222,8 @@ native.extend(function (configuration) {
         }
         return this;
     }
-    
-    (function (native) {
+
+    (function(native) {
         function _pageShow() {
             let currentTheme = window.Native.cookie.value(NativeCookieKey.currentTheme);
             if (!currentTheme || currentTheme === native.currentTheme) {
@@ -1204,32 +1232,32 @@ native.extend(function (configuration) {
             native.setCurrentTheme(currentTheme, false, false);
             native.currentThemeChange();
         }
-        
+
         function _pageHide() {
             window.removeEventListener('pagehide', _pageHide);
             window.addEventListener('pageshow', _pageShow);
         }
-        
+
         // 页面第一隐藏后，每次出现时，都从 Cookie 检查主题是否发生变更。
         window.addEventListener('pagehide', _pageHide);
     })(this);
-    
+
     return {
         currentTheme: {
-            get: function () {
+            get: function() {
                 return _currentTheme;
             },
-            set: function (newValue) {
+            set: function(newValue) {
                 _setCurrentTheme(newValue, false, true);
             }
         },
         currentThemeChange: {
-            get: function () {
+            get: function() {
                 return _currentThemeChange;
             }
         },
         setCurrentTheme: {
-            get: function () {
+            get: function() {
                 return _setCurrentTheme;
             }
         }
@@ -1242,14 +1270,14 @@ native.extend(function (configuration) {
 // ======================================
 // MARK: - Event Service
 
-native.extend(function () {
-    
+native.extend(function() {
+
     // native 对象应该一直存在于内存中，拓展也应该一直存在于内存中（如果不是一直存在于内存中的拓展，可以考虑提供清理的方法。
 
     let _nativeCore = this.core;
-    
+
     function _EventService() {
-        
+
         /// 列表点击事件。
         function _didSelectRowAtIndex(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'number') {
@@ -1258,7 +1286,7 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.eventService.didSelectRowAtIndex, documentName, elementName, index, callback);
         }
-        
+
         /// 页面元素点击事件。
         function _documentElementWasClicked(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
@@ -1271,7 +1299,7 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.eventService.documentElementWasClicked, documentName, elementName, data, callback);
         }
-        
+
         /// 事件埋点。
         function _track(eventName, parameters) {
             if (typeof eventName !== 'string') {
@@ -1280,36 +1308,36 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.eventService.track, eventName, parameters);
         }
-        
-        Object.defineProperties(this, {
+
+        _NativeDefineProperties(this, {
             didSelectRowAtIndex: {
-                get: function () {
+                get: function() {
                     return _didSelectRowAtIndex;
                 }
             },
             documentElementWasClicked: {
-                get: function () {
+                get: function() {
                     return _documentElementWasClicked;
                 }
             },
             track: {
-                get: function () {
+                get: function() {
                     return _track;
                 }
             }
         });
     }
-    
+
     let _eventService = new _EventService();
-    
+
     return {
         eventService: {
-            get: function () {
+            get: function() {
                 return _eventService;
             }
         }
     }
-    
+
 });
 
 // ======================================
@@ -1317,10 +1345,10 @@ native.extend(function () {
 // ======================================
 // MARK: - Data Service
 
-native.extend(function () {
+native.extend(function() {
 
     let _nativeCore = this.core;
-    
+
     function _DataService() {
         // 获取 list 的行数。
         // - list: string
@@ -1332,7 +1360,7 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
         }
-        
+
         // 加载数据
         // - list: XZAppList
         // - index: number
@@ -1344,7 +1372,7 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
         }
-    
+
         // 获取缓存。
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
@@ -1371,31 +1399,31 @@ native.extend(function () {
             }
             return _nativeCore.perform(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
         }
-        
-        Object.defineProperties(this, {
+
+        _NativeDefineProperties(this, {
             numberOfRowsInList: {
-                get: function () {
+                get: function() {
                     return _numberOfRowsInList;
                 }
             },
             dataForRowAtIndex: {
-                get: function () {
+                get: function() {
                     return _dataForRowAtIndex;
                 }
             },
             cachedResourceForURL: {
-                get: function () {
+                get: function() {
                     return _cachedResourceForURL;
                 }
             }
         });
     }
-    
+
     let _dataService = new _DataService();
-    
+
     return {
         dataService: {
-            get: function () {
+            get: function() {
                 return _dataService;
             }
         }
@@ -1409,8 +1437,8 @@ native.extend(function () {
 // ======================================
 // MARK: - Alert
 
-native.extend(function () {
-    
+native.extend(function() {
+
     function _alert(message, callback) {
         if (!message || typeof message !== 'object') {
             Native.log("Method `alert` first parameter must be an message object.", NativeLogStyle.error);
@@ -1418,10 +1446,10 @@ native.extend(function () {
         }
         return this.core.perform(NativeMethod.alert, message, callback);
     }
-    
+
     return {
         'alert': {
-            get: function () {
+            get: function() {
                 return _alert;
             }
         }
