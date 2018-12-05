@@ -24,19 +24,22 @@ window.native.ready(function() {
 
 ### 交互机制
 
-#### 运行流程
+
+
+### 运行流程
 
 1. App 创建 `WebView` 并加载 HTML 页面。
-2. HTML 加载 `native.js` 框架，创建 `native` 对象。
-3. 包装所有跨平台交互操作在 `native.ready()` 中，等待执行。
-4. App 在 `WebView` 注册交互方式（注入 JavaScript 代码 `native.core.register()`，根据交互方式不同，此时未必能直接进行交互操作）。
-5. `native` 按照步骤4中的交互方式，在合适的时机向 App 发送 `ready` 消息，请求初始化 `native` 对象。
-6. App 响应 `native` 的初始化消息，并执行回调（`native.core.callback()`）；`native` 初始化完成后，按顺序逐一执行步骤3中包装的操作。
+2. HTML 加载 `native.js` 框架，创建 `native` 对象（已创建，但是逻辑上未初始化，交互功能不可用）。
+3. 包装所有跨平台交互操作在 `native.ready(fn)` 回调函数中，等待执行。
+4. 调用 `native.core.register()` 方法，注册与 App 的交互方式，并在合适的时机向 App 发送 `ready` 消息，向原生请求请求初始化 `native` 对象。
+5. 原生收到 `native` 的初始化消息，执行初始化并响应消息（调用 `native.core.callback()` 方法处理回调）。
+6. 对象 `native` 完成初始化，并按顺序逐一执行步骤3中包装的操作。
 7. 调用 `native` 的交互方法，App 就可以按照步骤4中约定的交互方式收到交互的消息，然后执行消息代表的操作，从而实现交互。
 
-#### HTML 需要将所有操作放到 `native.ready()` 回调中，或者保证所有交互操作是在 `native` 对象 `ready` 之后进行。
+### 与其它框架兼容
 
-不同的框架有不同的实现机制，为了保证执行顺序，不同的框架需采用不同的方法。下面是两个例子，关于如何保证 `native.js` 框架与其它框架的执行顺序。
+将所有涉及交互的操作放到 `native.ready()` 回调中，或者保证所有交互操作是在 `native` 对象 `ready` 之后进行。
+因此，在保证 `native` 对象在业务逻辑中能正常使用且兼顾其它JS框架开发流程的情况下，需处理各框架间的执行顺序。
 
 1. JQuery
 
@@ -86,8 +89,21 @@ native.ready(function () {
 - ready(fn)
 
     - 说明
+
+    注册在 native 对象初始化完成后执行的操作。如果 native 对象没有初始化，则在 native 对象初始化后按注册
+    顺序依次执行所有已注册的操作；如果已初始化，则操作立即（异步）执行。
+
     - 参数
+
+    fn: 待执行的操作。
+
     - 示例
+
+```javascript
+native.ready(function(){
+    console.log("Native is ready.");
+});
+```
 
 - extend(fn)
 
