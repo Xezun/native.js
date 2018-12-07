@@ -14,6 +14,12 @@ const NativeMode = (function() {
             return _NativeMode;
         }
     });
+    _NativeDefineProperty(window, "NativeType", {
+        get: function() {
+            _NativeLog("NativeType was deprecated, please use NativeMode instead.", 1);
+            return _NativeMode;
+        }
+    });
     return _NativeMode;
 })();
 
@@ -45,7 +51,7 @@ const NativeMethod = (function() {
         eventService: Object.freeze({
             track: "eventService/track",
             documentElementWasClicked: "eventService/documentElementWasClicked",
-            didSelectRowAtIndex: "eventService/didSelectRowAtIndex"
+            documentElementDidSelect: "eventService/documentElementDidSelect"
         }),
         login: "login",
         navigation: Object.freeze({
@@ -1279,12 +1285,12 @@ native.extend(function() {
     function _EventService() {
 
         /// 列表点击事件。
-        function _didSelectRowAtIndex(documentName, elementName, index, callback) {
-            if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'number') {
-                Native.log("Method `elementDidSelectRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+        function _documentElementDidSelect(documentName, elementName, index, callback) {
+            if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'undefined') {
+                Native.log("Method `documentElementDidSelect` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _nativeCore.perform(NativeMethod.eventService.didSelectRowAtIndex, documentName, elementName, index, callback);
+            return _nativeCore.perform(NativeMethod.eventService.documentElementDidSelect, documentName, elementName, index, callback);
         }
 
         /// 页面元素点击事件。
@@ -1310,9 +1316,9 @@ native.extend(function() {
         }
 
         _NativeDefineProperties(this, {
-            didSelectRowAtIndex: {
+            documentElementDidSelect: {
                 get: function() {
-                    return _didSelectRowAtIndex;
+                    return _documentElementDidSelect;
                 }
             },
             documentElementWasClicked: {
