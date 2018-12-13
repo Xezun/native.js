@@ -1,5 +1,5 @@
 {
-  "name": "native",
+  "name": "@mlibai/native.js",
   "version": "1.0.0",
   "description": "A library for JavaScript interact with Native App.",
   "main": "native/native.js",
