@@ -491,8 +491,7 @@ function _CoreNative(nativeWasReady) {
             });
         }
 
-        // documentReady 判断不支持 IE 。
-        if (document.readyState === 'complete') {
+        if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
             window.setTimeout(function() {
                 _documentWasReady();
             });
