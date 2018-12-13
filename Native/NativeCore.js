@@ -4,113 +4,7 @@
 // MARK: - Native
 
 const NativeLogStyle = require("./NativeLogStyle.js")
-
-exports.log = _log;
-exports.defineProperty = _defineProperty;
-exports.defineProperties = _defineProperties;
-exports.parseURLQueryValue = _parseURLQueryValue;
-exports.parseURLQuery = _parseURLQuery;
-exports.Core = _NativeCore;
-exports.cookie = new _NativeCookie();
-
-funtion _log(message, style) {
-    if (typeof style !== "number" || style === NativeLogStyle.default) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
-    } else if (style === NativeLogStyle.warning) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
-    } else if (style === NativeLogStyle.error) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
-    }
-}
-
-
-funtion _defineProperty(object, propertyName, propertyList) {
-    if (typeof object === "undefined") {
-        return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof propertyName !== "string" || propertyName.length === 0) {
-        return _NativeLog("Define property error: The name for "+ object.constructor.name +"'s property must be a nonempty string.", 2);
-    }
-    if (object.hasOwnProperty(propertyName)) {
-        return _NativeLog("Define property warning: The property "+ propertyName +" to be defined for "+ object.constructor.name +" is already exist.", 1);
-    }
-    Object.defineProperty(object, propertyName, propertyList);
-}
-
-
-funtion _defineProperties(object, propertyList) {
-    if (typeof object === "undefined") {
-        return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof propertyList !== "object") {
-        return _NativeLog("Define properties error: The property list for "+ object.constructor.name +" at second parameter must be an Object.", 2);
-    }
-    for (let propertyName in propertyList) {
-        if (!propertyList.hasOwnProperty(propertyName)) {
-            continue;
-        }
-        _NativeDefineProperty(object, propertyName, propertyList[propertyName]);
-    }
-}
-
-// 将任意值转换为 URL QueryValue 。
-function _parseURLQueryValue(value) {
-    if (!value) {
-        return "";
-    }
-    switch (typeof value) {
-        case 'string':
-            return encodeURIComponent(value);
-        case 'undefined':
-            return '';
-        default:
-            return encodeURIComponent(JSON.stringify(value));
-    }
-}
-
-
-// 将任意对象转换为 URL 查询字符串。
-function _parseURLQuery(anObject) {
-    if (!anObject) {
-        return "";
-    }
-    // [a,b,c] -> a&b&c
-    if (Array.isArray(anObject)) {
-        let values = [];
-        for (let i = 0; i < anObject.length; i++) {
-            values.push(_parseURLQueryValue(anObject[i]));
-        }
-        return values.join("&");
-    }
-
-    switch (typeof anObject) {
-        case 'string': // any string -> any%20string
-            return encodeURIComponent(anObject);
-
-        case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
-            let queryString = "";
-            for (let key in anObject) {
-                if (!anObject.hasOwnProperty(key)) {
-                    continue;
-                }
-                if (queryString.length > 0) {
-                    queryString += ("&" + encodeURIComponent(key));
-                } else {
-                    queryString = encodeURIComponent(key);
-                }
-                if (!anObject[key]) {
-                    continue;
-                }
-                queryString += ("=" + _parseURLQueryValue(anObject[key]));
-            }
-            return queryString;
-        case 'undefined':
-            return '';
-        default:
-            return encodeURIComponent(JSON.stringify(anObject));
-    }
-}
-
+const NativeMode = require("./NativeMode.js")
 
 // ======================================
 // ======================================
@@ -142,7 +36,7 @@ function _NativeCore(nativeWasReady) {
                 }
                 return callback;
             default:
-                Native.log("Only callback function or callback is allowed", NativeLogStyle.error);
+                NativeCore.log("Only callback function or callback is allowed", NativeLogStyle.error);
                 return undefined;
         }
     }
@@ -159,7 +53,7 @@ function _NativeCore(nativeWasReady) {
             case NativeMode.javascript:
                 return _performByJavaScript.apply(this, arguments);
             default:
-                return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
+                return NativeCore.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
         }
     }
 
@@ -174,7 +68,7 @@ function _NativeCore(nativeWasReady) {
             }
         }
         // native://login?parameters=["John", "pw123456"]
-        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryValue(parameters);
+        let url = _scheme + "://" + method + "?parameters=" + NativeCore.parseURLQueryValue(parameters);
         let nativeFrame = document.createElement('iframe');
         nativeFrame.style.display = 'none';
         nativeFrame.setAttribute('src', url);
@@ -286,7 +180,7 @@ function _NativeCore(nativeWasReady) {
         return this;
     }
 
-    _NativeDefineProperties(this, {
+    _defineProperties(this, {
         callback: {
             get: function() {
                 return _callback;
@@ -333,6 +227,106 @@ function _NativeCore(nativeWasReady) {
         }
     });
 }
+
+function _defineProperty(object, propertyName, propertyList) {
+    if (typeof object === "undefined") {
+        return _log("Define property error: Can not define properties for an undefined value.", 2);
+    }
+    if (typeof propertyName !== "string" || propertyName.length === 0) {
+        return _log("Define property error: The name for "+ object.constructor.name +"'s property must be a nonempty string.", 2);
+    }
+    if (object.hasOwnProperty(propertyName)) {
+        return _log("Define property warning: The property "+ propertyName +" to be defined for "+ object.constructor.name +" is already exist.", 1);
+    }
+    Object.defineProperty(object, propertyName, propertyList);
+}
+_defineProperty(_NativeCore, "defineProperty", { get: function() { return _defineProperty; } });
+
+function _log(message, style) {
+    if (typeof style !== "number" || style === NativeLogStyle.default) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
+    } else if (style === NativeLogStyle.warning) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
+    } else if (style === NativeLogStyle.error) {
+        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
+    }
+}
+_defineProperty(_NativeCore, "log", { get: function() { return _log; } });
+
+function _defineProperties(object, propertyList) {
+    if (typeof object === "undefined") {
+        return _log("Define properties error: Can not define properties for an undefined value.", 2);
+    }
+    if (typeof propertyList !== "object") {
+        return _log("Define properties error: The property list for "+ object.constructor.name +" at second parameter must be an Object.", 2);
+    }
+    for (let propertyName in propertyList) {
+        if (!propertyList.hasOwnProperty(propertyName)) {
+            continue;
+        }
+        _defineProperty(object, propertyName, propertyList[propertyName]);
+    }
+}
+_defineProperty(_NativeCore, "defineProperties", { get: function() { return _defineProperties; } });
+
+// 将任意值转换为 URL QueryValue 。
+function _parseURLQueryValue(value) {
+    if (!value) {
+        return "";
+    }
+    switch (typeof value) {
+        case 'string':
+            return encodeURIComponent(value);
+        case 'undefined':
+            return '';
+        default:
+            return encodeURIComponent(JSON.stringify(value));
+    }
+}
+_defineProperty(_NativeCore, "parseURLQueryValue", { get: function() { return _parseURLQueryValue; } });
+
+// 将任意对象转换为 URL 查询字符串。
+function _parseURLQuery(anObject) {
+    if (!anObject) {
+        return "";
+    }
+    // [a,b,c] -> a&b&c
+    if (Array.isArray(anObject)) {
+        let values = [];
+        for (let i = 0; i < anObject.length; i++) {
+            values.push(_parseURLQueryValue(anObject[i]));
+        }
+        return values.join("&");
+    }
+
+    switch (typeof anObject) {
+        case 'string': // any string -> any%20string
+            return encodeURIComponent(anObject);
+
+        case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
+            let queryString = "";
+            for (let key in anObject) {
+                if (!anObject.hasOwnProperty(key)) {
+                    continue;
+                }
+                if (queryString.length > 0) {
+                    queryString += ("&" + encodeURIComponent(key));
+                } else {
+                    queryString = encodeURIComponent(key);
+                }
+                if (!anObject[key]) {
+                    continue;
+                }
+                queryString += ("=" + _parseURLQueryValue(anObject[key]));
+            }
+            return queryString;
+        case 'undefined':
+            return '';
+        default:
+            return encodeURIComponent(JSON.stringify(anObject));
+    }
+}
+_defineProperty(_NativeCore, "parseURLQuery", { get: function() { return _parseURLQuery; } });
 
 // ======================================
 // ======================================
@@ -422,7 +416,7 @@ function _NativeCookie() {
         return this;
     }
 
-    _NativeDefineProperties(this, {
+    _defineProperties(this, {
         value: {
             get: function() {
                 return _value;
@@ -435,3 +429,15 @@ function _NativeCookie() {
         }
     });
 }
+const _cookie = new _NativeCookie();
+_defineProperty(_NativeCore, "cookie", { get: function() { return _cookie; } });
+
+module.exports = _NativeCore;
+
+// module.exports.log = _log;
+// module.exports.defineProperty = _defineProperty;
+// module.exports.defineProperties = _defineProperties;
+// module.exports.parseURLQueryValue = _parseURLQueryValue;
+// exports.parseURLQuery = _parseURLQuery;
+// exports.Core = _NativeCore;
+// exports.cookie = new _NativeCookie();

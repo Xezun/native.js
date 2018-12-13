@@ -1,0 +1,1 @@
+exports.NativeNetworkStatus = "WiFi";

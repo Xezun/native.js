@@ -7,20 +7,20 @@ const NativeLogStyle = require("./NativeLogStyle.js")
 const NativeMethod = require("./NativeMethod.js")
 const NativeCookieKey = require("./NativeCookieKey.js")
 const NativeCachedResourceType = require("./NativeCachedResourceType.js")
-const Native = require("./NativeCore.js")
-
+const NativeNetworkStatus = require("./NativeNetworkStatus.js")
+const NativeCore = require("./NativeCore.js")
 
 let _configuration = null;
 let _extensions = [];
 let _readies = [];
 
 // native 作为单例，其核心 core 与自身互为引用。
-let _core = new Native.Core(function(configuration) {
+let _core = new NativeCore(function(configuration) {
     _configuration = configuration;
     // 加载拓展，extension 中 this 指向 native 对象。。
     while (_extensions.length > 0) {
         let extension = _extensions.shift();
-        Native.defineProperties(native, extension.apply(native, [_configuration]));
+        NativeCore.defineProperties(native, extension.apply(native, [_configuration]));
     }
     // 执行 ready，回调函数中 this 指向 window 对象。。
     while (_readies.length > 0) {
@@ -45,6 +45,7 @@ function _ready(callback) {
     return this;
 }
 exports.ready = _ready;
+
 /**
  * 拓展 AppCore 的方法，拓展函数中，this 指向 native 。
  * @param callback
@@ -56,7 +57,7 @@ function _extend(callback) {
         return this;
     }
     if (_core.isReady) {
-        Native.defineProperties(this, callback.apply(this, [_configuration]));
+        NativeCore.defineProperties(this, callback.apply(this, [_configuration]));
     } else {
         _extensions.push(callback);
     }
@@ -65,43 +66,20 @@ function _extend(callback) {
 exports.extend = _extend;
 
 
-
-// ======================================
-// ======================================
-// ======================================
 // MARK: - login
-
-native.extend(function() {
-
-    function _login(callback) {
-        if (!callback) {
-            Native.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
-            return this;
-        }
-        let that = this;
-        this.core.perform(NativeMethod.login, function(currentUser) {
-            that.setCurrentUser(currentUser);
-            callback();
-        });
-    }
-
+_extend(function() {
     return {
         login: {
             get: function() {
-                return _login;
+                return require("./native.login.js");
             }
         }
     };
 });
 
-
-
-// ======================================
-// ======================================
-// ======================================
 // MARK: - User
 
-native.extend(function(configuration) {
+_extend(function(configuration) {
     // 存储监听
     let _currentUserChangeHandlers = [];
 
@@ -118,7 +96,7 @@ native.extend(function(configuration) {
 
 
     function _User(id, name, info, version) {
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             "id": {
                 get: function() {
                     return id;
@@ -205,7 +183,7 @@ native.extend(function(configuration) {
 // ======================================
 // MARK: - navigation
 
-native.extend(function(configuration) {
+_extend(function(configuration) {
 
     let _nativeCore = this.core;
 
@@ -218,7 +196,7 @@ native.extend(function(configuration) {
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
+                NativeCore.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _title = newValue;
@@ -230,7 +208,7 @@ native.extend(function(configuration) {
 
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
+                NativeCore.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _titleColor = newValue;
@@ -242,7 +220,7 @@ native.extend(function(configuration) {
 
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                Native.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
+                NativeCore.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
                 return this;
             }
             _isHidden = newValue;
@@ -264,7 +242,7 @@ native.extend(function(configuration) {
 
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
+                NativeCore.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _backgroundColor = newValue;
@@ -275,7 +253,7 @@ native.extend(function(configuration) {
             return this;
         }
 
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             title: {
                 get: function() {
                     return _title;
@@ -345,7 +323,7 @@ native.extend(function(configuration) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
-                Native.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
+                NativeCore.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -375,7 +353,7 @@ native.extend(function(configuration) {
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
-                Native.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
+                NativeCore.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
                 return;
             }
             if (typeof animated !== 'boolean') {
@@ -386,7 +364,7 @@ native.extend(function(configuration) {
 
         let _bar = new _NavigationBar(info.bar);
 
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             push: {
                 get: function() {
                     return _push;
@@ -426,11 +404,7 @@ native.extend(function(configuration) {
 // ======================================
 // MARK: - Networking
 
-const NativeNetworkStatus = Object.freeze({
-    WiFi: "WiFi"
-});
-
-native.extend(function(configuration) {
+_extend(function(configuration) {
 
     let _nativeCore = this.core;
 
@@ -442,7 +416,7 @@ native.extend(function(configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                Native.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
+                NativeCore.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.networking.http, request, callback);
@@ -465,7 +439,7 @@ native.extend(function(configuration) {
             _statusChange();
         }
 
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             isViaWiFi: {
                 get: function() {
                     return (_status === NativeNetworkStatus.WiFi);
@@ -520,11 +494,11 @@ native.extend(function(configuration) {
 // ======================================
 // MARK: - Open
 
-native.extend(function() {
+_extend(function() {
 
     function _open(page) {
         if (typeof page !== 'string') {
-            Native.log("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
+            NativeCore.log("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         return this.core.perform(NativeMethod.open, page);
@@ -545,11 +519,11 @@ native.extend(function() {
 // ======================================
 // MARK: - Present
 
-native.extend(function() {
+_extend(function() {
 
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            Native.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
+            NativeCore.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         let animated = arg1;
@@ -599,7 +573,7 @@ native.extend(function() {
 // ======================================
 // MARK: - Theme
 
-native.extend(function(configuration) {
+_extend(function(configuration) {
 
     let _currentTheme = configuration.currentTheme;
 
@@ -680,7 +654,7 @@ native.extend(function(configuration) {
 // ======================================
 // MARK: - Event Service
 
-native.extend(function() {
+_extend(function() {
 
     // native 对象应该一直存在于内存中，拓展也应该一直存在于内存中（如果不是一直存在于内存中的拓展，可以考虑提供清理的方法。
 
@@ -691,7 +665,7 @@ native.extend(function() {
         /// 列表点击事件。
         function _documentElementDidSelect(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'undefined') {
-                Native.log("Method `documentElementDidSelect` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                NativeCore.log("Method `documentElementDidSelect` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.eventService.documentElementDidSelect, documentName, elementName, index, callback);
@@ -700,7 +674,7 @@ native.extend(function() {
         /// 页面元素点击事件。
         function _documentElementWasClicked(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
-                Native.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
+                NativeCore.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             if (typeof data === 'function') {
@@ -713,13 +687,13 @@ native.extend(function() {
         /// 事件埋点。
         function _track(eventName, parameters) {
             if (typeof eventName !== 'string') {
-                Native.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
+                NativeCore.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.eventService.track, eventName, parameters);
         }
 
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             documentElementDidSelect: {
                 get: function() {
                     return _documentElementDidSelect;
@@ -755,7 +729,7 @@ native.extend(function() {
 // ======================================
 // MARK: - Data Service
 
-native.extend(function() {
+_extend(function() {
 
     let _nativeCore = this.core;
 
@@ -765,7 +739,7 @@ native.extend(function() {
         // - callback: (number)=>void
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
+                NativeCore.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
@@ -777,7 +751,7 @@ native.extend(function() {
         // - callback: (data)=>void
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                NativeCore.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
@@ -787,7 +761,7 @@ native.extend(function() {
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
+                NativeCore.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             // 检查 cacheType
@@ -804,13 +778,13 @@ native.extend(function() {
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                Native.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
+                NativeCore.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
                 return null;
             }
             return _nativeCore.perform(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
-        Native.defineProperties(this, {
+        NativeCore.defineProperties(this, {
             numberOfRowsInList: {
                 get: function() {
                     return _numberOfRowsInList;
@@ -847,11 +821,11 @@ native.extend(function() {
 // ======================================
 // MARK: - Alert
 
-native.extend(function() {
+_extend(function() {
 
     function _alert(message, callback) {
         if (!message || typeof message !== 'object') {
-            Native.log("Method `alert` first parameter must be an message object.", NativeLogStyle.error);
+            NativeCore.log("Method `alert` first parameter must be an message object.", NativeLogStyle.error);
             return null;
         }
         return this.core.perform(NativeMethod.alert, message, callback);
