@@ -1,4 +1,5 @@
 // native.js
+// Version: 3.0.0
 // ES5 转换 https://babeljs.io/repl
 
 /// 与原生交互的方式。
@@ -230,23 +231,23 @@ function _NativeLog(message, style) {
 
 function _NativeDefineProperty(object, propertyName, propertyList) {
     if (typeof object === "undefined") {
-        return _NativeLog("The first arguments must be an Object.", 2);
+        return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
     }
-    if (typeof propertyName !== "string") {
-        return _NativeLog("The property name must be a string.", 2);
+    if (typeof propertyName !== "string" || propertyName.length === 0) {
+        return _NativeLog("Define property error: The name for "+ object.constructor.name +"'s property must be a nonempty string.", 2);
     }
     if (object.hasOwnProperty(propertyName)) {
-        return _NativeLog("The property to be defined is already exist.", 2);
+        return _NativeLog("Define property warning: The property "+ propertyName +" to be defined for "+ object.constructor.name +" is already exist.", 1);
     }
     Object.defineProperty(object, propertyName, propertyList);
 }
 
 function _NativeDefineProperties(object, propertyList) {
     if (typeof object === "undefined") {
-        return _NativeLog("The first arguments must be an Object.", 2);
+        return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
     }
     if (typeof propertyList !== "object") {
-        return _NativeLog("The second property must be an Object.", 2);
+        return _NativeLog("Define properties error: The property list for "+ object.constructor.name +" at second parameter must be an Object.", 2);
     }
     for (let propertyName in propertyList) {
         if (!propertyList.hasOwnProperty(propertyName)) {
