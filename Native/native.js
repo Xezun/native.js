@@ -2,663 +2,67 @@
 // Version: 3.0.0
 // ES5 转换 https://babeljs.io/repl
 
-/// 与原生交互的方式。
-const NativeMode = (function() {
-    let _NativeMode = Object.freeze({
-        url: "url", // 使用 URL 方式交互。
-        json: "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-        object: "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-        javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
-    });
-    _NativeDefineProperty(window, "NativeMode", {
-        get: function() {
-            return _NativeMode;
-        }
-    });
-    _NativeDefineProperty(window, "NativeType", {
-        get: function() {
-            _NativeLog("NativeType was deprecated, please use NativeMode instead.", 1);
-            return _NativeMode;
-        }
-    });
-    return _NativeMode;
-})();
+const NativeMode = require("./NativeMode.js")
+const NativeLogStyle = require("./NativeLogStyle.js")
+const NativeMethod = require("./NativeMethod.js")
+const NativeCookieKey = require("./NativeCookieKey.js")
+const NativeCachedResourceType = require("./NativeCachedResourceType.js")
+const Native = require("./NativeCore.js")
 
-/// 输出样式。
-const NativeLogStyle = (function() {
-    let _NativeLogStyle = Object.freeze({
-        default: 0,
-        warning: 1,
-        error: 2
-    });
-    _NativeDefineProperty(window, "NativeLogStyle", {
-        get: function() {
-            return _NativeLogStyle;
-        }
-    });
-    return _NativeLogStyle;
-})();
 
-/// 通用的原生支持的方法。
-const NativeMethod = (function() {
-    let _NativeMethod = Object.freeze({
-        ready: "ready",
-        alert: "alert",
-        dataService: Object.freeze({
-            cachedResourceForURL: "dataService/cachedResourceForURL",
-            numberOfRowsInList: "dataService/numberOfRowsInList",
-            dataForRowAtIndex: "dataService/dataForRowAtIndex"
-        }),
-        eventService: Object.freeze({
-            track: "eventService/track",
-            documentElementWasClicked: "eventService/documentElementWasClicked",
-            documentElementDidSelect: "eventService/documentElementDidSelect"
-        }),
-        login: "login",
-        navigation: Object.freeze({
-            push: "navigation/push",
-            pop: "navigation/pop",
-            popTo: "navigation/popTo",
-            bar: Object.freeze({
-                setHidden: "navigation/bar/setHidden",
-                setTitle: "navigation/bar/setTitle",
-                setTitleColor: "navigation/bar/setTitleColor",
-                setBackgroundColor: "navigation/bar/setBackgroundColor"
-            })
-        }),
-        networking: Object.freeze({
-            http: "networking/http"
-        }),
-        open: "open",
-        present: "present",
-        dismiss: "dismiss",
-        setCurrentTheme: "setCurrentTheme"
-    });
-    _NativeDefineProperty(window, "NativeMethod", {
-        get: function() {
-            return _NativeMethod;
-        }
-    });
-    return _NativeMethod;
-})();
+let _configuration = null;
+let _extensions = [];
+let _readies = [];
 
-const NativeCookieKey = (function() {
-    let _NativeCookieKey = Object.freeze({
-        currentTheme: "com.mlibai.native.cookie.currentTheme",
-        currentUser: "com.mlibai.native.cookie.currentUser"
-    });
-    _NativeDefineProperty(window, "NativeCookieKey", {
-        get: function() {
-            return _NativeCookieKey;
-        }
-    });
-    return _NativeCookieKey;
-})();
-
-const NativeCachedResourceType = Object.freeze({
-    image: "image"
+// native 作为单例，其核心 core 与自身互为引用。
+let _core = new Native.Core(function(configuration) {
+    _configuration = configuration;
+    // 加载拓展，extension 中 this 指向 native 对象。。
+    while (_extensions.length > 0) {
+        let extension = _extensions.shift();
+        Native.defineProperties(native, extension.apply(native, [_configuration]));
+    }
+    // 执行 ready，回调函数中 this 指向 window 对象。。
+    while (_readies.length > 0) {
+        (_readies.shift()).apply(window);
+    }
 });
+exports.core = _core;
 
-const Native = (function() {
-
-    let _cookie = new _Cookie();
-
-    // window.Native
-    _NativeDefineProperty(window, "Native", {
-        get: function() {
-            return _Native;
-        }
-    });
-
-    // 将任意值转换为 URL QueryValue 。
-    function _parseURLQueryValue(value) {
-        if (!value) {
-            return "";
-        }
-        switch (typeof value) {
-            case 'string':
-                return encodeURIComponent(value);
-            case 'undefined':
-                return '';
-            default:
-                return encodeURIComponent(JSON.stringify(value));
-        }
-    }
-
-    // 将任意对象转换为 URL 查询字符串。
-    function _parseURLQuery(anObject) {
-        if (!anObject) {
-            return "";
-        }
-        // [a,b,c] -> a&b&c
-        if (Array.isArray(anObject)) {
-            let values = [];
-            for (let i = 0; i < anObject.length; i++) {
-                values.push(_parseURLQueryValue(anObject[i]));
-            }
-            return values.join("&");
-        }
-
-        switch (typeof anObject) {
-            case 'string': // any string -> any%20string
-                return encodeURIComponent(anObject);
-
-            case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
-                let queryString = "";
-                for (let key in anObject) {
-                    if (!anObject.hasOwnProperty(key)) {
-                        continue;
-                    }
-                    if (queryString.length > 0) {
-                        queryString += ("&" + encodeURIComponent(key));
-                    } else {
-                        queryString = encodeURIComponent(key);
-                    }
-                    if (!anObject[key]) {
-                        continue;
-                    }
-                    queryString += ("=" + _parseURLQueryValue(anObject[key]));
-                }
-                return queryString;
-            case 'undefined':
-                return '';
-            default:
-                return encodeURIComponent(JSON.stringify(anObject));
-        }
-    }
-
-    // native.version
-    _NativeDefineProperties(_Native, {
-        version: {
-            get: function() {
-                return "1.0.0";
-            }
-        },
-        log: {
-            get: function() {
-                return _NativeLog;
-            }
-        },
-        cookie: {
-            get: function() {
-                return _cookie;
-            }
-        },
-        parseURLQueryValue: {
-            get: function() {
-                return _parseURLQueryValue;
-            }
-        },
-        parseURLQuery: {
-            get: function() {
-                return _parseURLQuery;
-            }
-        }
-    });
-
-    return _Native;
-})();
-
-// ready 方法用于需要在 AppCore 初始化后执行的操作。
-// 而 delegate 决定了 AppCore 是否能够进行初始化，因此设置 delegate 需要先执行。
-
-const native = (function() {
-    let _native = new Native();
-    // window.native
-    _NativeDefineProperty(window, "native", {
-        get: function() {
-            return _native;
-        }
-    });
-    return _native;
-})();
-
-
-// ======================================
-// ======================================
-// ======================================
-// MARK: - Native
-
-function _NativeLog(message, style) {
-    if (typeof style !== "number" || style === 0) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
-    } else if (style === 1) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #fe7e3c", message);
-    } else if (style === 2) {
-        console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
-    }
-}
-
-function _NativeDefineProperty(object, propertyName, propertyList) {
-    if (typeof object === "undefined") {
-        return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof propertyName !== "string" || propertyName.length === 0) {
-        return _NativeLog("Define property error: The name for "+ object.constructor.name +"'s property must be a nonempty string.", 2);
-    }
-    if (object.hasOwnProperty(propertyName)) {
-        return _NativeLog("Define property warning: The property "+ propertyName +" to be defined for "+ object.constructor.name +" is already exist.", 1);
-    }
-    Object.defineProperty(object, propertyName, propertyList);
-}
-
-function _NativeDefineProperties(object, propertyList) {
-    if (typeof object === "undefined") {
-        return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof propertyList !== "object") {
-        return _NativeLog("Define properties error: The property list for "+ object.constructor.name +" at second parameter must be an Object.", 2);
-    }
-    for (let propertyName in propertyList) {
-        if (!propertyList.hasOwnProperty(propertyName)) {
-            continue;
-        }
-        _NativeDefineProperty(object, propertyName, propertyList[propertyName]);
-    }
-}
-
-function _Native() {
-
-    let _configuration = null;
-    let _extensions = [];
-    let _readies = [];
-
-    let native = this;
-
-    // native 作为单例，其核心 core 与自身互为引用。
-    let _core = new _CoreNative(function(configuration) {
-        _configuration = configuration;
-        // 加载拓展，extension 中 this 指向 native 对象。。
-        while (_extensions.length > 0) {
-            let extension = _extensions.shift();
-            _NativeDefineProperties(native, extension.apply(native, [_configuration]));
-        }
-        // 执行 ready，回调函数中 this 指向 window 对象。。
-        while (_readies.length > 0) {
-            (_readies.shift()).apply(window);
-        }
-    });
-
-    /**
-     * 绑定 ready 之后执行的操作。
-     * @param callback
-     * @return {_ready}
-     * @private
-     */
-    function _ready(callback) {
-        // 如果 App 已经初始化，则异步执行 callback。
-        if (_core.isReady) {
-            window.setTimeout(callback);
-            return this;
-        }
-        _readies.push(callback);
+/**
+ * 绑定 ready 之后执行的操作。
+ * @param callback
+ * @return {_ready}
+ * @private
+ */
+function _ready(callback) {
+    // 如果 App 已经初始化，则异步执行 callback。
+    if (_core.isReady) {
+        window.setTimeout(callback);
         return this;
     }
-
-    /**
-     * 拓展 AppCore 的方法，拓展函数中，this 指向 native 。
-     * @param callback
-     * @return {_extend}
-     * @private
-     */
-    function _extend(callback) {
-        if (typeof callback !== 'function') {
-            return this;
-        }
-        if (_core.isReady) {
-            _NativeDefineProperties(this, callback.apply(this, [_configuration]));
-        } else {
-            _extensions.push(callback);
-        }
-        return this;
-    }
-
-    // 除以下方法外，其他方法原则上都应该留做原生方法的入口。
-    _NativeDefineProperties(this, {
-        core: {
-            get: function() {
-                return _core;
-            }
-        },
-        ready: {
-            get: function() {
-                return _ready;
-            }
-        },
-        extend: {
-            get: function() {
-                return _extend;
-            }
-        }
-    });
-
+    _readies.push(callback);
+    return this;
 }
-
-
-// ======================================
-// ======================================
-// ======================================
-// MARK: - CoreNative
-
-function _CoreNative(nativeWasReady) {
-
-    let _uniqueID = 10000000; // 用于生成唯一的回调函数 ID 。
-    let _keyedCallbacks = {}; // 按照 callbackID 保存的回调函数。
-    let _mode = NativeMode.url; // 交互的数据类型。
-    let _delegate = null; // 事件代理，一般为原生注入到 JS 环境中的对象。
-    let _scheme = "native"; // 使用 URL 交互时使用
-
-    // 保存或读取 callback 。
-    function _callback(callbackOrID, needsRemove) {
-        switch (typeof callbackOrID) {
-            case "function":
-                let uniqueID = "NT" + (_uniqueID++);
-                _keyedCallbacks[uniqueID] = callbackOrID;
-                return uniqueID;
-            case "string":
-                if (!_keyedCallbacks.hasOwnProperty(callbackOrID)) {
-                    return undefined;
-                }
-                let callback = _keyedCallbacks[callbackOrID];
-                if (needsRemove || typeof needsRemove === "undefined") {
-                    delete _keyedCallbacks[callbackOrID]
-                }
-                return callback;
-            default:
-                Native.log("Only callback function or callback is allowed", NativeLogStyle.error);
-                return undefined;
-        }
-    }
-
-    // 调用 App 方法。
-    function _perform(method) {
-        switch (_mode) {
-            case NativeMode.url:
-                return _performByURL.apply(this, arguments);
-            case NativeMode.json:
-                return _performByJSON.apply(this, arguments);
-            case NativeMode.object:
-                return _performByObject.apply(this, arguments);
-            case NativeMode.javascript:
-                return _performByJavaScript.apply(this, arguments);
-            default:
-                return Native.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
-        }
-    }
-
-    function _performByURL(method) {
-        let parameters = [];
-        for (let i = 1; i < arguments.length; i += 1) {
-            let argument = arguments[i];
-            if (typeof argument === 'function') {
-                parameters.push(_callback(argument));
-            } else {
-                parameters.push(argument);
-            }
-        }
-        // native://login?parameters=["John", "pw123456"]
-        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryValue(parameters);
-        let nativeFrame = document.createElement('iframe');
-        nativeFrame.style.display = 'none';
-        nativeFrame.setAttribute('src', url);
-        document.body.appendChild(nativeFrame);
-        window.setTimeout(function() {
-            document.body.removeChild(nativeFrame);
-        }, 2000);
-
-        if (typeof _delegate === "function") {
-            _delegate(url);
-        }
-    }
-
-    // 调用 App 方法前，将所有参数转换成 JSON 数据类型，number/string/boolean 类型除外。
-    function _performByJSON(method) {
-        let parameters = [method];
-        for (let i = 1; i < arguments.length; i += 1) {
-            let argument = arguments[i];
-            switch (typeof argument) {
-                case 'number':
-                case 'string':
-                case 'boolean':
-                    parameters.push(argument);
-                    break;
-                case 'function':
-                    parameters.push(_callback(argument));
-                    break;
-                default:
-                    parameters.push(JSON.stringify(argument));
-                    break;
-            }
-        }
-        _performByObject.apply(this, parameters);
-    }
-
-    function _performByObject(method) {
-        let parameters = [];
-        for (let i = 1; i < arguments.length; i += 1) {
-            parameters.push(arguments[i]);
-        }
-        window.setTimeout(function() {
-            let array = method.split("/");
-            let object = _delegate;
-            for (let i = 0; i < array.length; i++) {
-                object = object[array[i]];
-            }
-            object.apply(window, parameters);
-        });
-    }
-
-    function _performByJavaScript(method) {
-        let parameters = [];
-        for (let i = 1; i < arguments.length; i++) {
-            if (typeof arguments[i] === "function") {
-                parameters.push(_callback(arguments[i]));
-            } else {
-                parameters.push(arguments[i]);
-            }
-        }
-        window.setTimeout(function() {
-            _delegate.apply(window, [method, parameters]);
-        });
-    }
-
-    let _isReady = false;
-    let _readyID = null;
-
-    /**
-     * 注册 App 对象，以及 App 对象可接收的数据类型。
-     * @param delegate App 对象。
-     * @param mode App 对象可接收的数据类型。
-     * @private
-     */
-    function _register(delegate, mode) {
-        _delegate = delegate;
-        _mode = mode;
-        // 如果已经初始化，则不再初始化，仅仅是改变代理。
-        if (_isReady) {
-            return this;
-        }
-        // 删除已经发起的 ready 事件。
-        if (!!_readyID) {
-            _callback(_readyID, true);
-        }
-        // 在 document.ready 之后执行，以避免 App 可能无法接收事件的问题。
-        function _documentWasReady() {
-            _readyID = _perform(window.NativeMethod.ready, function(configuration) {
-                _isReady = true;
-                _readyID = null;
-                nativeWasReady(configuration);
-            });
-        }
-
-        if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
-            window.setTimeout(function() {
-                _documentWasReady();
-            });
-        } else {
-            function _eventListener() {
-                document.removeEventListener("DOMContentLoaded", _eventListener);
-                window.removeEventListener("load", _eventListener);
-                _documentWasReady();
-            }
-            document.addEventListener("DOMContentLoaded", _eventListener);
-            // WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
-            window.addEventListener("load", _eventListener);
-        }
-
+exports.ready = _ready;
+/**
+ * 拓展 AppCore 的方法，拓展函数中，this 指向 native 。
+ * @param callback
+ * @return {_extend}
+ * @private
+ */
+function _extend(callback) {
+    if (typeof callback !== 'function') {
         return this;
     }
-
-    _NativeDefineProperties(this, {
-        callback: {
-            get: function() {
-                return _callback;
-            }
-        },
-        perform: {
-            get: function() {
-                return _perform;
-            }
-        },
-        scheme: {
-            get: function() {
-                return _scheme;
-            },
-            set: function(newValue) {
-                _scheme = newValue;
-            }
-        },
-        isReady: {
-            get: function() {
-                return _isReady;
-            }
-        },
-        register: {
-            get: function() {
-                return _register;
-            }
-        },
-        delegate: {
-            get: function() {
-                return _delegate;
-            },
-            set: function(newValue) {
-                _delegate = newValue;
-            }
-        },
-        mode: {
-            get: function() {
-                return _mode;
-            },
-            set: function(newValue) {
-                _mode = newValue;
-            }
-        }
-    });
+    if (_core.isReady) {
+        Native.defineProperties(this, callback.apply(this, [_configuration]));
+    } else {
+        _extensions.push(callback);
+    }
+    return this;
 }
-
-
-// ======================================
-// ======================================
-// ======================================
-// MARK: - Cookie
-
-function _Cookie() {
-    // 缓存
-    let _keyedCookies = null;
-
-    /**
-     * 如果 Cookie 缓存不存在，则读取并缓存 Cookie 。
-     * @private
-     */
-    function _readIfNeeded() {
-        if (!!_keyedCookies) {
-            return;
-        }
-
-        // 缓存只在当前 runLoop 中生效。
-        _keyedCookies = {};
-        window.setTimeout(function() {
-            _keyedCookies = null;
-        });
-
-        let cookieStore = document.cookie;
-        if (!cookieStore) {
-            return;
-        }
-        let cookies = cookieStore.split("; ");
-        while (cookies.length > 0) {
-            let tmp = (cookies.pop()).split("=");
-            if (!Array.isArray(tmp) || tmp.length === 0) {
-                continue;
-            }
-
-            let name = decodeURIComponent(tmp[0]);
-            if (tmp.length > 1) {
-                _keyedCookies[name] = decodeURIComponent(tmp[1]);
-            } else {
-                _keyedCookies[name] = null;
-            }
-        }
-    }
-
-    /**
-     * 读取或设置指定键存储在 Cookie 中的值。
-     * @param key 键名。
-     * @param value 可选，表示设置 Cookie。
-     * @return {*} 设置 Cookie 时返回对象自身。
-     * @private
-     */
-    function _value(key, value) {
-        // 读取
-        if (typeof value === "undefined") {
-            _readIfNeeded();
-            if (_keyedCookies.hasOwnProperty(key)) {
-                return _keyedCookies[key];
-            }
-            return undefined;
-        }
-        // 设置
-        let date = new Date();
-        if (!!value) { // null 值表示删除，否则就是设置新值。
-            date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000);
-            if (typeof value !== "string") {
-                value = JSON.stringify(value);
-            }
-            document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString();
-        } else {
-            date.setTime(date.getTime() - 1);
-            document.cookie = encodeURIComponent(key) + "; expires=" + date.toUTCString();
-        }
-        if (!!_keyedCookies) {
-            _keyedCookies[key] = value;
-        }
-        return this;
-    }
-
-    /**
-     * 同步最新的 Cookie 。
-     * @return {_synchronize}
-     * @private
-     */
-    function _synchronize() {
-        _keyedCookies = null;
-        return this;
-    }
-
-    _NativeDefineProperties(this, {
-        value: {
-            get: function() {
-                return _value;
-            }
-        },
-        synchronize: {
-            get: function() {
-                return _synchronize;
-            }
-        }
-    });
-}
+exports.extend = _extend;
 
 
 
@@ -714,7 +118,7 @@ native.extend(function(configuration) {
 
 
     function _User(id, name, info, version) {
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             "id": {
                 get: function() {
                     return id;
@@ -871,7 +275,7 @@ native.extend(function(configuration) {
             return this;
         }
 
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             title: {
                 get: function() {
                     return _title;
@@ -982,7 +386,7 @@ native.extend(function(configuration) {
 
         let _bar = new _NavigationBar(info.bar);
 
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             push: {
                 get: function() {
                     return _push;
@@ -1061,7 +465,7 @@ native.extend(function(configuration) {
             _statusChange();
         }
 
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             isViaWiFi: {
                 get: function() {
                     return (_status === NativeNetworkStatus.WiFi);
@@ -1315,7 +719,7 @@ native.extend(function() {
             return _nativeCore.perform(NativeMethod.eventService.track, eventName, parameters);
         }
 
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             documentElementDidSelect: {
                 get: function() {
                     return _documentElementDidSelect;
@@ -1406,7 +810,7 @@ native.extend(function() {
             return _nativeCore.perform(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
-        _NativeDefineProperties(this, {
+        Native.defineProperties(this, {
             numberOfRowsInList: {
                 get: function() {
                     return _numberOfRowsInList;
