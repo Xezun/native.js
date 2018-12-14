@@ -19,4 +19,4 @@ require("./native.present.js");
 require("./native.theme.js");
 require("./native.user.js");
 
-require("./native.js");
+module.exports = require("./native.js");

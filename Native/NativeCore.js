@@ -3,7 +3,7 @@
 const NativeLogStyle = require("./NativeLogStyle.js");
 const NativeMode = require("./NativeMode.js");
 
-_defineProperty(_Native, "version", { get: function() { return "2.0.0"; } });
+_defineProperty(_Native, "version", { get: function() { return "2.0.1"; } });
 _defineProperty(window, "Native", { get: function() { return _Native; } });
 _defineProperty(_Native, "defineProperty", { get: function() { return _defineProperty; } });
 _defineProperty(_Native, "log", { get: function() { return _log; } });
