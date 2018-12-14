@@ -1,7 +1,4 @@
-// ======================================
-// ======================================
-// ======================================
-// MARK: - Native
+// NativeCore.js
 
 const NativeLogStyle = require("./NativeLogStyle.js")
 const NativeMode = require("./NativeMode.js")
@@ -36,8 +33,7 @@ function _NativeCore(nativeWasReady) {
                 }
                 return callback;
             default:
-                NativeCore.log("Only callback function or callback is allowed", NativeLogStyle.error);
-                return undefined;
+                return NativeCore.log("Parameters error: Only function or string is allowed for NativeCore.callback()'s first argument.", NativeLogStyle.error);;
         }
     }
 
@@ -53,7 +49,7 @@ function _NativeCore(nativeWasReady) {
             case NativeMode.javascript:
                 return _performByJavaScript.apply(this, arguments);
             default:
-                return NativeCore.log("调用原生 App 方法失败，无法确定原生App可接受的数据类型。", NativeLogStyle.error);
+                return NativeCore.log("Not supported interaction mode `"+ _mode +"`, see more in NativeMode enum.", NativeLogStyle.error);
         }
     }
 
@@ -227,6 +223,8 @@ function _NativeCore(nativeWasReady) {
         }
     });
 }
+_defineProperty(this, "NativeCore", { get: function() { return _NativeCore; } });
+
 
 function _defineProperty(object, propertyName, propertyList) {
     if (typeof object === "undefined") {
@@ -328,11 +326,7 @@ function _parseURLQuery(anObject) {
 }
 _defineProperty(_NativeCore, "parseURLQuery", { get: function() { return _parseURLQuery; } });
 
-// ======================================
-// ======================================
-// ======================================
 // MARK: - Cookie
-
 function _NativeCookie() {
     // 缓存
     let _keyedCookies = null;
@@ -433,11 +427,3 @@ const _cookie = new _NativeCookie();
 _defineProperty(_NativeCore, "cookie", { get: function() { return _cookie; } });
 
 module.exports = _NativeCore;
-
-// module.exports.log = _log;
-// module.exports.defineProperty = _defineProperty;
-// module.exports.defineProperties = _defineProperties;
-// module.exports.parseURLQueryValue = _parseURLQueryValue;
-// exports.parseURLQuery = _parseURLQuery;
-// exports.Core = _NativeCore;
-// exports.cookie = new _NativeCookie();

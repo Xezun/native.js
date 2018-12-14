@@ -1,15 +1,14 @@
-exports.currentTheme = "com.mlibai.native.cookie.currentTheme";
-exports.currentUser = "com.mlibai.native.cookie.currentUser";
+// NativeCookieKey.js
 
-// const NativeCookieKey = (function() {
-//     let _NativeCookieKey = Object.freeze({
-//         currentTheme: "com.mlibai.native.cookie.currentTheme",
-//         currentUser: "com.mlibai.native.cookie.currentUser"
-//     });
-//     _NativeDefineProperty(window, "NativeCookieKey", {
-//         get: function() {
-//             return _NativeCookieKey;
-//         }
-//     });
-//     return _NativeCookieKey;
-// })();
+const NativeCookieKey = Object.freeze({
+	currentTheme: "com.mlibai.native.cookie.currentTheme",
+	currentUser: "com.mlibai.native.cookie.currentUser"
+});
+
+Object.defineProperty(this, "NativeCookieKey", {
+	get: function() {
+		return NativeCookieKey;
+	}
+});
+
+module.exports = NativeCookieKey;
