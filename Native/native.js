@@ -2,19 +2,6 @@
 // Version: 3.0.0
 // ES5 转换 https://babeljs.io/repl
 
-// (function (global, name, factory) {
-//     "use strict";
-//     if (typeof exports === 'object' && typeof module !== 'undefined') {
-//         module.exports = factory();
-//     } else if (typeof define === 'function' && (define.amd || define.cmd)) {
-//         define(factory);
-//     } else {
-//         global[name] = factory.apply(this);
-//     }
-// }(this, "项目名称", function () {
-//     // 逻辑编写
-// }));
-
 const NativeMode = require("./NativeMode.js")
 const NativeLogStyle = require("./NativeLogStyle.js")
 const NativeMethod = require("./NativeMethod.js")
@@ -40,7 +27,6 @@ let _core = new NativeCore(function(configuration) {
         (_readies.shift()).apply(window);
     }
 });
-exports.core = _core;
 
 /**
  * 绑定 ready 之后执行的操作。
@@ -57,7 +43,6 @@ function _ready(callback) {
     _readies.push(callback);
     return this;
 }
-exports.ready = _ready;
 
 /**
  * 拓展 AppCore 的方法，拓展函数中，this 指向 native 。
@@ -76,5 +61,18 @@ function _extend(callback) {
     }
     return this;
 }
-exports.extend = _extend;
+
+const _native = {
+    "core": _core,
+    "ready": _ready,
+    "extend": _extend
+};
+
+NativeCore.defineProperty(window, "native", {
+    get: function() {
+        return _native;
+    }
+});
+
+module.exports = _native;
 

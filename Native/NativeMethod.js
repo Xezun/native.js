@@ -34,7 +34,7 @@ const NativeMethod = Object.freeze({
     setCurrentTheme: "setCurrentTheme"
 });
 
-Object.defineProperty(this, "NativeMethod", {
+Object.defineProperty(window, "NativeMethod", {
     get: function() {
         return NativeMethod;
     }

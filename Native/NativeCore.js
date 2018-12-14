@@ -223,7 +223,7 @@ function _NativeCore(nativeWasReady) {
         }
     });
 }
-_defineProperty(this, "NativeCore", { get: function() { return _NativeCore; } });
+_defineProperty(window, "NativeCore", { get: function() { return _NativeCore; } });
 
 
 function _defineProperty(object, propertyName, propertyList) {

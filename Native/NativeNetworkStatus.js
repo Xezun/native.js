@@ -4,7 +4,7 @@ const NativeNetworkStatus = Object.freeze({
 	"WiFi": "WiFi"
 });
 
-Object.defineProperty(this, "NativeNetworkStatus", {
+Object.defineProperty(window, "NativeNetworkStatus", {
 	get: function() {
 		return NativeNetworkStatus;
 	}

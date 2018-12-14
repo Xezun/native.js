@@ -6,7 +6,7 @@ const NativeLogStyle = Object.freeze({
 	"error": 2
 });
 
-Object.defineProperty(this, "NativeLogStyle", {
+Object.defineProperty(window, "NativeLogStyle", {
 	get: function() {
 		return NativeLogStyle;
 	}

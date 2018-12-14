@@ -1,12 +1,12 @@
-// Native
-exports.CachedResourceType = require("./NativeCachedResourceType.js");
-exports.CookieKey = require("./NativeCookieKey.js");
-//const NativeCore = require("./NativeCore.js")
-exports.LogStyle = require("./NativeLogStyle.js");
-exports.Method = require("./NativeMethod.js");
-exports.Mode = require("./NativeMode.js");
-exports.NetworkStatus = require("./NativeNetworkStatus.js");
-exports.current = require("./native.js");
+// index.js
+
+require("./NativeCachedResourceType.js");
+require("./NativeCookieKey.js");
+require("./NativeCore.js")
+require("./NativeLogStyle.js");
+require("./NativeMethod.js");
+require("./NativeMode.js");
+require("./NativeNetworkStatus.js");
 
 require("./native.alert.js");
 require("./native.dataService.js");
@@ -18,4 +18,22 @@ require("./native.open.js");
 require("./native.present.js");
 require("./native.theme.js");
 require("./native.user.js");
-require("./native.dataService.js");
+require("./native.js");
+
+// (function(global, name, factory) {
+// 	"use strict";
+// 	if (typeof exports === 'object' && typeof module !== 'undefined') {
+// 		module.exports = factory();
+// 	} else if (typeof define === 'function' && (define.amd || define.cmd)) {
+// 		define(factory);
+// 	} else {
+// 		let _object = factory.apply(this);
+// 		Object.defineProperty(global, name, {
+// 			get: function() {
+// 				return _object;
+// 			}
+// 		});
+// 	}
+// }(this, "native", function() {
+// 	return require("./native.js");
+// }));

@@ -5,7 +5,7 @@ const NativeCachedResourceType = Object.freeze({
 });
 
 
-Object.defineProperty(this, "NativeCachedResourceType", {
+Object.defineProperty(window, "NativeCachedResourceType", {
 	get: function() {
 		return NativeCachedResourceType;
 	}

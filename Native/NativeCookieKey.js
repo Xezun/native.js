@@ -5,7 +5,7 @@ const NativeCookieKey = Object.freeze({
 	currentUser: "com.mlibai.native.cookie.currentUser"
 });
 
-Object.defineProperty(this, "NativeCookieKey", {
+Object.defineProperty(window, "NativeCookieKey", {
 	get: function() {
 		return NativeCookieKey;
 	}

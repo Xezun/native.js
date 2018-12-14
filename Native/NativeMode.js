@@ -7,13 +7,13 @@ const NativeMode = Object.freeze({
     javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
 });
 
-Object.defineProperty(this, "NativeMode", {
+Object.defineProperty(window, "NativeMode", {
 	get: function() {
 		return NativeMode;
 	}
 });
 
-Object.defineProperty(this, "NativeType", {
+Object.defineProperty(window, "NativeType", {
 	get: function() {
 		console.warn("NativeType was deprecated, please use NativeMode instead.");
 		return NativeMode;
