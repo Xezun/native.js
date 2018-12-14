@@ -9,7 +9,7 @@ require("./native.js").extend(function() {
         /// 列表点击事件。
         function _documentElementDidSelect(documentName, elementName, index, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string' || typeof index !== 'undefined') {
-                NativeCore.log("Method `documentElementDidSelect` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                Native.log("Method `documentElementDidSelect` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.eventService.documentElementDidSelect, documentName, elementName, index, callback);
@@ -18,7 +18,7 @@ require("./native.js").extend(function() {
         /// 页面元素点击事件。
         function _documentElementWasClicked(documentName, elementName, data, callback) {
             if (typeof documentName !== 'string' || typeof elementName !== 'string') {
-                NativeCore.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `elementWasClicked` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             if (typeof data === 'function') {
@@ -31,24 +31,24 @@ require("./native.js").extend(function() {
         /// 事件埋点。
         function _track(eventName, parameters) {
             if (typeof eventName !== 'string') {
-                NativeCore.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `track` first parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.eventService.track, eventName, parameters);
         }
 
-        NativeCore.defineProperties(this, {
-            documentElementDidSelect: {
+        Native.defineProperties(this, {
+            "documentElementDidSelect": {
                 get: function() {
                     return _documentElementDidSelect;
                 }
             },
-            documentElementWasClicked: {
+            "documentElementWasClicked": {
                 get: function() {
                     return _documentElementWasClicked;
                 }
             },
-            track: {
+            "track": {
                 get: function() {
                     return _track;
                 }

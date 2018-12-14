@@ -2,7 +2,7 @@
 
 require("./native.js").extend(function(configuration) {
     // 存储监听
-    let _currentUserChangeHandlers = [];
+    const _currentUserChangeHandlers = [];
 
     function _currentUserChange(callback) {
         if (typeof callback === "function") {
@@ -17,7 +17,7 @@ require("./native.js").extend(function(configuration) {
 
 
     function _User(id, name, info, version) {
-        NativeCore.defineProperties(this, {
+        Native.defineProperties(this, {
             "id": {
                 get: function() {
                     return id;
@@ -50,7 +50,7 @@ require("./native.js").extend(function(configuration) {
     );
 
     // 保存 User 信息。
-    NativeCore.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+    Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
 
     // 设置当前用户，App 行为。
     function _setCurrentUser(userInfo) {
@@ -80,17 +80,17 @@ require("./native.js").extend(function(configuration) {
 
 
     return {
-        setCurrentUser: {
+        "setCurrentUser": {
             get: function() {
                 return _setCurrentUser;
             }
         },
-        currentUserChange: {
+        "currentUserChange": {
             get: function() {
                 return _currentUserChange;
             }
         },
-        currentUser: {
+        "currentUser": {
             get: function() {
                 return _currentUser;
             }

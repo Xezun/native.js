@@ -2,25 +2,25 @@
 // Version: 3.0.0
 // ES5 转换 https://babeljs.io/repl
 
-const NativeMode = require("./NativeMode.js")
-const NativeLogStyle = require("./NativeLogStyle.js")
-const NativeMethod = require("./NativeMethod.js")
-const NativeCookieKey = require("./NativeCookieKey.js")
-const NativeCachedResourceType = require("./NativeCachedResourceType.js")
-const NativeNetworkStatus = require("./NativeNetworkStatus.js")
-const NativeCore = require("./NativeCore.js")
+require("./NativeCachedResourceType.js");
+require("./NativeCookieKey.js");
+require("./NativeCore.js")
+require("./NativeLogStyle.js");
+require("./NativeMethod.js");
+require("./NativeMode.js");
+require("./NativeNetworkStatus.js");
 
 let _configuration = null;
-let _extensions = [];
-let _readies = [];
+const _extensions = [];
+const _readies = [];
 
 // native 作为单例，其核心 core 与自身互为引用。
-let _core = new NativeCore(function(configuration) {
+const _core = new Native(function(configuration) {
     _configuration = configuration;
     // 加载拓展，extension 中 this 指向 native 对象。。
     while (_extensions.length > 0) {
         let extension = _extensions.shift();
-        NativeCore.defineProperties(native, extension.apply(native, [_configuration]));
+        Native.defineProperties(native, extension.apply(native, [_configuration]));
     }
     // 执行 ready，回调函数中 this 指向 window 对象。。
     while (_readies.length > 0) {
@@ -55,7 +55,7 @@ function _extend(callback) {
         return this;
     }
     if (_core.isReady) {
-        NativeCore.defineProperties(this, callback.apply(this, [_configuration]));
+        Native.defineProperties(this, callback.apply(this, [_configuration]));
     } else {
         _extensions.push(callback);
     }
@@ -68,7 +68,7 @@ const _native = {
     "extend": _extend
 };
 
-NativeCore.defineProperty(window, "native", {
+Native.defineProperty(window, "native", {
     get: function() {
         return _native;
     }

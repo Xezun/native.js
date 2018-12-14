@@ -4,7 +4,7 @@ require("./native.js").extend(function() {
 
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            NativeCore.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
+            Native.log("Method `present` first parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         let animated = arg1;

@@ -11,7 +11,7 @@ require("./native.js").extend(function(configuration) {
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeCore.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _title = newValue;
@@ -23,7 +23,7 @@ require("./native.js").extend(function(configuration) {
 
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeCore.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _titleColor = newValue;
@@ -35,7 +35,7 @@ require("./native.js").extend(function(configuration) {
 
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                NativeCore.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
                 return this;
             }
             _isHidden = newValue;
@@ -57,7 +57,7 @@ require("./native.js").extend(function(configuration) {
 
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeCore.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _backgroundColor = newValue;
@@ -68,7 +68,7 @@ require("./native.js").extend(function(configuration) {
             return this;
         }
 
-        NativeCore.defineProperties(this, {
+        Native.defineProperties(this, {
             title: {
                 get: function() {
                     return _title;
@@ -138,7 +138,7 @@ require("./native.js").extend(function(configuration) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
-                NativeCore.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
+                Native.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -168,7 +168,7 @@ require("./native.js").extend(function(configuration) {
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
-                NativeCore.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
+                Native.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
                 return;
             }
             if (typeof animated !== 'boolean') {
@@ -179,7 +179,7 @@ require("./native.js").extend(function(configuration) {
 
         let _bar = new _NavigationBar(native, info.bar);
 
-        NativeCore.defineProperties(this, {
+        Native.defineProperties(this, {
             push: {
                 get: function() {
                     return _push;

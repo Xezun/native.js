@@ -10,7 +10,7 @@ require("./native.js").extend(function() {
         // - callback: (number)=>void
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                NativeCore.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
@@ -22,7 +22,7 @@ require("./native.js").extend(function() {
         // - callback: (data)=>void
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                NativeCore.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
@@ -32,7 +32,7 @@ require("./native.js").extend(function() {
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                NativeCore.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             // 检查 cacheType
@@ -49,13 +49,13 @@ require("./native.js").extend(function() {
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                NativeCore.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
-        NativeCore.defineProperties(this, {
+        Native.defineProperties(this, {
             "numberOfRowsInList": {
                 get: function() {
                     return _numberOfRowsInList;

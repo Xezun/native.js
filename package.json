@@ -1,6 +1,6 @@
 {
   "name": "@mlibai/native.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A library for JavaScript interact with Native App.",
   "main": "Products/native.js",
   "scripts": {

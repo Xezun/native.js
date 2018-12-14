@@ -3,7 +3,7 @@
 require("./native.js").extend(function() {
 	function _login(callback) {
 		if (!callback) {
-			NativeCore.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
+			Native.log("Method `login` called without a callback is not allowed.", NativeLogStyle.error);
 			return this;
 		}
 		let that = this;

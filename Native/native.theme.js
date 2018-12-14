@@ -54,7 +54,7 @@ require("./native.js").extend(function(configuration) {
     })(this);
 
     return {
-        currentTheme: {
+        "currentTheme": {
             get: function() {
                 return _currentTheme;
             },
@@ -62,12 +62,12 @@ require("./native.js").extend(function(configuration) {
                 _setCurrentTheme(newValue, false, true);
             }
         },
-        currentThemeChange: {
+        "currentThemeChange": {
             get: function() {
                 return _currentThemeChange;
             }
         },
-        setCurrentTheme: {
+        "setCurrentTheme": {
             get: function() {
                 return _setCurrentTheme;
             }

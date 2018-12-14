@@ -1,14 +1,21 @@
-// NativeCore.js
+// Native.js
 
-const NativeLogStyle = require("./NativeLogStyle.js")
-const NativeMode = require("./NativeMode.js")
+const NativeLogStyle = require("./NativeLogStyle.js");
+const NativeMode = require("./NativeMode.js");
 
-// ======================================
-// ======================================
-// ======================================
-// MARK: - CoreNative
+_defineProperty(_Native, "version", { get: function() { return "2.0.0"; } });
+_defineProperty(window, "Native", { get: function() { return _Native; } });
+_defineProperty(_Native, "defineProperty", { get: function() { return _defineProperty; } });
+_defineProperty(_Native, "log", { get: function() { return _log; } });
+_defineProperty(_Native, "defineProperties", { get: function() { return _defineProperties; } });
+_defineProperty(_Native, "parseURLQueryValue", { get: function() { return _parseURLQueryValue; } });
+_defineProperty(_Native, "parseURLQuery", { get: function() { return _parseURLQuery; } });
+const _cookie = new _NativeCookie();
+_defineProperty(_Native, "cookie", { get: function() { return _cookie; } });
+module.exports = _Native;
 
-function _NativeCore(nativeWasReady) {
+
+function _Native(nativeWasReady) {
 
     let _uniqueID = 10000000; // 用于生成唯一的回调函数 ID 。
     let _keyedCallbacks = {}; // 按照 callbackID 保存的回调函数。
@@ -33,7 +40,7 @@ function _NativeCore(nativeWasReady) {
                 }
                 return callback;
             default:
-                return NativeCore.log("Parameters error: Only function or string is allowed for NativeCore.callback()'s first argument.", NativeLogStyle.error);;
+                return Native.log("Parameters error: Only function or string is allowed for Native.callback()'s first argument.", NativeLogStyle.error);;
         }
     }
 
@@ -49,7 +56,7 @@ function _NativeCore(nativeWasReady) {
             case NativeMode.javascript:
                 return _performByJavaScript.apply(this, arguments);
             default:
-                return NativeCore.log("Not supported interaction mode `"+ _mode +"`, see more in NativeMode enum.", NativeLogStyle.error);
+                return Native.log("Not supported interaction mode `"+ _mode +"`, see more in NativeMode enum.", NativeLogStyle.error);
         }
     }
 
@@ -64,7 +71,7 @@ function _NativeCore(nativeWasReady) {
             }
         }
         // native://login?parameters=["John", "pw123456"]
-        let url = _scheme + "://" + method + "?parameters=" + NativeCore.parseURLQueryValue(parameters);
+        let url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryValue(parameters);
         let nativeFrame = document.createElement('iframe');
         nativeFrame.style.display = 'none';
         nativeFrame.setAttribute('src', url);
@@ -177,17 +184,17 @@ function _NativeCore(nativeWasReady) {
     }
 
     _defineProperties(this, {
-        callback: {
+        "callback": {
             get: function() {
                 return _callback;
             }
         },
-        perform: {
+        "perform": {
             get: function() {
                 return _perform;
             }
         },
-        scheme: {
+        "scheme": {
             get: function() {
                 return _scheme;
             },
@@ -195,17 +202,17 @@ function _NativeCore(nativeWasReady) {
                 _scheme = newValue;
             }
         },
-        isReady: {
+        "isReady": {
             get: function() {
                 return _isReady;
             }
         },
-        register: {
+        "register": {
             get: function() {
                 return _register;
             }
         },
-        delegate: {
+        "delegate": {
             get: function() {
                 return _delegate;
             },
@@ -213,7 +220,7 @@ function _NativeCore(nativeWasReady) {
                 _delegate = newValue;
             }
         },
-        mode: {
+        "mode": {
             get: function() {
                 return _mode;
             },
@@ -223,8 +230,6 @@ function _NativeCore(nativeWasReady) {
         }
     });
 }
-_defineProperty(window, "NativeCore", { get: function() { return _NativeCore; } });
-
 
 function _defineProperty(object, propertyName, propertyList) {
     if (typeof object === "undefined") {
@@ -238,7 +243,6 @@ function _defineProperty(object, propertyName, propertyList) {
     }
     Object.defineProperty(object, propertyName, propertyList);
 }
-_defineProperty(_NativeCore, "defineProperty", { get: function() { return _defineProperty; } });
 
 function _log(message, style) {
     if (typeof style !== "number" || style === NativeLogStyle.default) {
@@ -249,7 +253,6 @@ function _log(message, style) {
         console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #d8463c", message);
     }
 }
-_defineProperty(_NativeCore, "log", { get: function() { return _log; } });
 
 function _defineProperties(object, propertyList) {
     if (typeof object === "undefined") {
@@ -265,7 +268,6 @@ function _defineProperties(object, propertyList) {
         _defineProperty(object, propertyName, propertyList[propertyName]);
     }
 }
-_defineProperty(_NativeCore, "defineProperties", { get: function() { return _defineProperties; } });
 
 // 将任意值转换为 URL QueryValue 。
 function _parseURLQueryValue(value) {
@@ -281,7 +283,6 @@ function _parseURLQueryValue(value) {
             return encodeURIComponent(JSON.stringify(value));
     }
 }
-_defineProperty(_NativeCore, "parseURLQueryValue", { get: function() { return _parseURLQueryValue; } });
 
 // 将任意对象转换为 URL 查询字符串。
 function _parseURLQuery(anObject) {
@@ -324,7 +325,6 @@ function _parseURLQuery(anObject) {
             return encodeURIComponent(JSON.stringify(anObject));
     }
 }
-_defineProperty(_NativeCore, "parseURLQuery", { get: function() { return _parseURLQuery; } });
 
 // MARK: - Cookie
 function _NativeCookie() {
@@ -423,7 +423,4 @@ function _NativeCookie() {
         }
     });
 }
-const _cookie = new _NativeCookie();
-_defineProperty(_NativeCore, "cookie", { get: function() { return _cookie; } });
 
-module.exports = _NativeCore;

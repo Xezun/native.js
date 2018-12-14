@@ -18,22 +18,5 @@ require("./native.open.js");
 require("./native.present.js");
 require("./native.theme.js");
 require("./native.user.js");
-require("./native.js");
 
-// (function(global, name, factory) {
-// 	"use strict";
-// 	if (typeof exports === 'object' && typeof module !== 'undefined') {
-// 		module.exports = factory();
-// 	} else if (typeof define === 'function' && (define.amd || define.cmd)) {
-// 		define(factory);
-// 	} else {
-// 		let _object = factory.apply(this);
-// 		Object.defineProperty(global, name, {
-// 			get: function() {
-// 				return _object;
-// 			}
-// 		});
-// 	}
-// }(this, "native", function() {
-// 	return require("./native.js");
-// }));
+require("./native.js");

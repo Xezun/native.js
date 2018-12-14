@@ -10,7 +10,7 @@ require("./native.js").extend(function(configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                NativeCore.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
+                Native.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
                 return null;
             }
             return native.core.perform(NativeMethod.networking.http, request, callback);
@@ -33,33 +33,33 @@ require("./native.js").extend(function(configuration) {
             _statusChange();
         }
 
-        NativeCore.defineProperties(this, {
-            isViaWiFi: {
+        Native.defineProperties(this, {
+            "isViaWiFi": {
                 get: function() {
                     return (_status === NativeNetworkStatus.WiFi);
                 }
             },
-            status: {
+            "status": {
                 get: function() {
                     return _status;
                 }
             },
-            isReachable: {
+            "isReachable": {
                 get: function() {
                     return !!_status
                 }
             },
-            statusChange: {
+            "statusChange": {
                 get: function() {
                     return _statusChange;
                 }
             },
-            http: {
+            "http": {
                 get: function() {
                     return _http;
                 }
             },
-            setStatus: {
+            "setStatus": {
                 get: function() {
                     return _setStatus;
                 }
