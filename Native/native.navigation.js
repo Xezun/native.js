@@ -1,8 +1,22 @@
 // native.navigation.js
 
-require("./native.js").extend(function(configuration) {
+const Native = require("./native.static.js");
 
-    function _NavigationBar(native, barInfo) {
+Native.Method("navigation", Object.freeze({
+    "push": "navigation/push",
+    "pop": "navigation/pop",
+    "popTo": "navigation/popTo",
+    "bar": Object.freeze({
+        "setHidden": "navigation/bar/setHidden",
+        "setTitle": "navigation/bar/setTitle",
+        "setTitleColor": "navigation/bar/setTitleColor",
+        "setBackgroundColor": "navigation/bar/setBackgroundColor"
+    })
+}));
+
+module.exports = require("./native.js").extend(function(configuration) {
+
+    function NativeNavigationBar(_native, barInfo) {
 
         let _title = barInfo.title;
         let _titleColor = barInfo.titleColor;
@@ -11,36 +25,36 @@ require("./native.js").extend(function(configuration) {
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.title must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.title must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _title = newValue;
             if (needsSyncToApp) {
-                native.core.perform(NativeMethod.navigation.bar.setTitle, newValue);
+                _native.core.perform(Native.Method.navigation.bar.setTitle, newValue);
             }
             return this;
         }
 
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.titleColor must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _titleColor = newValue;
             if (needsSyncToApp) {
-                native.core.perform(NativeMethod.navigation.bar.setTitleColor, newValue);
+                _native.core.perform(Native.Method.navigation.bar.setTitleColor, newValue);
             }
             return this;
         }
 
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                Native.log("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.isHidden must be a boolean value.", Native.LogStyle.error);
                 return this;
             }
             _isHidden = newValue;
             if (needsSyncToApp) {
-                native.core.perform(NativeMethod.navigation.bar.setHidden, newValue, animated);
+                _native.core.perform(Native.Method.navigation.bar.setHidden, newValue, animated);
             }
             return this;
         }
@@ -57,14 +71,14 @@ require("./native.js").extend(function(configuration) {
 
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.backgroundColor must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _backgroundColor = newValue;
             if (!needsSyncToApp) {
                 return this;
             }
-            native.core.perform(NativeMethod.navigation.bar.setBackgroundColor, newValue);
+            _native.core.perform(Native.Method.navigation.bar.setBackgroundColor, newValue);
             return this;
         }
 
@@ -134,11 +148,11 @@ require("./native.js").extend(function(configuration) {
         });
     }
 
-    function _Navigation(native, info) {
+    function NativeNavigation(_native, info) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
-                Native.log("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
+                Native.log("Method `push` can not be called without a url parameter.", Native.LogStyle.error);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -154,7 +168,7 @@ require("./native.js").extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return native.core.perform(NativeMethod.navigation.push, url, animated);
+            return _native.core.perform(Native.Method.navigation.push, url, animated);
         };
 
         // 3.2 推出当前页面，使栈内页面数量 -1。
@@ -162,22 +176,22 @@ require("./native.js").extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return native.core.perform(NativeMethod.navigation.pop, animated);
+            return _native.core.perform(Native.Method.navigation.pop, animated);
         };
 
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
-                Native.log("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
+                Native.log("Method `popTo` can not be called without a index parameter.", Native.LogStyle.error);
                 return;
             }
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return native.core.perform(NativeMethod.navigation.popTo, index, animated);
+            return _native.core.perform(Native.Method.navigation.popTo, index, animated);
         };
 
-        let _bar = new _NavigationBar(native, info.bar);
+        let _bar = new NativeNavigationBar(_native, info.bar);
 
         Native.defineProperties(this, {
             push: {
@@ -203,7 +217,7 @@ require("./native.js").extend(function(configuration) {
         });
     }
 
-    let _navigation = new _Navigation(this, configuration.navigation);
+    let _navigation = new NativeNavigation(this, configuration.navigation);
 
     return {
         'navigation': {

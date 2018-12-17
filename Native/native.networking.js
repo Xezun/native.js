@@ -1,19 +1,35 @@
 // native.networking.js
 
-require("./native.js").extend(function(configuration) {
+const Native = require("./native.static.js");
 
-    function _Networking(native, networkingInfo) {
+Native.Method("networking", Object.freeze({
+    "http": "networking/http"
+}));
 
-        let _status = networkingInfo.status;
+const NativeNetworkStatus = Object.freeze({
+    "WiFi": "WiFi"
+});
+
+Native.defineProperty(window, "NativeNetworkStatus", {
+    get: function() {
+        return NativeNetworkStatus;
+    }
+});
+
+module.exports = require("./native.js").extend(function(configuration) {
+
+    function NativeNetworking(_native, _networkingInfo) {
+
+        let _status = _networkingInfo.status;
         let _statusChangeHandlers = [];
 
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                Native.log("Method `http` first parameter must be an request object.", NativeLogStyle.error);
+                Native.log("Method `http` first parameter must be an request object.", Native.LogStyle.error);
                 return null;
             }
-            return native.core.perform(NativeMethod.networking.http, request, callback);
+            return _native.core.perform(Native.Method.networking.http, request, callback);
         }
 
         // 网络状态监听。
@@ -67,7 +83,7 @@ require("./native.js").extend(function(configuration) {
         });
     }
 
-    let _networking = new _Networking(this, configuration.networking);
+    let _networking = new NativeNetworking(this, configuration.networking);
 
     return {
         "networking": {

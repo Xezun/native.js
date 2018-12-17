@@ -1,12 +1,8 @@
 // index.js
 
-require("./NativeCachedResourceType.js");
-require("./NativeCookieKey.js");
-require("./NativeCore.js")
-require("./NativeLogStyle.js");
-require("./NativeMethod.js");
-require("./NativeMode.js");
-require("./NativeNetworkStatus.js");
+require("./native.static.js");
+
+module.exports = require("./native.js");
 
 require("./native.alert.js");
 require("./native.dataService.js");
@@ -19,4 +15,3 @@ require("./native.present.js");
 require("./native.theme.js");
 require("./native.user.js");
 
-module.exports = require("./native.js");

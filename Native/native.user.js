@@ -1,6 +1,10 @@
 // native.user.js
 
-require("./native.js").extend(function(configuration) {
+const Native = require("./native.static.js");
+
+Native.CookieKey("currentUser", "com.mlibai.native.cookie.currentUser");
+
+module.exports = require("./native.js").extend(function(configuration) {
     // 存储监听
     const _currentUserChangeHandlers = [];
 
@@ -15,34 +19,33 @@ require("./native.js").extend(function(configuration) {
         return this;
     }
 
-
-    function _User(id, name, info, version) {
-        Native.defineProperties(this, {
+    function NativeUser(_id, _name, _info, _version) {
+        Object.defineProperties(this, {
             "id": {
                 get: function() {
-                    return id;
+                    return _id;
                 }
             },
             "name": {
                 get: function() {
-                    return name;
+                    return _name;
                 }
             },
             "info": {
                 get: function() {
-                    return info;
+                    return _info;
                 }
             },
             "version": {
                 get: function() {
-                    return version;
+                    return _version;
                 }
             }
         })
     }
 
     // 定义用户
-    let _currentUser = new _User(
+    let _currentUser = new NativeUser(
         configuration.currentUser.id,
         configuration.currentUser.name,
         configuration.currentUser.info,
@@ -50,11 +53,11 @@ require("./native.js").extend(function(configuration) {
     );
 
     // 保存 User 信息。
-    Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+    Native.cookie.value(Native.CookieKey.currentUser, JSON.stringify(_currentUser));
 
     // 设置当前用户，App 行为。
     function _setCurrentUser(userInfo) {
-        _currentUser = new _User(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+        _currentUser = new NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
         _currentUserChange();
     }
 
@@ -62,7 +65,7 @@ require("./native.js").extend(function(configuration) {
         // 在页面隐藏时绑定显示时事件。
         // 页面显示时，从 cookie 读取信息。
         function _pageShow() {
-            let userInfo = JSON.parse(window.Native.cookie.value(NativeCookieKey.currentUser));
+            let userInfo = JSON.parse(Native.cookie.value(Native.CookieKey.currentUser));
             if (userInfo.id !== native.currentUser.id || userInfo.version !== native.currentUser.version) {
                 native.setCurrentUser(userInfo);
             }

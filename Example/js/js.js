@@ -27,7 +27,7 @@ $(function () {
 
     // 网络请求
     $("#http").click(function () {
-        Native.http({
+        native.http({
             url: "./dat/data.json?rnd="+Math.random(),
             method: "GET",
             headers: {"Custom-Header": "ABCDEFG"},
@@ -42,22 +42,22 @@ $(function () {
 
     // 点击事件1
     $("#event1").click(function () {
-        Native.eventService.documentElementWasClicked("EventPage", "ProductSelectButton", {"id": 1234}, function () {
+        native.eventService.documentElementWasClicked("EventPage", "ProductSelectButton", {"id": 1234}, function () {
             Native.log("打开商品规格页回调。");
         });
     });
 
     // 点击事件2
     $("#event2").click(function () {
-        Native.eventService.documentElementWasClicked("EventPage", "ProductDetailButton", {"id": 5678}, function () {
+        native.eventService.documentElementWasClicked("EventPage", "ProductDetailButton", {"id": 5678}, function () {
             Native.log("进入商品详情页页回调。");
         });
     });
 
     // 埋点事件
     $("#event3").click(function () {
-        Native.navigation.bar.title = "Navig";
-        Native.eventService.track("ItemClick", {"id": 123});
+        native.navigation.bar.title = "Navig";
+        native.eventService.track("ItemClick", {"id": 123});
     });
 
     $("#delegate").change(function () {

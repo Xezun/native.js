@@ -1,38 +1,48 @@
 // native.dataService.js
 
-require("./native.js").extend(function() {
+const Native = require("./native.static.js");
+
+Native.Method("dataService", Object.freeze({
+    "cachedResourceForURL": "dataService/cachedResourceForURL",
+    "numberOfRowsInList": "dataService/numberOfRowsInList",
+    "dataForRowAtIndex": "dataService/dataForRowAtIndex"
+}));
+
+const NativeCachedResourceType = Object.freeze({
+    image: "image"
+});
+Native.defineProperty(window, "NativeCachedResourceType", {
+    get: function() {
+        return NativeCachedResourceType;
+    }
+});
+
+module.exports = require("./native.js").extend(function() {
 
     // TODO: 命名需要优化 document element
 
-    function _DataService(native) {
-        // 获取 list 的行数。
-        // - list: string
-        // - callback: (number)=>void
+    function NativeDataService(_native) {
+
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", Native.LogStyle.error);
                 return null;
             }
-            return native.core.perform(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
+            return _native.core.perform(Native.Method.dataService.numberOfRowsInList, documentName, listName, callback);
         }
 
-        // 加载数据
-        // - list: XZAppList
-        // - index: number
-        // - callback: (data)=>void
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", Native.LogStyle.error);
                 return null;
             }
-            return native.core.perform(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
+            return _native.core.perform(Native.Method.dataService.dataForRowAtIndex, documentName, listName, index, callback);
         }
 
-        // 获取缓存。
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", Native.LogStyle.error);
                 return null;
             }
             // 检查 cacheType
@@ -49,10 +59,10 @@ require("./native.js").extend(function() {
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                Native.log("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` must have a callback handler.", Native.LogStyle.error);
                 return null;
             }
-            return native.core.perform(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
+            return _native.core.perform(Native.Method.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
         Native.defineProperties(this, {
@@ -74,7 +84,7 @@ require("./native.js").extend(function() {
         });
     }
 
-    let _dataService = new _DataService(this);
+    let _dataService = new NativeDataService(this);
 
     return {
         "dataService": {

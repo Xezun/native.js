@@ -4,6 +4,7 @@ module.exports = {
 		path: __dirname + "/Products", 		// 打包后的文件存放的地方
 		filename: "native.js" 				// 打包后输出文件的文件名
 	},
+	mode: 'production'  					// development/production
 
 	// devtool: 'eval-source-map',
 	// devServer: {
