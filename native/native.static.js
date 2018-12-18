@@ -1,24 +1,56 @@
 // native.static.js
-// Native 为 native 根原型，定义了没有依赖的公共函数。
+// Doc 生成 ./node_modules/.bin/jsdoc ./native/native.static.js 。
 
 module.exports = Native;
 
-/// 版本号。
+/** @module Native */
+
+/**
+ * 标识当前 native 框架的版本号，例如 2.0.1 。
+ * @name version
+ * @constant
+ */
 const NativeVersion = "2.0.1";
-/// Native.log 输出样式。
+
+/**
+ * 控制台输出样式枚举。
+ *
+ * @readyonly
+ * @name LogStyle
+ * @property {NativeLogStyle} default 在控制台输出普通样式文本，表示一条普通的输出信息。
+ * @property {NativeLogStyle} warning 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
+ * @property {NativeLogStyle} error   输出错误样式文本，表示一条错误信息，开发者需要修复。
+ */
 const NativeLogStyle = Object.freeze({
     "default": 0,
     "warning": 1,
     "error": 2
 });
-/// 交互模式。
+
+/**
+ * Native 与原生的交互模式。
+ *
+ * @readyonly
+ * @name Mode
+ * @property {NativeMode} url        使用 URL 方式交互。
+ * @property {NativeMode} json       使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+ * @property {NativeMode} object     使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+ * @property {NativeMode} javascript 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
+ */
 const NativeMode = Object.freeze({
-    url: "url", // 使用 URL 方式交互。
-    json: "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-    object: "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-    javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
+    "url": "url", 
+    "json": "json", 
+    "object": "object", 
+    "javascript": "javascript" 
 });
-/// 共享的 Cookie 管理对象。
+
+/**
+ * 全局统一的 Cookie 管理器。
+ *
+ * @readyonly
+ * @name cookie
+ * @type {NativeCookie}
+ */
 const _cookie = new NativeCookie();
 
 /// 定义 Native 静态函数。
@@ -147,10 +179,14 @@ NativeDefineProperty(window, "NativeCookieKey", {
 });
 
 // 函数、类定义
+
 /**
  * 按照预定样式在控制台控制台输出信息。
- * @param {string} 信息文本。
- * @param {number} 可选。文本输出样式，参见 NativeLogStyle 枚举。
+ * @param {string} message 信息文本。
+ * @param {number} style 可选。文本输出样式，参见 NativeLogStyle 枚举。
+ *
+ * @name log
+ * @readyonly
  */
 function NativeLog(message, style) {
     if (typeof style !== "number" || style === NativeLogStyle.default) {
@@ -164,65 +200,77 @@ function NativeLog(message, style) {
 
 /**
  * 给对象定义属性，如果属性已定义则不执行。
- * @param {object} 待定义属性的对象。
- * @param {string} 待定义的属性名。
- * @param {object} 属性描述对象，与 Object.defineProperty 方法参数相同。
+ * @param {object} anObject 待定义属性的对象。
+ * @param {string} name 待定义的属性名。
+ * @param {object} descriptor 属性描述对象，与 Object.defineProperty 方法参数相同。
+ *
+ * @readyonly
+ * @name defineProperty
  */
-function NativeDefineProperty(object, propertyName, propertyDescriptor) {
-    if (typeof object === "undefined") {
+function NativeDefineProperty(anObject, name, descriptor) {
+    if (typeof anObject === "undefined") {
         return NativeLog("Define property error: Can not define properties for an undefined value.", 2);
     }
-    if (typeof propertyName !== "string" || propertyName.length === 0) {
-        return NativeLog("Define property error: The name for "+ object.constructor.name +"'s property must be a nonempty string.", 2);
+    if (typeof name !== "string" || name.length === 0) {
+        return NativeLog("Define property error: The name for "+ anObject.constructor.name +"'s property must be a nonempty string.", 2);
     }
-    if (object.hasOwnProperty(propertyName)) {
-        return NativeLog("Define property warning: The property "+ propertyName +" to be defined for "+ object.constructor.name +" is already exist.", 1);
+    if (anObject.hasOwnProperty(name)) {
+        return NativeLog("Define property warning: The property "+ name +" to be defined for "+ anObject.constructor.name +" is already exist.", 1);
     }
-    Object.defineProperty(object, propertyName, propertyDescriptor);
-    return object;
+    Object.defineProperty(anObject, name, descriptor);
+    return anObject;
 }
 /**
  * 给对象定义多个属性，忽略已存在的属性。
- * @param {object} 待定义属性的对象。
- * @param {object} 属性描述对象，与 Object.defineProperties 方法参数相同。
+ * @param {object} anObject 待定义属性的对象。
+ * @param {object} descriptors 属性描述对象，与 Object.defineProperties 方法参数相同。
+ *
+ * @readyonly
+ * @name defineProperties
  */
-function NativeDefineProperties(object, propertyDescriptors) {
-    if (typeof object === "undefined") {
+function NativeDefineProperties(anObject, descriptors) {
+    if (typeof anObject === "undefined") {
         return NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
     }
-    if (typeof propertyDescriptors !== "object") {
-        return NativeLog("Define properties error: The property descriptors for "+ object.constructor.name +" at second parameter must be an Object.", 2);
+    if (typeof descriptors !== "object") {
+        return NativeLog("Define properties error: The property descriptors for "+ anObject.constructor.name +" at second parameter must be an Object.", 2);
     }
-    for (let propertyName in propertyDescriptors) {
-        if (!propertyDescriptors.hasOwnProperty(propertyName)) {
+    for (let propertyName in descriptors) {
+        if (!descriptors.hasOwnProperty(propertyName)) {
             continue;
         }
-        NativeDefineProperty(object, propertyName, propertyDescriptors[propertyName]);
+        NativeDefineProperty(anObject, propertyName, descriptors[propertyName]);
     }
-    return object;
+    return anObject;
 }
 
 /**
  * 将任意值转换为 URL 的查询字段值，转换后的值已编码，可以直接拼接到 URL 字符串中。
- * @param {any} 待转换的值。
+ * @param {any} aValue 待转换的值。
+ *
+ * @readyonly
+ * @name parseURLQueryValue
  */
-function NativeParseURLQueryValue(value) {
-    if (!value) {
+function NativeParseURLQueryValue(aValue) {
+    if (!aValue) {
         return "";
     }
-    switch (typeof value) {
+    switch (typeof aValue) {
         case 'string':
-            return encodeURIComponent(value);
+            return encodeURIComponent(aValue);
         case 'undefined':
             return '';
         default:
-            return encodeURIComponent(JSON.stringify(value));
+            return encodeURIComponent(JSON.stringify(aValue));
     }
 }
 
 /**
  * 将任意对象转换为 URL 查询字符串。
- * @param {any} 待转换的值。
+ * @param {any} anObject 待转换的值。
+ *
+ * @readyonly
+ * @name parseURLQuery
  */
 function NativeParseURLQuery(anObject) {
     if (!anObject) {
@@ -267,6 +315,8 @@ function NativeParseURLQuery(anObject) {
 
 /**
  * 定义了管理 Cookie 的类。
+ * @class NativeCookie
+ * @protected
  */
 function NativeCookie() {
 
@@ -274,6 +324,7 @@ function NativeCookie() {
 
     /**
      * 如果当前没有读取 Cookie 则尝试读取。
+     * @private
      */
     function _readIfNeeded() {
         if (!!_keyedCookies) {
@@ -307,9 +358,12 @@ function NativeCookie() {
 
     /**
      * 读取或设置 Cookie 。
-     * @param  {String} 保存 Cookie 所使用的键名。
-     * @param  {any} 可选，表示待设置 Cookie 值，没有此参数表示读取 Cookie 值。 
-     * @return {string} 已保存的 Cookie 值。
+     * @param  {!string} 保存Cookie所使用的键名。
+     * @param  {?any} 可选，读取或设置值。 
+     * @return {string} 已保存的Cookie值。
+     *
+     * @alias value
+     * @memberof NativeCookie
      */
     function _value(key, value) {
         // 读取
@@ -338,6 +392,9 @@ function NativeCookie() {
     /**
      * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
      * @return {NativeCookie} 当前对象。
+     *
+     * @alias synchronize
+     * @memberof NativeCookie
      */
     function _synchronize() {
         _keyedCookies = null;
@@ -362,6 +419,9 @@ function NativeCookie() {
  * 注册一个 Native.Method 枚举。
  * @param {string} 方法名。
  * @param {string/object} 方法值，可以是对象，表示一个方法集合。
+ *
+ * @readyonly
+ * @name Method
  */
 function NativeMethod(methodName, methodValue) {
     if (typeof methodName !== "string" || methodName.length === 0) {
@@ -382,6 +442,9 @@ function NativeMethod(methodName, methodValue) {
  * 注册一个 Native.CookieKey 枚举。
  * @param {string} 枚举名，永远方便引用。
  * @param {string} 枚举值，存储 Cookie 所使用的 Key 。
+ *
+ * @readyonly
+ * @name CookieKey
  */
 function NativeCookieKey(cookieKey, cookieValue) {
     if (typeof cookieKey !== "string" || cookieKey.length === 0) {
@@ -399,7 +462,8 @@ function NativeCookieKey(cookieKey, cookieValue) {
 }
 
 /**
- * Native 基类，用于封装静态方法和属性。
+ * Native 类。
+ * @private
  */
 function Native() {
 

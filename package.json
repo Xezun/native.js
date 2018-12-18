@@ -7,7 +7,8 @@
     "start": "webpack --mode production",
     "debug": "webpack --mode development",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "webpack-dev-server --open"
+    "server": "webpack-dev-server --open",
+    "documentation": "./node_modules/.bin/jsdoc"
   },
   "repository": {
     "type": "git",
@@ -29,5 +30,8 @@
   "devDependencies": {
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2"
+  },
+  "dependencies": {
+    "jsdoc": "^3.5.5"
   }
 }
