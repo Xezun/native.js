@@ -3,20 +3,25 @@
 
 module.exports = Native;
 
+/// 版本号。
 const NativeVersion = "2.0.1";
+/// Native.log 输出样式。
 const NativeLogStyle = Object.freeze({
     "default": 0,
     "warning": 1,
     "error": 2
 });
+/// 交互模式。
 const NativeMode = Object.freeze({
     url: "url", // 使用 URL 方式交互。
     json: "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
     object: "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
     javascript: "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
 });
+/// 共享的 Cookie 管理对象。
 const _cookie = new NativeCookie();
 
+/// 定义 Native 静态函数。
 NativeDefineProperties(Native, {
     "version": {
         get: function() {
@@ -142,7 +147,11 @@ NativeDefineProperty(window, "NativeCookieKey", {
 });
 
 // 函数、类定义
-
+/**
+ * 按照预定样式在控制台控制台输出信息。
+ * @param {string} 信息文本。
+ * @param {number} 可选。文本输出样式，参见 NativeLogStyle 枚举。
+ */
 function NativeLog(message, style) {
     if (typeof style !== "number" || style === NativeLogStyle.default) {
         console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
@@ -153,6 +162,12 @@ function NativeLog(message, style) {
     }
 }
 
+/**
+ * 给对象定义属性，如果属性已定义则不执行。
+ * @param {object} 待定义属性的对象。
+ * @param {string} 待定义的属性名。
+ * @param {object} 属性描述对象，与 Object.defineProperty 方法参数相同。
+ */
 function NativeDefineProperty(object, propertyName, propertyDescriptor) {
     if (typeof object === "undefined") {
         return NativeLog("Define property error: Can not define properties for an undefined value.", 2);
@@ -166,7 +181,11 @@ function NativeDefineProperty(object, propertyName, propertyDescriptor) {
     Object.defineProperty(object, propertyName, propertyDescriptor);
     return object;
 }
-
+/**
+ * 给对象定义多个属性，忽略已存在的属性。
+ * @param {object} 待定义属性的对象。
+ * @param {object} 属性描述对象，与 Object.defineProperties 方法参数相同。
+ */
 function NativeDefineProperties(object, propertyDescriptors) {
     if (typeof object === "undefined") {
         return NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
@@ -183,7 +202,10 @@ function NativeDefineProperties(object, propertyDescriptors) {
     return object;
 }
 
-// 将任意值转换为 URL QueryValue 。
+/**
+ * 将任意值转换为 URL 的查询字段值，转换后的值已编码，可以直接拼接到 URL 字符串中。
+ * @param {any} 待转换的值。
+ */
 function NativeParseURLQueryValue(value) {
     if (!value) {
         return "";
@@ -198,7 +220,10 @@ function NativeParseURLQueryValue(value) {
     }
 }
 
-// 将任意对象转换为 URL 查询字符串。
+/**
+ * 将任意对象转换为 URL 查询字符串。
+ * @param {any} 待转换的值。
+ */
 function NativeParseURLQuery(anObject) {
     if (!anObject) {
         return "";
@@ -240,10 +265,16 @@ function NativeParseURLQuery(anObject) {
     }
 }
 
+/**
+ * 定义了管理 Cookie 的类。
+ */
 function NativeCookie() {
 
     let _keyedCookies = null;
 
+    /**
+     * 如果当前没有读取 Cookie 则尝试读取。
+     */
     function _readIfNeeded() {
         if (!!_keyedCookies) {
             return;
@@ -274,6 +305,12 @@ function NativeCookie() {
         }
     }
 
+    /**
+     * 读取或设置 Cookie 。
+     * @param  {String} 保存 Cookie 所使用的键名。
+     * @param  {any} 可选，表示待设置 Cookie 值，没有此参数表示读取 Cookie 值。 
+     * @return {string} 已保存的 Cookie 值。
+     */
     function _value(key, value) {
         // 读取
         if (typeof value === "undefined") {
@@ -281,26 +318,27 @@ function NativeCookie() {
             if (_keyedCookies.hasOwnProperty(key)) {
                 return _keyedCookies[key];
             }
-            return undefined;
+            return value;
         }
         // 设置
         let date = new Date();
         if (!!value) { // null 值表示删除，否则就是设置新值。
             date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000);
-            if (typeof value !== "string") {
-                value = JSON.stringify(value);
-            }
-            document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString();
+            document.cookie = NativeParseURLQueryValue(key) + "=" + NativeParseURLQueryValue(value) + "; expires=" + date.toUTCString();
         } else {
             date.setTime(date.getTime() - 1);
-            document.cookie = encodeURIComponent(key) + "; expires=" + date.toUTCString();
+            document.cookie = NativeParseURLQueryValue(key) + "; expires=" + date.toUTCString();
         }
         if (!!_keyedCookies) {
             _keyedCookies[key] = value;
         }
-        return this;
+        return value;
     }
 
+    /**
+     * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
+     * @return {NativeCookie} 当前对象。
+     */
     function _synchronize() {
         _keyedCookies = null;
         return this;
@@ -320,6 +358,11 @@ function NativeCookie() {
     });
 }
 
+/**
+ * 注册一个 Native.Method 枚举。
+ * @param {string} 方法名。
+ * @param {string/object} 方法值，可以是对象，表示一个方法集合。
+ */
 function NativeMethod(methodName, methodValue) {
     if (typeof methodName !== "string" || methodName.length === 0) {
         return NativeLog("The name of NativeMethod must be a nonempty string.", NativeLogStyle.error);
@@ -335,6 +378,11 @@ function NativeMethod(methodName, methodValue) {
     return methodValue;
 }
 
+/**
+ * 注册一个 Native.CookieKey 枚举。
+ * @param {string} 枚举名，永远方便引用。
+ * @param {string} 枚举值，存储 Cookie 所使用的 Key 。
+ */
 function NativeCookieKey(cookieKey, cookieValue) {
     if (typeof cookieKey !== "string" || cookieKey.length === 0) {
         return NativeLog("The name of NativeMethod must be a nonempty string.", NativeLogStyle.error);
@@ -350,6 +398,9 @@ function NativeCookieKey(cookieKey, cookieValue) {
     return cookieValue;
 }
 
+/**
+ * Native 基类，用于封装静态方法和属性。
+ */
 function Native() {
 
 }

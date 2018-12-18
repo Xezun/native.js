@@ -8,7 +8,17 @@
 
 ### 如何使用
 
-下载 `native.js` 到项目中，然后引入到 HTML 页面中.
+1. 推荐使用 npm 安装 `@mlibai/native.js` 。
+
+```javascript
+var native = require('@mlibai/native.js');
+// 或者
+import '@mlibai/native.js'
+```
+
+2. 直接引用。
+
+下载 `Products/native.js` 到项目中，然后引入到 HTML 页面中.
 
 ```html
 <script src="./native/native.js"></script>

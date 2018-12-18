@@ -83,7 +83,7 @@ module.exports = require("./native.js").extend(function(configuration) {
         }
 
         Native.defineProperties(this, {
-            title: {
+            "title": {
                 get: function() {
                     return _title;
                 },
@@ -91,7 +91,7 @@ module.exports = require("./native.js").extend(function(configuration) {
                     _setTitle(newValue, true);
                 }
             },
-            titleColor: {
+            "titleColor": {
                 get: function() {
                     return _titleColor;
                 },
@@ -99,7 +99,7 @@ module.exports = require("./native.js").extend(function(configuration) {
                     _setTitleColor(newValue, true);
                 }
             },
-            backgroundColor: {
+            "backgroundColor": {
                 get: function() {
                     return _backgroundColor;
                 },
@@ -107,7 +107,7 @@ module.exports = require("./native.js").extend(function(configuration) {
                     _setBackgroundColor(newValue, true);
                 }
             },
-            isHidden: {
+            "isHidden": {
                 get: function() {
                     return _isHidden;
                 },
@@ -115,32 +115,32 @@ module.exports = require("./native.js").extend(function(configuration) {
                     _setHidden(newValue, false, true);
                 }
             },
-            setTitle: {
+            "setTitle": {
                 get: function() {
                     return _setTitle;
                 }
             },
-            setTitleColor: {
+            "setTitleColor": {
                 get: function() {
                     return _setTitleColor;
                 }
             },
-            setBackgroundColor: {
+            "setBackgroundColor": {
                 get: function() {
                     return _setBackgroundColor;
                 }
             },
-            setHidden: {
+            "setHidden": {
                 get: function() {
                     return _setHidden;
                 }
             },
-            hide: {
+            "hide": {
                 get: function() {
                     return _hide;
                 }
             },
-            show: {
+            "show": {
                 get: function() {
                     return _show;
                 }
@@ -194,22 +194,22 @@ module.exports = require("./native.js").extend(function(configuration) {
         let _bar = new NativeNavigationBar(_native, info.bar);
 
         Native.defineProperties(this, {
-            push: {
+            "push": {
                 get: function() {
                     return _push;
                 }
             },
-            pop: {
+            "pop": {
                 get: function() {
                     return _pop;
                 }
             },
-            popTo: {
+            "popTo": {
                 get: function() {
                     return _popTo;
                 }
             },
-            bar: {
+            "bar": {
                 get: function() {
                     return _bar;
                 }
@@ -220,7 +220,7 @@ module.exports = require("./native.js").extend(function(configuration) {
     let _navigation = new NativeNavigation(this, configuration.navigation);
 
     return {
-        'navigation': {
+        "navigation": {
             get: function() {
                 return _navigation;
             }

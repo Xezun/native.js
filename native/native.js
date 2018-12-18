@@ -3,8 +3,10 @@
 
 const Native = require("./native.static.js");
 
+// 注册 Native.Method.ready 。
 Native.Method("ready", "ready");
 
+// 继承 Native 类的子类。
 const _Native = (function() {
 	function _Native() {
 		// 继承 Native 的属性。
@@ -71,6 +73,7 @@ const _Native = (function() {
 	return _Native;
 })();
 
+
 const native = new _Native();
 Native.defineProperty(window, "native", {
 	get: function() {
@@ -82,11 +85,11 @@ module.exports = native;
 
 function _CoreNative(nativeWasReady) {
 
-	let _uniqueID = 10000000; // 用于生成唯一的回调函数 ID 。
+	let _uniqueID 		= 10000000; // 用于生成唯一的回调函数 ID 。
 	let _keyedCallbacks = {}; // 按照 callbackID 保存的回调函数。
-	let _mode = Native.Mode.url; // 交互的数据类型。
-	let _delegate = null; // 事件代理，一般为原生注入到 JS 环境中的对象。
-	let _scheme = "native"; // 使用 URL 交互时使用
+	let _mode 			= Native.Mode.url; // 交互的数据类型。
+	let _delegate 		= null; // 事件代理，一般为原生注入到 JS 环境中的对象。
+	let _scheme 		= "native"; // 使用 URL 交互时使用
 
 	// 保存或读取 callback 。
 	function _callback(callbackOrID, needsRemove) {
