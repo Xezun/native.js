@@ -6,20 +6,21 @@ module.exports = Native;
 /** @module Native */
 
 /**
- * 标识当前 native 框架的版本号，例如 2.0.1 。
- * @name version
+ * 标识框架的版本号，例如 2.0.1 。
+ * 
  * @constant
+ * @name version
  */
 const NativeVersion = "2.0.1";
 
 /**
  * 控制台输出样式枚举。
  *
- * @readyonly
+ * @constant
  * @name LogStyle
- * @property {NativeLogStyle} default 在控制台输出普通样式文本，表示一条普通的输出信息。
- * @property {NativeLogStyle} warning 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
- * @property {NativeLogStyle} error   输出错误样式文本，表示一条错误信息，开发者需要修复。
+ * @property {number} default 在控制台输出普通样式文本，表示一条普通的输出信息。
+ * @property {number} warning 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
+ * @property {number} error   输出错误样式文本，表示一条错误信息，开发者需要修复。
  */
 const NativeLogStyle = Object.freeze({
     "default": 0,
@@ -30,12 +31,12 @@ const NativeLogStyle = Object.freeze({
 /**
  * Native 与原生的交互模式。
  *
- * @readyonly
+ * @constant
  * @name Mode
- * @property {NativeMode} url        使用 URL 方式交互。
- * @property {NativeMode} json       使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
- * @property {NativeMode} object     使用 iOS 注入原生对象作为代理：支持所有类型的数据。
- * @property {NativeMode} javascript 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
+ * @property {string} url        使用 URL 方式交互。
+ * @property {string} json       使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+ * @property {string} object     使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+ * @property {string} javascript 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
  */
 const NativeMode = Object.freeze({
     "url": "url", 
@@ -47,11 +48,10 @@ const NativeMode = Object.freeze({
 /**
  * 全局统一的 Cookie 管理器。
  *
- * @readyonly
- * @name cookie
- * @type {NativeCookie}
+ * @constant
+ * @type {Cookie}
  */
-const _cookie = new NativeCookie();
+const cookie = NativeCookie();
 
 /// 定义 Native 静态函数。
 NativeDefineProperties(Native, {
@@ -92,7 +92,7 @@ NativeDefineProperties(Native, {
     },
     "cookie": {
         get: function() {
-            return _cookie;
+            return cookie;
         }
     },
     "Mode": {
@@ -185,8 +185,9 @@ NativeDefineProperty(window, "NativeCookieKey", {
  * @param {string} message 信息文本。
  * @param {number} style 可选。文本输出样式，参见 NativeLogStyle 枚举。
  *
+ * @constant
  * @name log
- * @readyonly
+ * @function
  */
 function NativeLog(message, style) {
     if (typeof style !== "number" || style === NativeLogStyle.default) {
@@ -204,8 +205,9 @@ function NativeLog(message, style) {
  * @param {string} name 待定义的属性名。
  * @param {object} descriptor 属性描述对象，与 Object.defineProperty 方法参数相同。
  *
- * @readyonly
+ * @constant
  * @name defineProperty
+ * @function
  */
 function NativeDefineProperty(anObject, name, descriptor) {
     if (typeof anObject === "undefined") {
@@ -225,8 +227,9 @@ function NativeDefineProperty(anObject, name, descriptor) {
  * @param {object} anObject 待定义属性的对象。
  * @param {object} descriptors 属性描述对象，与 Object.defineProperties 方法参数相同。
  *
- * @readyonly
+ * @constant
  * @name defineProperties
+ * @function
  */
 function NativeDefineProperties(anObject, descriptors) {
     if (typeof anObject === "undefined") {
@@ -248,8 +251,9 @@ function NativeDefineProperties(anObject, descriptors) {
  * 将任意值转换为 URL 的查询字段值，转换后的值已编码，可以直接拼接到 URL 字符串中。
  * @param {any} aValue 待转换的值。
  *
- * @readyonly
+ * @constant
  * @name parseURLQueryValue
+ * @function
  */
 function NativeParseURLQueryValue(aValue) {
     if (!aValue) {
@@ -269,8 +273,9 @@ function NativeParseURLQueryValue(aValue) {
  * 将任意对象转换为 URL 查询字符串。
  * @param {any} anObject 待转换的值。
  *
- * @readyonly
+ * @constant
  * @name parseURLQuery
+ * @function
  */
 function NativeParseURLQuery(anObject) {
     if (!anObject) {
@@ -315,8 +320,8 @@ function NativeParseURLQuery(anObject) {
 
 /**
  * 定义了管理 Cookie 的类。
- * @class NativeCookie
- * @protected
+ * 
+ * @class Cookie
  */
 function NativeCookie() {
 
@@ -358,12 +363,13 @@ function NativeCookie() {
 
     /**
      * 读取或设置 Cookie 。
-     * @param  {!string} 保存Cookie所使用的键名。
-     * @param  {?any} 可选，读取或设置值。 
+     * @param  {!string} key 保存Cookie所使用的键名。
+     * @param  {?any} value 可选，读取或设置值。 
      * @return {string} 已保存的Cookie值。
      *
-     * @alias value
-     * @memberof NativeCookie
+     * @constant
+     * @name Cookie.value
+     * @function
      */
     function _value(key, value) {
         // 读取
@@ -391,10 +397,10 @@ function NativeCookie() {
 
     /**
      * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
-     * @return {NativeCookie} 当前对象。
      *
-     * @alias synchronize
-     * @memberof NativeCookie
+     * @constant
+     * @name Cookie.synchronize
+     * @function
      */
     function _synchronize() {
         _keyedCookies = null;
@@ -417,11 +423,12 @@ function NativeCookie() {
 
 /**
  * 注册一个 Native.Method 枚举。
- * @param {string} 方法名。
- * @param {string/object} 方法值，可以是对象，表示一个方法集合。
+ * @param {string} methodName 方法名。
+ * @param {string/object} methodValue 方法值，可以是对象，表示一个方法集合。
  *
- * @readyonly
- * @name Method
+ * @constant
+ * @name Native.Method
+ * @function
  */
 function NativeMethod(methodName, methodValue) {
     if (typeof methodName !== "string" || methodName.length === 0) {
@@ -440,11 +447,12 @@ function NativeMethod(methodName, methodValue) {
 
 /**
  * 注册一个 Native.CookieKey 枚举。
- * @param {string} 枚举名，永远方便引用。
- * @param {string} 枚举值，存储 Cookie 所使用的 Key 。
+ * @param {string} cookieKey 枚举名，方便引用。
+ * @param {string} cookieValue 枚举值，存储 Cookie 所使用的 Key 。
  *
- * @readyonly
- * @name CookieKey
+ * @constant
+ * @name Native.CookieKey
+ * @function
  */
 function NativeCookieKey(cookieKey, cookieValue) {
     if (typeof cookieKey !== "string" || cookieKey.length === 0) {
@@ -461,10 +469,6 @@ function NativeCookieKey(cookieKey, cookieValue) {
     return cookieValue;
 }
 
-/**
- * Native 类。
- * @private
- */
 function Native() {
 
 }
