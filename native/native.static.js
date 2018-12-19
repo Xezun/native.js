@@ -51,8 +51,9 @@ const NativeMode = Object.freeze({
 /**
  * 全局统一的 Cookie 管理器，也是 cookie 模块的入口。
  *
+ * @typedef {import("./native.cookie.js")} NativeCookie
  * @constant
- * @type {module}
+ * @type {NativeCookie}
  */
 const cookie = require("./native.cookie.js");
 
