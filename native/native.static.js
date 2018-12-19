@@ -1,9 +1,12 @@
 // native.static.js
 // Doc 生成 ./node_modules/.bin/jsdoc ./native/native.static.js 。
 
+/** 
+ * Native 被定义为模块，但也是的 native 模块的（父类）原型，用来封装公用的方法和属性。
+ * 开发者不应该使用 Native 类实例化新的对象。
+ * @module Native 
+ * */
 module.exports = Native;
-
-/** @module Native */
 
 /**
  * 标识框架的版本号，例如 2.0.1 。
@@ -11,7 +14,7 @@ module.exports = Native;
  * @constant
  * @name version
  */
-const NativeVersion = "2.0.1";
+const NativeVersion = "2.0.2";
 
 /**
  * 控制台输出样式枚举。
@@ -46,12 +49,12 @@ const NativeMode = Object.freeze({
 });
 
 /**
- * 全局统一的 Cookie 管理器。
+ * 全局统一的 Cookie 管理器，也是 cookie 模块的入口。
  *
  * @constant
- * @type {Cookie}
+ * @external "./native.cookie.js"
  */
-const cookie = NativeCookie();
+const cookie = require("./native.cookie.js");
 
 /// 定义 Native 静态函数。
 NativeDefineProperties(Native, {
@@ -160,11 +163,6 @@ NativeDefineProperty(window, "NativeParseURLQueryValue", {
 NativeDefineProperty(window, "NativeParseURLQuery", {
     get: function() {
         return NativeParseURLQuery;
-    }
-});
-NativeDefineProperty(window, "NativeCookie", {
-    get: function() {
-        return NativeCookie;
     }
 });
 NativeDefineProperty(window, "NativeMethod", {
@@ -318,108 +316,7 @@ function NativeParseURLQuery(anObject) {
     }
 }
 
-/**
- * 定义了管理 Cookie 的类。
- * 
- * @class Cookie
- */
-function NativeCookie() {
 
-    let _keyedCookies = null;
-
-    /**
-     * 如果当前没有读取 Cookie 则尝试读取。
-     * @private
-     */
-    function _readIfNeeded() {
-        if (!!_keyedCookies) {
-            return;
-        }
-
-        _keyedCookies = {};
-        window.setTimeout(function() {
-            _keyedCookies = null;
-        });
-
-        let cookieStore = document.cookie;
-        if (!cookieStore) {
-            return;
-        }
-        let cookies = cookieStore.split("; ");
-        while (cookies.length > 0) {
-            let tmp = (cookies.pop()).split("=");
-            if (!Array.isArray(tmp) || tmp.length === 0) {
-                continue;
-            }
-
-            let name = decodeURIComponent(tmp[0]);
-            if (tmp.length > 1) {
-                _keyedCookies[name] = decodeURIComponent(tmp[1]);
-            } else {
-                _keyedCookies[name] = null;
-            }
-        }
-    }
-
-    /**
-     * 读取或设置 Cookie 。
-     * @param  {!string} key 保存Cookie所使用的键名。
-     * @param  {?any} value 可选，读取或设置值。 
-     * @return {string} 已保存的Cookie值。
-     *
-     * @constant
-     * @name Cookie.value
-     * @function
-     */
-    function _value(key, value) {
-        // 读取
-        if (typeof value === "undefined") {
-            _readIfNeeded();
-            if (_keyedCookies.hasOwnProperty(key)) {
-                return _keyedCookies[key];
-            }
-            return value;
-        }
-        // 设置
-        let date = new Date();
-        if (!!value) { // null 值表示删除，否则就是设置新值。
-            date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000);
-            document.cookie = NativeParseURLQueryValue(key) + "=" + NativeParseURLQueryValue(value) + "; expires=" + date.toUTCString();
-        } else {
-            date.setTime(date.getTime() - 1);
-            document.cookie = NativeParseURLQueryValue(key) + "; expires=" + date.toUTCString();
-        }
-        if (!!_keyedCookies) {
-            _keyedCookies[key] = value;
-        }
-        return value;
-    }
-
-    /**
-     * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
-     *
-     * @constant
-     * @name Cookie.synchronize
-     * @function
-     */
-    function _synchronize() {
-        _keyedCookies = null;
-        return this;
-    }
-
-    Object.defineProperties(this, {
-        "value": {
-            get: function() {
-                return _value;
-            }
-        },
-        "synchronize": {
-            get: function() {
-                return _synchronize;
-            }
-        }
-    });
-}
 
 /**
  * 注册一个 Native.Method 枚举。
@@ -469,6 +366,11 @@ function NativeCookieKey(cookieKey, cookieValue) {
     return cookieValue;
 }
 
+/**
+ * Native 是 native 对象的父类型，封装了一系列共享的静态属性和方法，但是不包含任何实例属性和方法；
+ * native 对象的类型是私有的，以避免外部引用。
+ * @private
+ */
 function Native() {
 
 }
