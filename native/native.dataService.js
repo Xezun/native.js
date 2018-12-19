@@ -16,6 +16,11 @@ Native.defineProperty(window, "NativeCachedResourceType", {
         return NativeCachedResourceType;
     }
 });
+Native.defineProperty(Native, "CachedResourceType", {
+    get: function() {
+        return NativeCachedResourceType;
+    }
+})
 
 module.exports = require("./native.js").extend(function() {
 

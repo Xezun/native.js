@@ -4,6 +4,11 @@
 const Native = require("./native.static.js");
 
 // 注册 Native.Method.ready 。
+/**	
+ * 交互方法 ready ，用于请求 App 初始化 native 对象。
+ * @constant
+ * @name Native.Method.ready
+ */
 Native.Method("ready", "ready");
 
 // 继承 Native 类的子类。
@@ -12,13 +17,15 @@ const _Native = (function() {
 		// 继承 Native 的属性。
 		Native.call(this);
 		// 自定义属性。
-		let _configuration = null;
+		let _configuration = {};
 		const _extensions = [];
 		const _readies = [];
 		const _native = this;
 
 		const _core = new _CoreNative(function(configuration) {
-			_configuration = configuration;
+			if ( !!configuration ) {
+				_configuration = configuration;
+			}
 			while (_extensions.length > 0) {
 				let extension = _extensions.shift();
 				Native.defineProperties(_native, extension.apply(_native, [_configuration]));
@@ -29,6 +36,10 @@ const _Native = (function() {
 			}
 		});
 
+		/**
+		 * 注册 native 交互初始化后的操作。
+		 * @param {NativeReadyCallback} callback 回调函数。
+		 */
 		function _ready(callback) {
 			if (_core.isReady) {
 				window.setTimeout(callback);
@@ -73,7 +84,10 @@ const _Native = (function() {
 	return _Native;
 })();
 
-
+/**
+ * JavaScript 与原生交互控制器。
+ * @module native
+ */
 const native = new _Native();
 Native.defineProperty(window, "native", {
 	get: function() {

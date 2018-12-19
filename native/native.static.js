@@ -42,74 +42,74 @@ const NativeLogStyle = Object.freeze({
  * @property {string} javascript 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
  */
 const NativeMode = Object.freeze({
-    "url": "url", 
-    "json": "json", 
-    "object": "object", 
-    "javascript": "javascript" 
+    "url": "url",
+    "json": "json",
+    "object": "object",
+    "javascript": "javascript"
 });
 
 /**
  * 全局统一的 Cookie 管理器，也是 cookie 模块的入口。
  *
  * @constant
- * @external "./native.cookie.js"
+ * @type {module}
  */
 const cookie = require("./native.cookie.js");
 
 /// 定义 Native 静态函数。
 NativeDefineProperties(Native, {
     "version": {
-        get: function() {
+        get: function () {
             return NativeVersion;
         }
     },
     "LogStyle": {
-        get: function() {
+        get: function () {
             return NativeLogStyle;
         }
     },
     "log": {
-        get: function() {
+        get: function () {
             return NativeLog;
         }
     },
     "defineProperty": {
-        get: function() {
+        get: function () {
             return NativeDefineProperty;
         }
     },
     "defineProperties": {
-        get: function() {
+        get: function () {
             return NativeDefineProperties;
         }
     },
     "parseURLQueryValue": {
-        get: function() {
+        get: function () {
             return NativeParseURLQueryValue;
         }
     },
     "parseURLQuery": {
-        get: function() {
+        get: function () {
             return NativeParseURLQuery;
         }
     },
     "cookie": {
-        get: function() {
+        get: function () {
             return cookie;
         }
     },
     "Mode": {
-        get: function() {
+        get: function () {
             return NativeMode;
         }
     },
     "Method": {
-        get: function() {
+        get: function () {
             return NativeMethod;
         }
     },
     "CookieKey": {
-        get: function() {
+        get: function () {
             return NativeCookieKey;
         }
     }
@@ -120,58 +120,58 @@ NativeDefineProperties(Native, {
 // 定义全局名称。
 
 NativeDefineProperty(window, "Native", {
-    get: function() {
+    get: function () {
         return Native;
     }
 });
 NativeDefineProperty(window, "NativeMode", {
-    get: function() {
+    get: function () {
         return NativeMode;
     }
 });
 NativeDefineProperty(window, "NativeType", {
-    get: function() {
+    get: function () {
         NativeLog("NativeType was deprecated, please use NativeMode instead.", NativeLogStyle.warning);
         return NativeMode;
     }
 });
 NativeDefineProperty(window, "NativeLogStyle", {
-    get: function() {
+    get: function () {
         return NativeLogStyle;
     }
 });
 NativeDefineProperty(window, "NativeLog", {
-    get: function() {
+    get: function () {
         return NativeLog;
     }
 });
 NativeDefineProperty(window, "NativeDefineProperty", {
-    get: function() {
+    get: function () {
         return NativeDefineProperty;
     }
 });
 NativeDefineProperty(window, "NativeDefineProperties", {
-    get: function() {
+    get: function () {
         return NativeDefineProperties;
     }
 });
 NativeDefineProperty(window, "NativeParseURLQueryValue", {
-    get: function() {
+    get: function () {
         return NativeParseURLQueryValue;
     }
 });
 NativeDefineProperty(window, "NativeParseURLQuery", {
-    get: function() {
+    get: function () {
         return NativeParseURLQuery;
     }
 });
 NativeDefineProperty(window, "NativeMethod", {
-    get: function() {
+    get: function () {
         return NativeMethod;
     }
 });
 NativeDefineProperty(window, "NativeCookieKey", {
-    get: function() {
+    get: function () {
         return NativeCookieKey;
     }
 });
@@ -212,10 +212,10 @@ function NativeDefineProperty(anObject, name, descriptor) {
         return NativeLog("Define property error: Can not define properties for an undefined value.", 2);
     }
     if (typeof name !== "string" || name.length === 0) {
-        return NativeLog("Define property error: The name for "+ anObject.constructor.name +"'s property must be a nonempty string.", 2);
+        return NativeLog("Define property error: The name for " + anObject.constructor.name + "'s property must be a nonempty string.", 2);
     }
     if (anObject.hasOwnProperty(name)) {
-        return NativeLog("Define property warning: The property "+ name +" to be defined for "+ anObject.constructor.name +" is already exist.", 1);
+        return NativeLog("Define property warning: The property " + name + " to be defined for " + anObject.constructor.name + " is already exist.", 1);
     }
     Object.defineProperty(anObject, name, descriptor);
     return anObject;
@@ -234,7 +234,7 @@ function NativeDefineProperties(anObject, descriptors) {
         return NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
     }
     if (typeof descriptors !== "object") {
-        return NativeLog("Define properties error: The property descriptors for "+ anObject.constructor.name +" at second parameter must be an Object.", 2);
+        return NativeLog("Define properties error: The property descriptors for " + anObject.constructor.name + " at second parameter must be an Object.", 2);
     }
     for (let propertyName in descriptors) {
         if (!descriptors.hasOwnProperty(propertyName)) {
@@ -317,6 +317,31 @@ function NativeParseURLQuery(anObject) {
 }
 
 
+/**
+ * 遍历对象的所有属性值。
+ * @param {*} anObject 待遍历的对象。
+ * @param {*} callback 值处理函数，如果返回 true 则遍历终止。
+ * @returns 如果遍历提前终止，则返回 true。
+ * @private
+ */
+function NativeObjectEnumerator(anObject, callback) {
+    for (const key in anObject) {
+        if (anObject.hasOwnProperty(key)) {
+            const element = object[key];
+            switch (typeof element) {
+                case "string":
+                    if (callback(element)) { return true; }
+                    break;
+                case "object":
+                    if (NativeObjectEnumerator(element, callback)) { return true };
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    return false;
+}
 
 /**
  * 注册一个 Native.Method 枚举。
@@ -331,11 +356,11 @@ function NativeMethod(methodName, methodValue) {
     if (typeof methodName !== "string" || methodName.length === 0) {
         return NativeLog("The name of NativeMethod must be a nonempty string.", NativeLogStyle.error);
     }
-    if (NativeMethod.hasOwnProperty(methodName)) {
-        return NativeLog("Native Method " + methodName + " has been registered already.", NativeLogStyle.error);
+    if ( NativeObjectEnumerator(NativeMethod, function (method) { return (method === methodValue); }) ) {
+        return NativeLog("NativeMethod." + methodName + " has been registered already.", NativeLogStyle.error);
     }
     NativeDefineProperty(NativeMethod, methodName, {
-        get: function() {
+        get: function () {
             return methodValue;
         }
     });
@@ -353,13 +378,16 @@ function NativeMethod(methodName, methodValue) {
  */
 function NativeCookieKey(cookieKey, cookieValue) {
     if (typeof cookieKey !== "string" || cookieKey.length === 0) {
-        return NativeLog("The name of NativeMethod must be a nonempty string.", NativeLogStyle.error);
+        return NativeLog("The name of NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
     }
-    if (NativeCookieKey.hasOwnProperty(cookieKey)) {
-        return NativeLog("Native Method " + cookieKey + " has been registered already.", NativeLogStyle.error);
+    if (typeof cookieValue !== "string" || cookieValue.length === 0) {
+        return NativeLog("The value of NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
+    }
+    if ( NativeCookieKey.hasOwnProperty(cookieKey) ) {
+        return NativeLog("NativeCookieKey." + cookieKey + " has been registered already.", NativeLogStyle.error);
     }
     NativeDefineProperty(NativeCookieKey, cookieKey, {
-        get: function() {
+        get: function () {
             return cookieValue;
         }
     });

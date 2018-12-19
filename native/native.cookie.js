@@ -1,15 +1,40 @@
 // native.cookie.js
 // 
 
-import { isNull } from "util";
+/** 
+ * 当前框架的 Cookie 管理器模块。相比于直接读取 Cookie ，本模块提供了更便捷的
+ * 方法来获取或设置 Cookie ，且在性能上做了优化。
+ * 管理器在首次读取 Cookie 时，会将 Cookie 缓存起来，以提高访问效率；
+ * 并且在页面每次显示时，重新刷新缓存。
+ * 
+ * @module cookie */
+const cookie = new Object(null);
 
-/** @module cookie */
+Object.defineProperties(cookie, {
+    "value": {
+        get: function () {
+            return value;
+        }
+    },
+    "synchronize": {
+        get: function () {
+            return synchronize;
+        }
+    }
+});
+
+module.exports = Object.freeze(cookie);
 
 /**
  * 保存了已解析过的 Cookie 值。
  * @private
  */
 let keyedCookies = null;
+
+// 当页面显示时，重置 Cookie 。
+window.addEventListener('pageshow', function() {
+    keyedCookies = null;
+});
 
 /**
  * 读取或设置 Cookie 值。
@@ -42,7 +67,7 @@ function value(cookieKey, newCookieValue, cookieExpires) {
             keyedCookies[cookieKey] = newCookieValue;
         }
         return newCookieValue;
-    } else if ( isNull(newCookieValue) ) { 
+    } else if ( newCookieValue === null ) { 
         // 删除 Cookie 
         let expireDate = new Date();
         date.setTime(date.getTime() - 1);
@@ -105,19 +130,3 @@ function readIfNeeded() {
     }
 }
 
-const cookie = new Object(null);
-
-Object.defineProperties(cookie, {
-    "value": {
-        get: function () {
-            return _value;
-        }
-    },
-    "synchronize": {
-        get: function () {
-            return synchronize;
-        }
-    }
-});
-
-module.exports = cookie;

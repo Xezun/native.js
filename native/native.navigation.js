@@ -16,12 +16,12 @@ Native.Method("navigation", Object.freeze({
 
 module.exports = require("./native.js").extend(function(configuration) {
 
-    function NativeNavigationBar(_native, barInfo) {
+    function NativeNavigationBar(_native, _barInfo) {
 
-        let _title = barInfo.title;
-        let _titleColor = barInfo.titleColor;
-        let _backgroundColor = barInfo.backgroundColor;
-        let _isHidden = barInfo.isHidden;
+        let _title = _barInfo.title;
+        let _titleColor = _barInfo.titleColor;
+        let _backgroundColor = _barInfo.backgroundColor;
+        let _isHidden = _barInfo.isHidden;
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
@@ -148,7 +148,7 @@ module.exports = require("./native.js").extend(function(configuration) {
         });
     }
 
-    function NativeNavigation(_native, info) {
+    function NativeNavigation(_native, _info) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
@@ -191,7 +191,11 @@ module.exports = require("./native.js").extend(function(configuration) {
             return _native.core.perform(Native.Method.navigation.popTo, index, animated);
         };
 
-        let _bar = new NativeNavigationBar(_native, info.bar);
+        let barInfo = _info.bar;
+        if ( !barInfo ) {
+            barInfo = { "title": "native.js", "titleColor": "#000", "backgroundColor": "#fff", "isHidden": false };
+        }
+        let _bar = new NativeNavigationBar(_native, barInfo);
 
         Native.defineProperties(this, {
             "push": {
@@ -217,7 +221,11 @@ module.exports = require("./native.js").extend(function(configuration) {
         });
     }
 
-    let _navigation = new NativeNavigation(this, configuration.navigation);
+    let navigationInfo = configuration.navigation;
+    if ( !navigationInfo ) {
+        navigationInfo = { "bar": { "title": "native.js", "titleColor": "#000", "backgroundColor": "#fff", "isHidden": false } };
+    }
+    let _navigation = new NativeNavigation(this, navigationInfo);
 
     return {
         "navigation": {

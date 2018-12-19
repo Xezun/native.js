@@ -2,6 +2,7 @@
 
 const Native = require("./native.static.js");
 
+Native.Method("login", "login");
 Native.CookieKey("currentUser", "com.mlibai.native.cookie.currentUser");
 
 module.exports = require("./native.js").extend(function(configuration) {
@@ -45,12 +46,11 @@ module.exports = require("./native.js").extend(function(configuration) {
     }
 
     // 定义用户
-    let _currentUser = new NativeUser(
-        configuration.currentUser.id,
-        configuration.currentUser.name,
-        configuration.currentUser.info,
-        configuration.currentUser.version
-    );
+    let userInfo = configuration.currentUser;
+    if ( !userInfo ) {
+        userInfo = {"id": "0", "name": "Visitor", "info": {}, "version": "0" };
+    }
+    let _currentUser = new NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
 
     // 保存 User 信息。
     Native.cookie.value(Native.CookieKey.currentUser, JSON.stringify(_currentUser));
@@ -81,7 +81,16 @@ module.exports = require("./native.js").extend(function(configuration) {
         window.addEventListener('pagehide', _pageHide);
     })(this);
 
-
+    function _login(callback) {
+		let _native = this;
+	    return this.core.perform(Native.Method.login, function(currentUser) {
+			_native.setCurrentUser(currentUser);
+			if (!!callback) {
+				callback(_native.currentUser);
+			}
+		});
+    }
+    
     return {
         "setCurrentUser": {
             get: function() {
@@ -97,6 +106,11 @@ module.exports = require("./native.js").extend(function(configuration) {
             get: function() {
                 return _currentUser;
             }
-        }
+        },
+        "login": {
+			get: function() {
+				return _login;
+			}
+		}
     };
 });

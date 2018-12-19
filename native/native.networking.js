@@ -9,8 +9,12 @@ Native.Method("networking", Object.freeze({
 const NativeNetworkStatus = Object.freeze({
     "WiFi": "WiFi"
 });
-
 Native.defineProperty(window, "NativeNetworkStatus", {
+    get: function() {
+        return NativeNetworkStatus;
+    }
+});
+Native.defineProperty(Native, "NetworkStatus", {
     get: function() {
         return NativeNetworkStatus;
     }
@@ -83,7 +87,11 @@ module.exports = require("./native.js").extend(function(configuration) {
         });
     }
 
-    let _networking = new NativeNetworking(this, configuration.networking);
+    let networkInfo = configuration.networking;
+    if ( !networkInfo ) {
+        networkInfo = { "status": "Unknown" };
+    }
+    let _networking = new NativeNetworking(this, networkInfo);
 
     return {
         "networking": {
