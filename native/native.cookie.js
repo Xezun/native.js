@@ -6,8 +6,8 @@
  * 方法来获取或设置 Cookie ，且在性能上做了优化。
  * 管理器在首次读取 Cookie 时，会将 Cookie 缓存起来，以提高访问效率；
  * 并且在页面每次显示时，重新刷新缓存。
- * 
- * @module cookie */
+ * @typedef { import("./native.cookie.js") } CookieModule
+ * @type {CookieModule} */
 const cookie = new Object(null);
 
 Object.defineProperties(cookie, {

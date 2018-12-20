@@ -370,29 +370,37 @@ function NativeMethod(methodName, methodValue) {
 
 /**
  * 注册一个 Native.CookieKey 枚举。
- * @param {string} cookieKey 枚举名，方便引用。
- * @param {string} cookieValue 枚举值，存储 Cookie 所使用的 Key 。
+ * @param {string} keyName 枚举名，方便引用。
+ * @param {string} keyValue 枚举值，存储 Cookie 所使用的 Key 。
  *
  * @constant
  * @name Native.CookieKey
  * @function
  */
-function NativeCookieKey(cookieKey, cookieValue) {
-    if (typeof cookieKey !== "string" || cookieKey.length === 0) {
-        return NativeLog("The name of NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
+function NativeCookieKey(keyName, keyValue) {
+    if (typeof keyName !== "string" || keyName.length === 0) {
+        return NativeLog("The name for NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
     }
-    if (typeof cookieValue !== "string" || cookieValue.length === 0) {
-        return NativeLog("The value of NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
+    if (typeof keyValue !== "string" || keyValue.length === 0) {
+        return NativeLog("The value for NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
     }
-    if ( NativeCookieKey.hasOwnProperty(cookieKey) ) {
-        return NativeLog("NativeCookieKey." + cookieKey + " has been registered already.", NativeLogStyle.error);
+    if ( NativeCookieKey.hasOwnProperty(keyName) ) {
+        return NativeLog("The name for NativeCookieKey `" + keyName + "` has been registered already.", NativeLogStyle.error);
     }
-    NativeDefineProperty(NativeCookieKey, cookieKey, {
+    for (const key in NativeCookieKey) {
+        if (NativeCookieKey.hasOwnProperty(key)) {
+            const element = NativeCookieKey[key];
+            if (element === keyValue) {
+                return NativeLog("The value `"+ element +"` was registered with name `"+ key +"` already.", NativeLogStyle.error);;
+            }
+        }
+    }
+    NativeDefineProperty(NativeCookieKey, keyName, {
         get: function () {
-            return cookieValue;
+            return keyValue;
         }
     });
-    return cookieValue;
+    return keyValue;
 }
 
 /**

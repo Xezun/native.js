@@ -135,32 +135,24 @@ declare module Native {
     }
 
     /**
-     * 注册一个交互方法，如果待注册的方法已注册，则会注册失败，并在控制台输出错误信息。
+     * 注册交互方法，同时该属性也是所有已注册的交互方法的对象。
+     * 1. 如果交互方法已注册，则会注册失败，并在控制台输出错误信息。
+     * 2. 通过点语法，按方法名获取已注册的方法。
+     * 
      * @param name 交互方法名，在 JavaScript 中的命名，用于方便引用。
      * @param value 交换方法值，交互方法值，必须与所有已存在的方法都不相同。
      */
-    function Method(name: string, value: string|object): void;
+    const Method: ((name: string, value: string|object) => void) | object;
 
     /**
-     * 交互方法枚举。
-     */
-    enum Method {
-
-    };
-
-    /**
-     * 注册一个 Cookie 键，如果待注册的键已注册，则会注册失败，并在控制台输出错误信息。
+     * 注册 Cookie 键，同时该属性也是获取所有已注册键的对象。
+     * 1. 如果键已注册，则会注册失败，并在控制台输出错误信息。
+     * 2. 通过点语法，按方法名获取已注册的键值。
+     * 
      * @param cookieKeyName 交互方法名，在 JavaScript 中的命名，用于方便引用。
      * @param cookieKeyValue 交换方法值，交互方法值，必须与所有已存在的方法都不相同。
      */
-    function CookieKey(cookieKeyName: string, cookieKeyValue: string): void;
-
-    /**
-     * 枚举了框架所用到的 Cookie 键名。
-     */
-    enum CookieKey {
-
-    }
+    const CookieKey: ((cookieKeyName: string, cookieKeyValue: string) => void) | object;
 
     /**
      * 框架版本号，本框架使用三位版本号，如 2.0.0 等。
@@ -172,7 +164,7 @@ declare module Native {
      * @param style   文本输出样式。
      * @see Native.LogStyle
      */
-    function log(message: string, style?: NativeLogStyle): void;
+    function log(message: string, style?: LogStyle): void;
     /**
      * 将任意对象格式化成 URL 的查询字符串，格式如 key1=value1&key2=value2 ，且已转义，可直接拼接到 URL 中。
      * 
@@ -211,7 +203,8 @@ declare module Native {
          * 读取 Cookie 。
          * @param cookieKey 保存 Cookie 所使用的键。
          */
-        function value(cookieKey: string): string?;
+        function value(cookieKey: string): string;
+
         /**
          * 设置 Cookie 。
          * @param cookieKey 键名。
@@ -219,6 +212,7 @@ declare module Native {
          * @param cookieExpires 有效期，单位秒，默认 30 天。
          */
         function value(cookieKey: string, cookieValue?: string, cookieExpires?: number): void;
+
         /**
          * 同步 Cookie ，刷新 Cookie 缓存，下次读取将重新读取。
          */
@@ -226,327 +220,27 @@ declare module Native {
     }
 }
 
-declare module native {
-    /**
-     * 显示 alert 。
-     * @param message 
-     * @param callback 
-     */
-    function alert(message: {title: string, body: string, actions?: [string]}, callback: (index: number) => void): void;
-
-}
-
-declare module Native {
-    /**
-     * 缓存资源的类型。
-     */
-    enum CachedResourceType {
-        image = "image"
-    }
-}
-
-declare module native {
-    /**
-     * 数据服务。
-     */
-    module dataService {
-
-        /**
-         * 通过此接口让 App 缓存指定 URL 资源。
-         * @param {string} remoteULR 资源的 URL
-         * @param {string} cacheType 资源的类型 { @see Native.CachedResourceType }
-         * @param {(cacheURL: string) => void} callback 获取缓存资源的回调，获得缓存路径
-         * @return {string} 回调 ID
-         */
-        function cachedResourceForURL(remoteULR: string, cacheType?: string, callback?: (cacheURL: string) => void): string;
-    }
-}
-
-declare module native {
-    /**
-     * 事件服务。
-     */
-    module eventService {
-        /**
-         * 当页面元素被（不限于）点击时，调用此方法将事件传递给 App 。
-         *
-         * @param {string} documentName 页面名称
-         * @param {string} elementName  元素名称
-         * @param data 连同事件包含的数据
-         * @param {(isSelected: boolean) => void} callback 回调，表示元素是否可以被选中。
-         * @return {string} 回调 ID
-         */
-        function wasClickedOnElement(documentName: string, elementName: string, data?: any, callback?: (isSelected: boolean) => void): string;
-        /**
-         * 统计跟踪一条用户行为。
-         *
-         * @param {string} event        事件名称
-         * @param {Object} parameters   参数
-         * @return {string} null
-         */
-        function track(event: string, parameters?: object): string;
-    };
 
 
-}
 
 
-interface NativeConfiguration {
-    navigation: {
-        bar: {
-            title: string,
-            titleColor: string,
-            isHidden: boolean,
-            backgroundColor: string
-        }
-    }
-}
-declare module native {
-
-    /**
-     * 页面导航控制器。
-     */
-    module navigation {
-
-        /**
-         * 导航条。
-         */
-        module bar {
-            /**
-             * 可写。设置或获取导航条是否隐藏。
-             * @description 直接修改属性，会同步到 App 。
-             */
-            var isHidden: boolean;
-            /**
-             * 可写。设置或获取导航条标题。
-             * @description 直接修改属性，会同步到 App 。
-             */
-            var title: string;
-            /**
-             * 可写。设置或获取标题文字颜色。
-             * @description 直接修改属性，会同步到 App 。
-             */
-            var titleColor: string;
-            /**
-             * 可写。设置或获取导航条背景色。
-             * @description 直接修改属性，会同步到 App 。
-             */
-            var backgroundColor: string;
-            /**
-             * 隐藏导航条。
-             *
-             * @param {boolean} animated 是否展示动画效果
-             */
-            function hide(animated: boolean): void;
-            /**
-             * 显示导航条。
-             *
-             * @param {boolean} animated 是否展示动画效果
-             */
-            function show(animated: boolean): void;
-        
-            function setHidden(isHidden: boolean): void;
-            function setTitle(title: string): void;
-            function setTitleColor(titleColor: string): void;
-            function setBackgroundColor(backgroundColor: string): void;
-        }
-
-        /**
-         * App 页面导航行为，进入下级页面，导航栈 +1。
-         * @param {string} url 下级页面的 URL
-         * @param {boolean} animated 是否展示转场动画
-         */
-        function push(url: string, animated: boolean): void;
-    
-        /**
-         * App 页面导航行为，弹出导航栈顶页面 -1。
-         * @param {boolean} animated 是否展示转场动画
-         */
-        function pop(animated: boolean): void;
-    
-        /**
-         * App 页面导航行为，弹出导航栈内页面到指定页面。导航栈以 HTML 页面计算。
-         * @param {number} index 页面在栈内的索引
-         * @param {boolean} animated 是否展示转场动画
-         */
-        function popTo(index: number, animated: boolean): void;
-    }
-    
-}
 
 
-declare module Native {
-    enum NetworkStatus {
-        WiFi = "WiFi"
-    }
-}
-interface NativeConfiguration {
-    networking: {
-        status: string
-    }
-}
-declare module native {
-    module networking {
-        /**
-         * 只读。网络是否已连通互联网。
-         */
-        const isReachable: boolean;
-    
-        /**
-         * 是否通过 Wi-Fi 上网。
-         */
-        const isViaWiFi: boolean;
-    
-        /**
-         * 只读。当前 App 接入网络的类型。
-         */
-        const status: string;
-    
-        /**
-         * 仅供 App 同步导航条显示状态时使用。
-         * - 调用此方法可能会触发 change 事件。
-         */
-        function setStatus(newStatus: string): void;
-    
-        function sstatusChange(): void;
-        function sstatusChange(fn: () => void): void;
-    
-        /**
-         * 发送 HTTP 请求。
-         * @typedef {url: string, method: string, data?: object, headers?: object} NativeHTTPRequest
-         * @typedef {code: number, message: string, contentType: string, data?: any} NativeHTTPResponse
-         * 
-         * @param {NativeHTTPRequest} request 网络请求对象
-         * @param {(response: NativeHTTPResponse) => void} callback 网络请求回调
-         * @return {string} 回调 ID
-         */
-        function http(
-            request: {url: string, method: string, data?: object, headers?: object}, 
-            callback: (response: {code: number, message: string, contentType: string, data?: any}) => void): string;
-    }
-    
-    /**
-     * 发送 HTTP 请求。
-     * @param {NativeHTTPResponse} request
-     * @param {(response: NativeHTTPResponse) => void} callback
-     */
-    function http(
-        request: {url: string, method: string, data?: object, headers?: object}, 
-        callback: (response: {code: number, message: string, contentType: string, data?: any}) => void): string;
-}
-
-declare module native {
-    /**
-     * 跳转到指定页面。
-     * @param url 页面地址或页面协议。
-     */
-    function open(url: string): void;
-}
-
-declare module native {
-    /**
-     * @see native.present(0)
-     */
-    function present(url: string): void;
-    /**
-     * @see native.present(0)
-     */
-    function present(url: string, animated: boolean): void;
-    /**
-     * 打开一个模态窗口。
-     * @param url 页面地址或页面协议。
-     * @param animated 是否展示转场动画。
-     * @param completion 页面转场后的回调。
-     * @variation 0
-     */
-    function present(url: string, animated: boolean, completion: () => void): void;
-    /**
-     * @see native.present(0)
-     */
-    function present(url: string, completion: () => void): void;
-
-    /**
-     * @see native.dismiss(0)
-     */
-    function dismiss(): void;
-    /**
-     * @see native.dismiss(0)
-     */
-    function dismiss(animated: boolean): void;
-    /**
-     * 如果当前页面模态窗口，则可以通过此方法移除。
-     * @param animated 是否展示转场动画。
-     * @param completion 页面转场后的回调。
-     * @variation 0
-     */
-    function dismiss(animated: boolean, completion: () => void): void;
-    /**
-     * @see native.dismiss(0)
-     */
-    function dismiss(completion: () => void): void;
-}
 
 
-interface NativeConfiguration {
-    currentTheme: string
-}
-declare module native {
-
-    /**
-     * 当前主题。设置此属性，将调用原生方法。原生代码改变主题需调用 setCurrentTheme() 方法。
-     */
-    const currentTheme: string;
-
-    /**
-     * 注册主题变更事件。
-     * @param {() => void} fn 回调函数。
-     */
-    function currentThemeChange(fn: () => void): void;
-
-    /**
-     * 发送主题变更事件。
-     */
-    function currentThemeChange(): void;
-
-    /**
-     * 设置当前主题。
-     * @param {string} newTheme 新主题。
-     * @param {boolean} animated 是否展示动画。
-     * @param {boolean} toApp 是否同步到 App 。
-     */
-    function setCurrentTheme(newTheme: string, animated: boolean, toApp: boolean): void;
-}
 
 
-interface NativeConfiguration {
-    currentUser: {
-        id: string,
-        name: string,
-        info: object,
-        version: string
-    }
-}
-declare module native {
-    /**
-     * 当前用户。
-     */
-    const currentUser: {id: string, name: string, info: object, version: string};
 
-    /**
-     * 设置当前用户。
-     * @param {Object} newUser
-     */
-    function setCurrentUser(newUser: {id: string, name: string, info: object, version: string}): void;
 
-    function currentUserChange(fn: () => void): void;
-    function currentUserChange(): void;
 
-    /**
-     * 调起原生登陆界面。
-     * @param callback 登陆回调。
-     */
-    function login(callback: (currentUser: User) => void): string;
-}
+
+
+
+
+
+
+
+
 
 
 
