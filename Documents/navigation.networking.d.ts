@@ -41,6 +41,7 @@ declare module native {
          * 触发网络状态变更事件。
          */
         function statusChange(): void;
+        
         /**
          * 监听网络状态变化。
          * @param callback 回调函数。
