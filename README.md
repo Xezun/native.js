@@ -228,7 +228,7 @@ native.core.perform("login", {"account": "foo", "password": "bar"}, function () 
 
 
 
-
+# ---文档尚在整理中-----
 
 ### 交互机制
 
