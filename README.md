@@ -1077,5 +1077,7 @@ App 需设置 WebView 的 `User-Agent`，格式：
 - 加载 App 内置 OMApp.js 文件，并在文件末尾添加设置初值的代码。
 
 
+## 研发计划
 
+native 对象及其对象属性，都提供 extend 方法 H5 为原生提供方法；添加 addEventHandler(eventName, callback) 方法，以方便拓展及事件监听。
 
