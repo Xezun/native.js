@@ -45,9 +45,12 @@ let _uniqueID = 10000000;
 let _scheme = "native";
 // 原生用于接收事件的对象。
 let _delegate = null;
+// 是否可以进行交互。
+let _isReady = false;
+// 共用的 Cookie 管理
+const _cookie = new _NativeCookie();
 
-
-// 接口输出。
+// ---------- 接口输出 ---------- 
 
 global.NativeLogStyle = _NativeLogStyle;
 global.NativeMode = _NativeMode;
@@ -58,6 +61,7 @@ global.NativeDefineProperty = _NativeDefineProperty;
 global.NativeDefineProperties = _NativeDefineProperties;
 global.NativeObjectEnumerator = _NativeObjectEnumerator;
 global.NativeMethod = _NativeMethod;
+global.NativeEvent = _NativeEvent;
 global.NativeCookieKey = _NativeCookieKey;
 
 module.exports.mode = _mode;
@@ -68,6 +72,11 @@ module.exports.callback = _callback;
 module.exports.addEventListener = _addEventListener;
 module.exports.removeEventListener = _removeEventListener;
 module.exports.dispatchEvent = _dispatchEvent;
+module.exports.isReady = _isReady;
+module.exports.ready = _ready;
+module.exports.register = _register;
+module.exports.extend = _extend;
+module.exports.cookie = _cookie;
 
 // 执行原生方法：方法名，参数1，参数2，……。
 function _performMethod(nativeMethod) {
@@ -112,8 +121,8 @@ function _addEventListener(eventName, eventHandler) {
 	if (typeof eventHandler !== 'function' || typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
-	if (!_eventListeners.hasOwnProperty(eventName)) { 
-		_eventListeners[eventName] = [eventHandler]; 
+	if (!_eventListeners.hasOwnProperty(eventName)) {
+		_eventListeners[eventName] = [eventHandler];
 		return;
 	}
 	_eventListeners.push(eventHandler);
@@ -157,6 +166,102 @@ function _dispatchEvent(eventName) {
 	}
 }
 
+// ---------- 交互初始化 ---------- 
+
+// 注册 ready 方法。
+_NativeMethod("ready", "ready");
+// App 配置信息。
+let _configuration = {};
+// native 拓展。
+const _extensions = [];
+// 当前的 native.ready 回调函数标识符。
+let _readyID = null;
+// 已注册的 ready 事件函数。
+const _readyListeners = [];
+
+function _nativeWasReady(configuration) {
+	if (!!configuration) {
+		_configuration = configuration;
+	}
+	while (_extensions.length > 0) {
+		let extension = _extensions.shift();
+		_NativeDefineProperties(_native, extension.apply(_native, [_configuration]));
+	}
+	// 执行 ready，回调函数中 this 指向 window 对象。。
+	while (_readyListeners.length > 0) {
+		(_readyListeners.shift()).apply(window);
+	}
+}
+
+// 在 document.ready 之后发送 native.ready 事件（避免 App 可能无法接收事件的问题），告诉 App 初始化 native 对象。
+function _documentWasReady() {
+	_readyID = _performMethod(_NativeMethod.ready, function(configuration) {
+		_isReady = true;
+		_readyID = null;
+		_nativeWasReady(configuration);
+	});
+}
+
+// document.ready 事件监听。
+function _docummentLoadedEventListener() {
+	document.removeEventListener("DOMContentLoaded", _docummentLoadedEventListener);
+	window.removeEventListener("load", _docummentLoadedEventListener);
+	_documentWasReady();
+}
+
+// App注册代理和交互方式。
+function _register(delegate, mode) {
+	_delegate = delegate;
+	_mode = mode;
+	// 如果已经初始化，则不再初始化，仅仅是改变代理。
+	if (_isReady) {
+		return this;
+	}
+	// 删除已经发起的 ready 事件。
+	if (!!_readyID) {
+		_callback(_readyID, true);
+	}
+	// 检查 document 状态，根据状态来确定何时发送 native.ready 事件。
+	if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
+		window.setTimeout(function() {
+			_documentWasReady();
+		});
+	} else {
+		document.addEventListener("DOMContentLoaded", _docummentLoadedEventListener);
+		// WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
+		window.addEventListener("load", _docummentLoadedEventListener);
+	}
+	return this;
+}
+
+/**
+ * 注册 native 交互初始化后的操作。
+ * @param {NativeReadyCallback} callback 回调函数。
+ */
+function _ready(callback) {
+	if (_isReady) {
+		window.setTimeout(callback);
+		return this;
+	}
+	_readyListeners.push(callback);
+	return this;
+}
+
+// 自定义拓展的支持。
+function _extend(callback) {
+	if (typeof callback !== 'function') {
+		return this;
+	}
+	if (_isReady) {
+		_NativeDefineProperties(this, callback.apply(this, [_configuration]));
+	} else {
+		_extensions.push(callback);
+	}
+	return this;
+}
+
+
+// -------------- 支持函数 -------------
 
 function _performByURL(method) {
 	let parameters = [];
@@ -305,93 +410,236 @@ function _NativeParseURLQuery(anObject) {
 }
 
 function _NativeDefineProperty(anObject, name, descriptor) {
-    if (typeof anObject === "undefined") {
-        return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof name !== "string" || name.length === 0) {
-        return _NativeLog("Define property error: The name for " + anObject.constructor.name + "'s property must be a nonempty string.", 2);
-    }
-    if (anObject.hasOwnProperty(name)) {
-        return _NativeLog("Define property warning: The property " + name + " to be defined for " + anObject.constructor.name + " is already exist.", 1);
-    }
-    Object.defineProperty(anObject, name, descriptor);
-    return anObject;
+	if (typeof anObject === "undefined") {
+		return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
+	}
+	if (typeof name !== "string" || name.length === 0) {
+		return _NativeLog("Define property error: The name for " + anObject.constructor.name + "'s property must be a nonempty string.", 2);
+	}
+	if (anObject.hasOwnProperty(name)) {
+		return _NativeLog("Define property warning: The property " + name + " to be defined for " + anObject.constructor.name + " is already exist.", 1);
+	}
+	Object.defineProperty(anObject, name, descriptor);
+	return anObject;
 }
 
 function _NativeDefineProperties(anObject, descriptors) {
-    if (typeof anObject === "undefined") {
-        return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
-    }
-    if (typeof descriptors !== "object") {
-        return _NativeLog("Define properties error: The property descriptors for " + anObject.constructor.name + " at second parameter must be an Object.", 2);
-    }
-    for (let propertyName in descriptors) {
-        if (!descriptors.hasOwnProperty(propertyName)) {
-            continue;
-        }
-        _NativeDefineProperty(anObject, propertyName, descriptors[propertyName]);
-    }
-    return anObject;
+	if (typeof anObject === "undefined") {
+		return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
+	}
+	if (typeof descriptors !== "object") {
+		return _NativeLog("Define properties error: The property descriptors for " + anObject.constructor.name + " at second parameter must be an Object.", 2);
+	}
+	for (let propertyName in descriptors) {
+		if (!descriptors.hasOwnProperty(propertyName)) {
+			continue;
+		}
+		_NativeDefineProperty(anObject, propertyName, descriptors[propertyName]);
+	}
+	return anObject;
 }
 
 function _NativeObjectEnumerator(anObject, callback) {
-    for (const key in anObject) {
-        if (anObject.hasOwnProperty(key)) {
-            const element = object[key];
-            switch (typeof element) {
-                case "string":
-                    if (callback(element)) { return true; }
-                    break;
-                case "object":
-                    if (_NativeObjectEnumerator(element, callback)) { return true };
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    return false;
+	for (const key in anObject) {
+		const value = object[key];
+		switch (typeof value) {
+			case "string":
+				if (callback(key, value)) {
+					return true;
+				}
+				break;
+			case "object":
+				if (_NativeObjectEnumerator(value, callback)) {
+					return true
+				};
+				break;
+			default:
+				break;
+		}
+	}
+	return false;
 }
 
 function _NativeMethod(methodName, methodValue) {
-    if (typeof methodName !== "string" || methodName.length === 0) {
-        return _NativeLog("The name of NativeMethod must be a nonempty string.", NativeLogStyle.error);
-    }
-    if ( _NativeObjectEnumerator(_NativeMethod, function (method) { return (method === methodValue); }) ) {
-        return _NativeLog("NativeMethod." + methodName + " has been registered already.", NativeLogStyle.error);
-    }
-    _NativeDefineProperty(_NativeMethod, methodName, {
-        get: function () {
-            return methodValue;
-        }
-    });
-    return methodValue;
+	if (typeof methodName !== "string" || methodName.length === 0) {
+		return _NativeLog("NativeMethod 注册失败，方法名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
+	}
+	if (_NativeMethod.hasOwnProperty(methodName)) {
+		return _NativeLog("NativeMethod 注册失败，已存在名称为“" + methodName + "”的方法！", NativeLogStyle.error);
+	}
+	if (_NativeObjectEnumerator(_NativeMethod, function(key, value) {
+			return (value === methodValue);
+		})) {
+		return _NativeLog("NativeMethod 注册失败，已存在值为“" + methodName + "”的方法！", NativeLogStyle.error);
+	}
+	_NativeDefineProperty(_NativeMethod, methodName, {
+		get: function() {
+			return methodValue;
+		}
+	});
+	return methodValue;
+}
+
+function _NativeEvent(eventName, eventValue) {
+	if (typeof eventName !== "string" || eventName.length === 0) {
+		return _NativeLog("NativeEvent 注册失败，事件名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
+	}
+	if (_NativeEvent.hasOwnProperty(eventName)) {
+		return _NativeLog("NativeEvent 注册失败，已存在名称为“" + eventName + "”的事件！", NativeLogStyle.error);
+	}
+	if (_NativeObjectEnumerator(_NativeEvent, function(key, value) {
+			return (value === eventValue);
+		})) {
+		return _NativeLog("NativeEvent 注册失败，已存在值为“" + eventValue + "”的事件！", NativeLogStyle.error);
+	}
+	_NativeDefineProperty(_NativeEvent, eventName, {
+		get: function() {
+			return eventValue;
+		}
+	});
+	return eventValue;
 }
 
 function _NativeCookieKey(keyName, keyValue) {
-    if (typeof keyName !== "string" || keyName.length === 0) {
-        return _NativeLog("The name for NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
-    }
-    if (typeof keyValue !== "string" || keyValue.length === 0) {
-        return _NativeLog("The value for NativeCookieKey must be a nonempty string.", NativeLogStyle.error);
-    }
-    if ( _NativeCookieKey.hasOwnProperty(keyName) ) {
-        return _NativeLog("The name for NativeCookieKey `" + keyName + "` has been registered already.", NativeLogStyle.error);
-    }
-    for (const key in _NativeCookieKey) {
-        if (_NativeCookieKey.hasOwnProperty(key)) {
-            const element = _NativeCookieKey[key];
-            if (element === keyValue) {
-                return _NativeLog("The value `"+ element +"` was registered with name `"+ key +"` already.", NativeLogStyle.error);;
-            }
-        }
-    }
-    _NativeDefineProperty(_NativeCookieKey, keyName, {
-        get: function () {
-            return keyValue;
-        }
-    });
-    return keyValue;
+	if (typeof keyName !== "string" || keyName.length === 0) {
+		return _NativeLog("NativeCookieKey 注册失败，名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
+	}
+	if (typeof keyValue !== "string" || keyValue.length === 0) {
+		return _NativeLog("NativeCookieKey 注册失败，值必须为大于 0 的字符串！", NativeLogStyle.error);
+	}
+	if (_NativeCookieKey.hasOwnProperty(keyName)) {
+		return _NativeLog("NativeCookieKey 注册失败，已存在名称为“`" + keyName + "`”的 Cookie 键！", NativeLogStyle.error);
+	}
+	if (_NativeObjectEnumerator(_NativeCookieKey, function(key, value) {
+			return (value === keyValue);
+		})) {
+		return _NativeLog("NativeCookieKey 注册失败，已存在值为“" + keyValue + "”的 Cookie 键！", NativeLogStyle.error);
+	}
+	_NativeDefineProperty(_NativeCookieKey, keyName, {
+		get: function() {
+			return keyValue;
+		}
+	});
+	return keyValue;
 }
 
 
+function _NativeCookie() {
+	/**
+	 * 保存了已解析过的 Cookie 值。
+	 * @private
+	 */
+	let keyedCookies = null;
+
+	// 当页面显示时，重置 Cookie 。
+	window.addEventListener('pageshow', function() {
+		keyedCookies = null;
+	});
+
+	/**
+	 * 读取或设置 Cookie 值。
+	 * 调用此方法时，如果只有一个参数，或者第二个参数不是 string 类型，表示读取 Cookie 中对应的键值；
+	 * 第二个参数，null 表示删除 Cookie 值，string 表示设置新的值；
+	 * 第三个参数，Cookie 保存时长，默认 30 天，单位秒。
+	 * @param  {!string} cookieKey 保存Cookie所使用的键名。
+	 * @param  {?string} newCookieValue 可选，待设置的值，如果没有此参数则表示读取。 
+	 * @param  {?number} cookieExpires 可选，Cookie 保存时长。
+	 * @return {?string} 已保存的Cookie值，如果未找到返回 null ，设置值时返回设置后的值。
+	 *
+	 * @constant
+	 */
+	function value(cookieKey, newCookieValue, cookieExpires) {
+		if (typeof cookieKey !== "string") {
+			return undefined;
+		}
+		if (typeof newCookieValue === "string") {
+			// 设置 Cookie
+			let expireDate = new Date();
+			if (typeof cookieExpires === "number") {
+				expireDate.setTime(expireDate.getTime() + cookieExpires * 1000);
+			} else {
+				expireDate.setTime(expireDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+			}
+			let key = _NativeParseURLQueryComponent(cookieKey);
+			let value = _NativeParseURLQueryComponent(newCookieValue);
+			document.cookie = key + "=" + value + "; expires=" + expireDate.toUTCString();
+			if (!!keyedCookies) {
+				keyedCookies[cookieKey] = newCookieValue;
+			}
+			return newCookieValue;
+		} else if (newCookieValue === null) {
+			// 删除 Cookie 
+			let expireDate = new Date();
+			date.setTime(date.getTime() - 1);
+			document.cookie = _NativeParseURLQueryComponent(cookieKey) + "; expires=" + date.toUTCString();
+			if (!!keyedCookies) {
+				keyedCookies[cookieKey] = newCookieValue;
+			}
+			return newCookieValue;
+		}
+		// 读取 Cookie
+		readIfNeeded();
+		if (keyedCookies.hasOwnProperty(cookieKey)) {
+			return keyedCookies[cookieKey];
+		}
+		return null;
+	}
+
+	/**
+	 * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
+	 *
+	 * @constant
+	 */
+	function synchronize() {
+		keyedCookies = null;
+		return this;
+	}
+
+	/**
+	 * 解析 Cookie ，解析后的 Cookie 保存在 keyedCookies 中，并且只存在一个 runloop 周期；
+	 * 如果已解析则不操作。
+	 * @private
+	 */
+	function readIfNeeded() {
+		if (!!keyedCookies) {
+			return;
+		}
+
+		keyedCookies = {};
+		window.setTimeout(function() {
+			keyedCookies = null;
+		});
+
+		let cookieStore = document.cookie;
+		if (!cookieStore) {
+			return;
+		}
+		let cookies = cookieStore.split("; ");
+		while (cookies.length > 0) {
+			let tmp = (cookies.pop()).split("=");
+			if (!Array.isArray(tmp) || tmp.length === 0) {
+				continue;
+			}
+
+			let name = decodeURIComponent(tmp[0]);
+			if (tmp.length > 1) {
+				keyedCookies[name] = decodeURIComponent(tmp[1]);
+			} else {
+				keyedCookies[name] = null;
+			}
+		}
+	}
+
+	Object.defineProperties(this, {
+		"value": {
+			get: function() {
+				return value;
+			}
+		},
+		"synchronize": {
+			get: function() {
+				return synchronize;
+			}
+		}
+	});
+}
