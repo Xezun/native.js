@@ -1,8 +1,7 @@
-// index.js
+// native.js
+// exports native.
 
-require("./native.static.js");
-
-module.exports = require("./native.js");
+module.exports = require("./native.core.js");
 
 require("./native.alert.js");
 require("./native.dataService.js");
@@ -13,4 +12,3 @@ require("./native.open.js");
 require("./native.present.js");
 require("./native.theme.js");
 require("./native.user.js");
-
