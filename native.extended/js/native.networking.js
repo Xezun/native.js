@@ -1,6 +1,6 @@
 // native.networking.js
 
-module.exports = require('../native/js/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("networking", Object.freeze({
     "http": "networking/http"
@@ -9,7 +9,7 @@ NativeMethod("networking", Object.freeze({
 const NativeNetworkStatus = Object.freeze({
     "WiFi": "WiFi"
 });
-Native.defineProperty(global, "NativeNetworkStatus", {
+Object.defineProperty(global, "NativeNetworkStatus", {
     get: function() {
         return NativeNetworkStatus;
     }

@@ -1,6 +1,6 @@
 // native.dataService.js
 
-module.exports = require('../native/js/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("dataService", Object.freeze({
     "cachedResourceForURL": "dataService/cachedResourceForURL",

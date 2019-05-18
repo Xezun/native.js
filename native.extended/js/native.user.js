@@ -1,6 +1,6 @@
 // native.user.js
 
-module.exports = require('../native/js/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("login", "login");
 NativeCookieKey("currentUser", "com.mlibai.native.cookie.currentUser");
@@ -15,7 +15,7 @@ global.native.extend(function(configuration) {
     }
     let _currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
     // 保存 User 信息。
-    Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+    global.native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
 
     this.addActionTarget(NativeAction.setCurrentUser, function (userInfo) {
         _currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);

@@ -7,21 +7,25 @@ if (date1) {
     NativeLog("上次访问日期：" + date1);
 }
 
-let date2 = (new Date()).toUTCString();
+let date2 = (new Date()).valueOf();
 native.cookie.value("date", date2);
 
 // Native.ready
 
 $.holdReady(true);  // 暂停 JQ
+NativeLog("JQ 已暂停");
+
 native.ready(function() {
+    NativeLog("native.ready 执行：" + (new Date()).valueOf());
     $.holdReady(false); // 恢复 JQ
-    NativeLog("native is ready：" + (new Date()).toUTCString());
+    NativeLog("JQ 已恢复");
 });
+NativeLog("已注册 native.ready 事件：" + (new Date()).valueOf());
 
 // 业务逻辑：JQ示例
 
 $(function () {
-
+    NativeLog("JQ.ready 执行：" + (new Date()).valueOf());
     //console.log(native.currentUser.name);
 
     // 网络请求
@@ -63,21 +67,21 @@ $(function () {
         setDelegate($(this).val());
     });
 
-    native.addEventListener("nameChange", function(newName) {
+    native.addActionTarget("nameChange", function(newName) {
         NativeLog("The nameChange: " + newName);
     });
     
-    // native.dataService.cachedResourceForURL("http://www.baidu.com/image.png", "image", function (cachePath) {
+    native.dataService.cachedResourceForURL("http://www.baidu.com/image.png", "image", function (cachePath) {
         
-    // });
+    });
     
-    // native.currentThemeChange(function () {
+    native.currentThemeChange(function () {
         
-    // })
+    })
 
-    // native.currentUserChange(function () {
+    native.currentUserChange(function () {
         
-    // });
+    });
 
     NativeLog(NativeParseURLQuery({"name": "John", "age": 12, "school": "Best One"}));
 
@@ -235,4 +239,6 @@ function setDelegate(type) {
             break;
         default: break;
     }
+
+    NativeLog("已注册 native 代理和交互方式：" + (new Date()).valueOf());
 }

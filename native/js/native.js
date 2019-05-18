@@ -213,11 +213,11 @@ function _addActionTarget(eventName, eventHandler) {
 	if (typeof eventHandler !== 'function' || typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
-	if (!_eventListeners.hasOwnProperty(eventName)) {
-		_eventListeners[eventName] = [eventHandler];
+	if (!_actionTargets.hasOwnProperty(eventName)) {
+		_actionTargets[eventName] = [eventHandler];
 		return;
 	}
-	_eventListeners.push(eventHandler);
+	_actionTargets.push(eventHandler);
 }
 
 // 移除监听：事件名称，回调函数（可选，默认删除所有）。
@@ -225,14 +225,14 @@ function _removeActionTarget(eventName, eventHandler) {
 	if (typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
-	if (!_eventListeners.hasOwnProperty(eventName)) {
+	if (!_actionTargets.hasOwnProperty(eventName)) {
 		return;
 	}
 	if (!eventHandler) {
-		delete _eventListeners[eventName];
+		delete _actionTargets[eventName];
 		return;
 	}
-	let listeners = _eventListeners[eventName];
+	let listeners = _actionTargets[eventName];
 	for (var i = listeners.length - 1; i >= 0; i--) {
 		if (listeners[i] == eventHandler) {
 			listeners.splice(i, 1);
@@ -245,14 +245,14 @@ function _sendAction(eventName) {
 	if (typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
-	if (!_eventListeners.hasOwnProperty(eventName)) {
+	if (!_actionTargets.hasOwnProperty(eventName)) {
 		return;
 	}
 	let parameters = [];
 	for (var i = 1; i < arguments.length; i++) {
 		parameters.push(arguments[i]);
 	}
-	let listeners = _eventListeners[eventName];
+	let listeners = _actionTargets[eventName];
 	for (var i = 0; i < listeners.length; i++) {
 		listeners[i].apply(this, parameters);
 	}
@@ -271,36 +271,6 @@ let _readyID = null;
 // 已注册的 ready 事件函数。
 const _readyListeners = [];
 
-function _nativeWasReady(configuration) {
-	if (!!configuration) {
-		_configuration = configuration;
-	}
-	while (_extensions.length > 0) {
-		let extension = _extensions.shift();
-		Object.defineProperties(exports, extension.apply(exports, [_configuration]));
-	}
-	// 执行 ready，回调函数中 this 指向 window 对象。。
-	while (_readyListeners.length > 0) {
-		(_readyListeners.shift()).apply(global);
-	}
-}
-
-// 在 document.ready 之后发送 native.ready 事件（避免 App 可能无法接收事件的问题），告诉 App 初始化 native 对象。
-function _documentWasReady() {
-	_readyID = _performMethod(_NativeMethod.ready, function(configuration) {
-		_isReady = true;
-		_readyID = null;
-		_nativeWasReady(configuration);
-	});
-}
-
-// document.ready 事件监听。
-function _docummentLoadedEventListener() {
-	document.removeEventListener("DOMContentLoaded", _docummentLoadedEventListener);
-	window.removeEventListener("load", _docummentLoadedEventListener);
-	_documentWasReady();
-}
-
 // App注册代理和交互方式。
 function _register(delegate, mode) {
 	_delegate = delegate;
@@ -313,12 +283,38 @@ function _register(delegate, mode) {
 	if (!!_readyID) {
 		_callback(_readyID, true);
 	}
+	let that = this;
+	// 在 document.ready 之后发送 native.ready 事件（避免 App 可能无法接收事件的问题），告诉 App 初始化 native 对象。
+	function _documentWasReady() {
+		_readyID = _performMethod.call(that, _NativeMethod.ready, function(configuration) {
+			_isReady = true;
+			_readyID = null;
+			if (!!configuration) {
+				_configuration = configuration;
+			}
+			while (_extensions.length > 0) {
+				let extension = _extensions.shift();
+				Object.defineProperties(that, extension.apply(that, [_configuration]));
+			}
+			// 执行 ready，回调函数中 this 指向 window 对象。。
+			while (_readyListeners.length > 0) {
+				(_readyListeners.shift()).apply(global);
+			}
+		});
+	}
 	// 检查 document 状态，根据状态来确定何时发送 native.ready 事件。
 	if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
 		setTimeout(function() {
 			_documentWasReady();
 		});
 	} else {
+		// document.ready 事件监听。
+		function _docummentLoadedEventListener() {
+			document.removeEventListener("DOMContentLoaded", _docummentLoadedEventListener);
+			window.removeEventListener("load", _docummentLoadedEventListener);
+			_documentWasReady();
+		}
+
 		document.addEventListener("DOMContentLoaded", _docummentLoadedEventListener);
 		// WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
 		window.addEventListener("load", _docummentLoadedEventListener);
@@ -444,7 +440,7 @@ function _NativeLog(message, style) {
 		return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
 	}
 	if (style === _NativeLogStyle.warning) {
-		return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #f7c644", message);
+		return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #f98300", message);
 	}
 	return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #c2352d", message);
 }
@@ -515,6 +511,7 @@ function _NativeDefineProperty(anObject, name, descriptor) {
 	if (anObject.hasOwnProperty(name)) {
 		return _NativeLog("Define property warning: The property " + name + " to be defined for " + anObject.constructor.name + " is already exist.", 1);
 	}
+	descriptor.enumerable = true;
 	Object.defineProperty(anObject, name, descriptor);
 	return anObject;
 }
@@ -537,7 +534,7 @@ function _NativeDefineProperties(anObject, descriptors) {
 
 function _NativeObjectEnumerator(anObject, callback) {
 	for (const key in anObject) {
-		const value = object[key];
+		const value = anObject[key];
 		switch (typeof value) {
 			case "string":
 				if (callback(key, value)) {
@@ -566,7 +563,7 @@ function _NativeMethod(methodName, methodValue) {
 	if (_NativeObjectEnumerator(_NativeMethod, function(key, value) {
 			return (value === methodValue);
 		})) {
-		return _NativeLog("NativeMethod 注册失败，已存在值为“" + methodName + "”的方法！", NativeLogStyle.error);
+		return _NativeLog("NativeMethod 注册失败，已存在值为“" + methodValue + "”的方法！", NativeLogStyle.error);
 	}
 	_NativeDefineProperty(_NativeMethod, methodName, {
 		get: function() {

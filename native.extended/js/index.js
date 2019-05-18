@@ -1,5 +1,5 @@
 
-module.exports = require('../native/js/native.js');
+module.exports = require('../../native/js/native.js');
 
 require("./native.alert.js");
 require("./native.dataService.js");

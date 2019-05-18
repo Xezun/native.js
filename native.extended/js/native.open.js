@@ -1,6 +1,6 @@
 // native.open.js
 
-module.exports = require('../native/js/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("open", "open");
 
