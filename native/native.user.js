@@ -1,26 +1,41 @@
 // native.user.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("login", "login");
-Native.CookieKey("currentUser", "com.mlibai.native.cookie.currentUser");
+NativeMethod("login", "login");
+NativeCookieKey("currentUser", "com.mlibai.native.cookie.currentUser");
+NativeAction("setCurrentUser", "setCurrentUser");
+NativeAction("currentUserChange", "currentUserChange");
 
-module.exports = require("./native.js").extend(function(configuration) {
-    // 存储监听
-    const _currentUserChangeHandlers = [];
+global.native.extend(function(configuration) {
+    // 定义用户
+    let userInfo = configuration.currentUser;
+    if ( !userInfo ) {
+        userInfo = {"id": "0", "name": "Visitor", "info": {}, "version": "0" };
+    }
+    let _currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+    // 保存 User 信息。
+    Native.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+
+    this.addActionTarget(NativeAction.setCurrentUser, function (userInfo) {
+        _currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+        this.cookie.value(NativeCookieKey.currentUser, JSON.stringify(_currentUser));
+        this.sendAction(NativeAction.currentUserChange, _currentUser);
+    });
 
     function _currentUserChange(callback) {
         if (typeof callback === "function") {
-            _currentUserChangeHandlers.push(callback);
-            return this;
+            return this.addActionTarget(NativeAction.currentUserChange, callback);
         }
-        for (let i = 0; i < _currentUserChangeHandlers.length; i++) {
-            _currentUserChangeHandlers[i].call(window);
-        }
-        return this;
+        return this.sendAction(NativeAction.currentUserChange, _currentUser);
     }
 
-    function NativeUser(_id, _name, _info, _version) {
+        // 设置当前用户，App 行为。
+    function _setCurrentUser(userInfo) {
+        return this.sendAction(NativeAction.setCurrentUser, userInfo);
+    }
+
+    function _NativeUser(_id, _name, _info, _version) {
         Object.defineProperties(this, {
             "id": {
                 get: function() {
@@ -45,30 +60,16 @@ module.exports = require("./native.js").extend(function(configuration) {
         })
     }
 
-    // 定义用户
-    let userInfo = configuration.currentUser;
-    if ( !userInfo ) {
-        userInfo = {"id": "0", "name": "Visitor", "info": {}, "version": "0" };
-    }
-    let _currentUser = new NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
-
-    // 保存 User 信息。
-    Native.cookie.value(Native.CookieKey.currentUser, JSON.stringify(_currentUser));
-
-    // 设置当前用户，App 行为。
-    function _setCurrentUser(userInfo) {
-        _currentUser = new NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
-        _currentUserChange();
-    }
-
-    (function(native) {
+    (function() {
         // 在页面隐藏时绑定显示时事件。
         // 页面显示时，从 cookie 读取信息。
         function _pageShow() {
-            let userInfo = JSON.parse(Native.cookie.value(Native.CookieKey.currentUser));
-            if (userInfo.id !== native.currentUser.id || userInfo.version !== native.currentUser.version) {
-                native.setCurrentUser(userInfo);
+            let userInfo = JSON.parse(global.native.cookie.value(NativeCookieKey.currentUser));
+            if (userInfo.id === global.native.currentUser.id && userInfo.version === global.native.currentUser.version) {
+                return;
             }
+            _currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+            global.native.sendAction(NativeAction.currentUserChange, _currentUser);
         }
 
         // 页面第一次隐藏后，监听页面显示事件。
@@ -79,14 +80,13 @@ module.exports = require("./native.js").extend(function(configuration) {
 
         // 绑定页面隐藏时的事件
         window.addEventListener('pagehide', _pageHide);
-    })(this);
+    })();
 
     function _login(callback) {
-		let _native = this;
-	    return this.core.perform(Native.Method.login, function(currentUser) {
-			_native.setCurrentUser(currentUser);
-			if (!!callback) {
-				callback(_native.currentUser);
+	    return this.performMethod(NativeMethod.login, function(userInfo) {
+			_currentUser = new _NativeUser(userInfo.id, userInfo.name, userInfo.info, userInfo.version);
+			if (typeof callback === 'function') {
+				callback(_currentUser);
 			}
 		});
     }

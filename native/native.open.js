@@ -1,17 +1,17 @@
 // native.open.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("open", "open");
+NativeMethod("open", "open");
 
-module.exports = require("./native.js").extend(function() {
+global.native.extend(function() {
 
     function _open(page) {
         if (typeof page !== 'string') {
-            Native.log("Method `open`'s page parameter must be a string value.", Native.LogStyle.error);
+            NativeLog("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
-        return this.core.perform(Native.Method.open, page);
+        return this.performMethod(NativeMethod.open, page);
     }
 
     return {

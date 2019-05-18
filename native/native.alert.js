@@ -1,13 +1,13 @@
 // native.alert.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("alert", "alert");
+NativeMethod("alert", "alert");
 
-module.exports = require("./native.js").extend(function() {
+native.extend(function() {
 
     function _alert(message, callback) {
-        return this.core.perform(Native.Method.alert, message, callback);
+        return this.performMethod(Native.Method.alert, message, callback);
     }
 
     return {

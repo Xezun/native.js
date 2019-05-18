@@ -1,28 +1,23 @@
 // native.networking.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("networking", Object.freeze({
+NativeMethod("networking", Object.freeze({
     "http": "networking/http"
 }));
 
 const NativeNetworkStatus = Object.freeze({
     "WiFi": "WiFi"
 });
-Native.defineProperty(window, "NativeNetworkStatus", {
-    get: function() {
-        return NativeNetworkStatus;
-    }
-});
-Native.defineProperty(Native, "NetworkStatus", {
+Native.defineProperty(global, "NativeNetworkStatus", {
     get: function() {
         return NativeNetworkStatus;
     }
 });
 
-module.exports = require("./native.js").extend(function(configuration) {
+global.native.extend(function(configuration) {
 
-    function NativeNetworking(_native, _networkingInfo) {
+    function _NativeNetworking(_networkingInfo) {
 
         let _status = _networkingInfo.status;
         let _statusChangeHandlers = [];
@@ -30,10 +25,10 @@ module.exports = require("./native.js").extend(function(configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                Native.log("Method `http` first parameter must be an request object.", Native.LogStyle.error);
+                NativeLog("Method `http` first parameter must be an request object.", NativeLogStyle.error);
                 return null;
             }
-            return _native.core.perform(Native.Method.networking.http, request, callback);
+            return global.native.performMethod(NativeMethod.networking.http, request, callback);
         }
 
         // 网络状态监听。
@@ -53,7 +48,7 @@ module.exports = require("./native.js").extend(function(configuration) {
             _statusChange();
         }
 
-        Native.defineProperties(this, {
+        Object.defineProperties(this, {
             "isViaWiFi": {
                 get: function() {
                     return (_status === NativeNetworkStatus.WiFi);
@@ -91,7 +86,7 @@ module.exports = require("./native.js").extend(function(configuration) {
     if ( !networkInfo ) {
         networkInfo = { "status": "Unknown" };
     }
-    let _networking = new NativeNetworking(this, networkInfo);
+    let _networking = new _NativeNetworking(networkInfo);
 
     return {
         "networking": {

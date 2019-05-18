@@ -1,8 +1,8 @@
 // native.navigation.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("navigation", Object.freeze({
+NativeMethod("navigation", Object.freeze({
     "push": "navigation/push",
     "pop": "navigation/pop",
     "popTo": "navigation/popTo",
@@ -14,9 +14,9 @@ Native.Method("navigation", Object.freeze({
     })
 }));
 
-module.exports = require("./native.js").extend(function(configuration) {
+global.native.extend(function(configuration) {
 
-    function NativeNavigationBar(_native, _barInfo) {
+    function _NativeNavigationBar(_barInfo) {
 
         let _title = _barInfo.title;
         let _titleColor = _barInfo.titleColor;
@@ -25,36 +25,36 @@ module.exports = require("./native.js").extend(function(configuration) {
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.title must be a string value.", Native.LogStyle.error);
+                NativeLog("The navigation.bar.title must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _title = newValue;
             if (needsSyncToApp) {
-                _native.core.perform(Native.Method.navigation.bar.setTitle, newValue);
+                global.native.performMethod(NativeMethod.navigation.bar.setTitle, newValue);
             }
             return this;
         }
 
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.titleColor must be a string value.", Native.LogStyle.error);
+                NativeLog("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _titleColor = newValue;
             if (needsSyncToApp) {
-                _native.core.perform(Native.Method.navigation.bar.setTitleColor, newValue);
+                global.native.performMethod(NativeMethod.navigation.bar.setTitleColor, newValue);
             }
             return this;
         }
 
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                Native.log("The navigation.bar.isHidden must be a boolean value.", Native.LogStyle.error);
+                NativeLog("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
                 return this;
             }
             _isHidden = newValue;
             if (needsSyncToApp) {
-                _native.core.perform(Native.Method.navigation.bar.setHidden, newValue, animated);
+                global.native.performMethod(NativeMethod.navigation.bar.setHidden, newValue, animated);
             }
             return this;
         }
@@ -71,18 +71,18 @@ module.exports = require("./native.js").extend(function(configuration) {
 
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                Native.log("The navigation.bar.backgroundColor must be a string value.", Native.LogStyle.error);
+                NativeLog("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
                 return this;
             }
             _backgroundColor = newValue;
             if (!needsSyncToApp) {
                 return this;
             }
-            _native.core.perform(Native.Method.navigation.bar.setBackgroundColor, newValue);
+            global.native.performMethod(NativeMethod.navigation.bar.setBackgroundColor, newValue);
             return this;
         }
 
-        Native.defineProperties(this, {
+        Object.defineProperties(this, {
             "title": {
                 get: function() {
                     return _title;
@@ -148,11 +148,11 @@ module.exports = require("./native.js").extend(function(configuration) {
         });
     }
 
-    function NativeNavigation(_native, _info) {
+    function _NativeNavigation(_info) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
-                Native.log("Method `push` can not be called without a url parameter.", Native.LogStyle.error);
+                NativeLog("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -168,7 +168,7 @@ module.exports = require("./native.js").extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _native.core.perform(Native.Method.navigation.push, url, animated);
+            return global.native.performMethod(NativeMethod.navigation.push, url, animated);
         };
 
         // 3.2 推出当前页面，使栈内页面数量 -1。
@@ -176,28 +176,28 @@ module.exports = require("./native.js").extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _native.core.perform(Native.Method.navigation.pop, animated);
+            return global.native.performMethod(NativeMethod.navigation.pop, animated);
         };
 
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
-                Native.log("Method `popTo` can not be called without a index parameter.", Native.LogStyle.error);
+                NativeLog("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
                 return;
             }
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return _native.core.perform(Native.Method.navigation.popTo, index, animated);
+            return global.native.performMethod(NativeMethod.navigation.popTo, index, animated);
         };
 
         let barInfo = _info.bar;
         if ( !barInfo ) {
             barInfo = { "title": "native.js", "titleColor": "#000", "backgroundColor": "#fff", "isHidden": false };
         }
-        let _bar = new NativeNavigationBar(_native, barInfo);
+        let _bar = new _NativeNavigationBar(barInfo);
 
-        Native.defineProperties(this, {
+        Object.defineProperties(this, {
             "push": {
                 get: function() {
                     return _push;
@@ -225,7 +225,7 @@ module.exports = require("./native.js").extend(function(configuration) {
     if ( !navigationInfo ) {
         navigationInfo = { "bar": { "title": "native.js", "titleColor": "#000", "backgroundColor": "#fff", "isHidden": false } };
     }
-    let _navigation = new NativeNavigation(this, navigationInfo);
+    let _navigation = new _NativeNavigation(navigationInfo);
 
     return {
         "navigation": {

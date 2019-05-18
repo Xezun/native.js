@@ -1,8 +1,8 @@
 // native.dataService.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("dataService", Object.freeze({
+NativeMethod("dataService", Object.freeze({
     "cachedResourceForURL": "dataService/cachedResourceForURL",
     "numberOfRowsInList": "dataService/numberOfRowsInList",
     "dataForRowAtIndex": "dataService/dataForRowAtIndex"
@@ -11,43 +11,37 @@ Native.Method("dataService", Object.freeze({
 const NativeCachedResourceType = Object.freeze({
     image: "image"
 });
-Native.defineProperty(window, "NativeCachedResourceType", {
+
+Object.defineProperty(global, "NativeCachedResourceType", {
     get: function() {
         return NativeCachedResourceType;
     }
 });
-Native.defineProperty(Native, "CachedResourceType", {
-    get: function() {
-        return NativeCachedResourceType;
-    }
-})
 
-module.exports = require("./native.js").extend(function() {
-
-    // TODO: 命名需要优化 document element
+native.extend(function() {
 
     function NativeDataService(_native) {
 
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", Native.LogStyle.error);
+                NativeLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
-            return _native.core.perform(Native.Method.dataService.numberOfRowsInList, documentName, listName, callback);
+            return global.native.performMethod(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
         }
 
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", Native.LogStyle.error);
+                NativeLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
                 return null;
             }
-            return _native.core.perform(Native.Method.dataService.dataForRowAtIndex, documentName, listName, index, callback);
+            return global.native.performMethod(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
         }
 
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", Native.LogStyle.error);
+                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
                 return null;
             }
             // 检查 cacheType
@@ -64,13 +58,13 @@ module.exports = require("./native.js").extend(function() {
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                Native.log("Method `cachedResourceForURL` must have a callback handler.", Native.LogStyle.error);
+                NativeLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
                 return null;
             }
-            return _native.core.perform(Native.Method.dataService.cachedResourceForURL, url, cacheType, completion);
+            return global.native.performMethod(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
-        Native.defineProperties(this, {
+        Object.defineProperties(this, {
             "numberOfRowsInList": {
                 get: function() {
                     return _numberOfRowsInList;
@@ -99,3 +93,4 @@ module.exports = require("./native.js").extend(function() {
         }
     };
 });
+

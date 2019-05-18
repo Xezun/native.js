@@ -1,15 +1,15 @@
 // native.present.js
 
-const Native = require("./native.static.js");
+module.exports = require("./native.js");
 
-Native.Method("present", "present");
-Native.Method("dismiss", "dismiss");
+NativeMethod("present", "present");
+NativeMethod("dismiss", "dismiss");
 
-module.exports = require("./native.js").extend(function() {
+global.native.extend(function() {
 
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            Native.log("Method `present` first parameter must be a string value.", Native.LogStyle.error);
+            NativeLog("Method `present` first parameter must be a string value.", NativeLogStyle.error);
             return null;
         }
         let animated = arg1;
@@ -21,7 +21,7 @@ module.exports = require("./native.js").extend(function() {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(Native.Method.present, url, animated, completion);
+        return this.performMethod(NativeMethod.present, url, animated, completion);
     }
 
     function _dismiss(arg1, arg2) {
@@ -34,7 +34,7 @@ module.exports = require("./native.js").extend(function() {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.core.perform(Native.Method.dismiss, animated, completion);
+        return this.performMethod(NativeMethod.dismiss, animated, completion);
     }
 
     return {

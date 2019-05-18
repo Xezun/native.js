@@ -38,7 +38,7 @@ let _mode = _NativeMode.url;
 // _perform 方法中的回调函数：{"uniqueID": callback}
 let _performedHandlers = {};
 // 已注册的监听原生事件的函数：{"EventName": [hander1, handler2, ...]}
-let _eventListeners = {};
+let _actionTargets = {};
 // 唯一标识符。
 let _uniqueID = 10000000;
 // 使用 URL 交互时使用的协议头。
@@ -50,33 +50,125 @@ let _isReady = false;
 // 共用的 Cookie 管理
 const _cookie = new _NativeCookie();
 
-// ---------- 接口输出 ---------- 
+// ---------- 模块输出 ---------- 
 
-global.NativeLogStyle = _NativeLogStyle;
-global.NativeMode = _NativeMode;
-global.NativeParseURLQuery = _NativeParseURLQuery;
-global.NativeParseURLQueryComponent = _NativeParseURLQueryComponent;
-global.NativeLog = _NativeLog;
-global.NativeDefineProperty = _NativeDefineProperty;
-global.NativeDefineProperties = _NativeDefineProperties;
-global.NativeObjectEnumerator = _NativeObjectEnumerator;
-global.NativeMethod = _NativeMethod;
-global.NativeEvent = _NativeEvent;
-global.NativeCookieKey = _NativeCookieKey;
+Object.defineProperties(global, {
+	"NativeLogStyle": {
+		get: function() {
+			return _NativeLogStyle;
+		}
+	},
+	"NativeMode": {
+		get: function() {
+			return _NativeMode;
+		}
+	},
+	"NativeParseURLQuery": {
+		get: function() {
+			return _NativeParseURLQuery;
+		}
+	},
+	"NativeParseURLQueryComponent": {
+		get: function() {
+			return _NativeParseURLQueryComponent;
+		}
+	},
+	"NativeLog": {
+		get: function() {
+			return _NativeLog;
+		}
+	},
+	"NativeMethod": {
+		get: function() {
+			return _NativeMethod;
+		}
+	},
+	"NativeAction": {
+		get: function() {
+			return _NativeAction;
+		}
+	},
+	"NativeCookieKey": {
+		get: function() {
+			return _NativeCookieKey;
+		}
+	},
+	"native": {
+		get: function() {
+			return exports;
+		}
+	}
+});
 
-module.exports.mode = _mode;
-module.exports.scheme = _scheme;
-module.exports.delegate = _delegate;
-module.exports.performMethod = _performMethod;
-module.exports.callback = _callback;
-module.exports.addEventListener = _addEventListener;
-module.exports.removeEventListener = _removeEventListener;
-module.exports.dispatchEvent = _dispatchEvent;
-module.exports.isReady = _isReady;
-module.exports.ready = _ready;
-module.exports.register = _register;
-module.exports.extend = _extend;
-module.exports.cookie = _cookie;
+Object.defineProperties(exports, {
+	"mode": {
+		get: function() {
+			return _mode;
+		}
+	},
+	"scheme": {
+		get: function() {
+			return _scheme;
+		}
+	},
+	"isReady": {
+		get: function() {
+			return _isReady;
+		}
+	},
+	"delegate": {
+		get: function() {
+			return _delegate;
+		}
+	},
+	"performMethod": {
+		get: function() {
+			return _performMethod;
+		}
+	},
+	"callback": {
+		get: function() {
+			return _callback;
+		}
+	},
+	"addActionTarget": {
+		get: function() {
+			return _addActionTarget;
+		}
+	},
+	"removeActionTarget": {
+		get: function() {
+			return _removeActionTarget;
+		}
+	},
+	"sendAction": {
+		get: function() {
+			return _sendAction;
+		}
+	},
+	"ready": {
+		get: function() {
+			return _ready;
+		}
+	},
+	"register": {
+		get: function() {
+			return _register;
+		}
+	},
+	"extend": {
+		get: function() {
+			return _extend;
+		}
+	},
+	"cookie": {
+		get: function() {
+			return _cookie;
+		}
+	}
+});
+
+// ------------- 主要实现代码 ----------------
 
 // 执行原生方法：方法名，参数1，参数2，……。
 function _performMethod(nativeMethod) {
@@ -117,7 +209,7 @@ function _callback(callbackOrUniqueID, needsRemoveAfterCalled) {
 }
 
 // 监听原生事件：事件名称, 回调函数。		
-function _addEventListener(eventName, eventHandler) {
+function _addActionTarget(eventName, eventHandler) {
 	if (typeof eventHandler !== 'function' || typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
@@ -129,7 +221,7 @@ function _addEventListener(eventName, eventHandler) {
 }
 
 // 移除监听：事件名称，回调函数（可选，默认删除所有）。
-function _removeEventListener(eventName, eventHandler) {
+function _removeActionTarget(eventName, eventHandler) {
 	if (typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
@@ -149,7 +241,7 @@ function _removeEventListener(eventName, eventHandler) {
 }
 
 // 发送事件：事件名称，参数1（可选，与事件相关），参数2（可选，可选与事件相关），……。
-function _dispatchEvent(eventName) {
+function _sendAction(eventName) {
 	if (typeof eventName !== 'string' || eventName.length == 0) {
 		return;
 	}
@@ -162,7 +254,7 @@ function _dispatchEvent(eventName) {
 	}
 	let listeners = _eventListeners[eventName];
 	for (var i = 0; i < listeners.length; i++) {
-		listeners[i].apply(window, parameters);
+		listeners[i].apply(this, parameters);
 	}
 }
 
@@ -185,11 +277,11 @@ function _nativeWasReady(configuration) {
 	}
 	while (_extensions.length > 0) {
 		let extension = _extensions.shift();
-		_NativeDefineProperties(_native, extension.apply(_native, [_configuration]));
+		Object.defineProperties(exports, extension.apply(exports, [_configuration]));
 	}
 	// 执行 ready，回调函数中 this 指向 window 对象。。
 	while (_readyListeners.length > 0) {
-		(_readyListeners.shift()).apply(window);
+		(_readyListeners.shift()).apply(global);
 	}
 }
 
@@ -223,7 +315,7 @@ function _register(delegate, mode) {
 	}
 	// 检查 document 状态，根据状态来确定何时发送 native.ready 事件。
 	if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
-		window.setTimeout(function() {
+		setTimeout(function() {
 			_documentWasReady();
 		});
 	} else {
@@ -240,7 +332,7 @@ function _register(delegate, mode) {
  */
 function _ready(callback) {
 	if (_isReady) {
-		window.setTimeout(callback);
+		setTimeout(callback);
 		return this;
 	}
 	_readyListeners.push(callback);
@@ -253,7 +345,7 @@ function _extend(callback) {
 		return this;
 	}
 	if (_isReady) {
-		_NativeDefineProperties(this, callback.apply(this, [_configuration]));
+		Object.defineProperties(this, callback.apply(this, [_configuration]));
 	} else {
 		_extensions.push(callback);
 	}
@@ -286,7 +378,7 @@ function _performByURL(method) {
 	nativeFrame.style.display = 'none';
 	nativeFrame.setAttribute('src', url);
 	document.body.appendChild(nativeFrame);
-	window.setTimeout(function() {
+	setTimeout(function() {
 		document.body.removeChild(nativeFrame);
 	}, 2000);
 }
@@ -318,13 +410,16 @@ function _performByObject(method) {
 	for (let i = 1; i < arguments.length; i += 1) {
 		parameters.push(arguments[i]);
 	}
-	window.setTimeout(function() {
+	setTimeout(function() {
+		// Method 使用 / 分割属性，在使用 URL 交互方式时，
+		// 方便判断方法的大类。
 		let array = method.split("/");
 		let object = _delegate;
 		for (let i = 0; i < array.length; i++) {
 			object = object[array[i]];
 		}
-		object.apply(window, parameters);
+		// 直接触发原生方法，this 指向 window 。
+		object.apply(global, parameters);
 	});
 }
 
@@ -337,8 +432,9 @@ function _performByJavaScript(method) {
 			parameters.push(arguments[i]);
 		}
 	}
-	window.setTimeout(function() {
-		_delegate.apply(window, [method, parameters]);
+	setTimeout(function() {
+		// 代理触发，this 指向 window 。
+		_delegate.apply(global, [method, parameters]);
 	});
 }
 
@@ -480,19 +576,19 @@ function _NativeMethod(methodName, methodValue) {
 	return methodValue;
 }
 
-function _NativeEvent(eventName, eventValue) {
+function _NativeAction(eventName, eventValue) {
 	if (typeof eventName !== "string" || eventName.length === 0) {
-		return _NativeLog("NativeEvent 注册失败，事件名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
+		return _NativeLog("NativeAction 注册失败，事件名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
 	}
-	if (_NativeEvent.hasOwnProperty(eventName)) {
-		return _NativeLog("NativeEvent 注册失败，已存在名称为“" + eventName + "”的事件！", NativeLogStyle.error);
+	if (_NativeAction.hasOwnProperty(eventName)) {
+		return _NativeLog("NativeAction 注册失败，已存在名称为“" + eventName + "”的事件！", NativeLogStyle.error);
 	}
-	if (_NativeObjectEnumerator(_NativeEvent, function(key, value) {
+	if (_NativeObjectEnumerator(_NativeAction, function(key, value) {
 			return (value === eventValue);
 		})) {
-		return _NativeLog("NativeEvent 注册失败，已存在值为“" + eventValue + "”的事件！", NativeLogStyle.error);
+		return _NativeLog("NativeAction 注册失败，已存在值为“" + eventValue + "”的事件！", NativeLogStyle.error);
 	}
-	_NativeDefineProperty(_NativeEvent, eventName, {
+	_NativeDefineProperty(_NativeAction, eventName, {
 		get: function() {
 			return eventValue;
 		}
@@ -606,7 +702,7 @@ function _NativeCookie() {
 		}
 
 		keyedCookies = {};
-		window.setTimeout(function() {
+		setTimeout(function() {
 			keyedCookies = null;
 		});
 
