@@ -1,6 +1,6 @@
 // native.open.js
 
-module.exports = require('@mlibai/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("open", "open");
 

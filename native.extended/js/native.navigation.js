@@ -1,6 +1,6 @@
 // native.navigation.js
 
-module.exports = require('@mlibai/native.js');
+module.exports = require('../../native/js/native.js');
 
 NativeMethod("navigation", Object.freeze({
     "push": "navigation/push",
