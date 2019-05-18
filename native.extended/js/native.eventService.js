@@ -1,6 +1,6 @@
 // native.eventService.js
 
-module.exports = require("./native.js");
+module.exports = require('../native/js/native.js');
 
 NativeMethod("eventService", Object.freeze({
     "track": "eventService/track",

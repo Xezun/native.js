@@ -1,6 +1,6 @@
 // native.alert.js
 
-module.exports = require("./native.js");
+module.exports = require('../native/js/native.js');
 
 NativeMethod("alert", "alert");
 

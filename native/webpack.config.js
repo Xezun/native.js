@@ -1,7 +1,7 @@
 module.exports = {
-	entry: __dirname + "/native/index.js",  // 已多次提及的唯一入口文件
+	entry: "./js/native.js", // __dirname + "/js/native.js",  // 已多次提及的唯一入口文件
 	output: {
-		path: __dirname + "/Products", 		// 打包后的文件存放的地方
+		path: __dirname + "/../Products", 		// 打包后的文件存放的地方
 		filename: "native.js" 				// 打包后输出文件的文件名
 	},
 	mode: 'production'  					// development/production
