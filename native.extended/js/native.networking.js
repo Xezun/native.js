@@ -1,6 +1,6 @@
 // native.networking.js
 
-module.exports = require('../../native/js/native.js');
+module.exports = require('@mlibai/native.js');
 
 NativeMethod("networking", Object.freeze({
     "http": "networking/http"

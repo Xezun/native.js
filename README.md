@@ -2,15 +2,15 @@
 
 ## 说明
 
-`native.js` 旨在为 App 中内嵌的 H5 页面提供统一的 JavaScript 接口，规范交互流程，简化 H5 页面的研发维护工作。
-
-一般情况下，HTML 与 App 交互，并不是从 App 创建 `WebView` 对象后立即就可以进行交互操作，而且不同的平台处理交互的方式也不尽相同。为了解决此问题，框架 `native.js` 提供了统一的交互接口，并在内部实现与 App 的不同交互方式，简化 HTML 与 App 的交互操作。
+`native.js` 旨在简化 JavaScript 与原生 native 的交互过程，提供统一接口，规范交互流程，以方便研发和维护。
 
 ## HTML
 
-### 如何使用
+### 安装
 
-1. 推荐使用 npm 安装 `@mlibai/native.js` 。
+`native.js` 支持使用 npm 安装，也可以直接下载 `Products` 目录下压缩好源码文件。
+
+1. `@mlibai/native.js` 核心模块
 
 ```javascript
 var native = require('@mlibai/native.js');
@@ -18,24 +18,64 @@ var native = require('@mlibai/native.js');
 import '@mlibai/native.js'
 ```
 
-2. 直接引用。
-
-下载 `Products/native.js` 到项目中，然后引入到 HTML 页面中.
-
-```html
-<script src="./native/native.js"></script>
-```
-
-在 `ready` 回调中处理所有涉及到 JavaScript 与 App 交互的操作。
+2. `@mlibai/native.extended.js` 增强模块
 
 ```javascript
-window.native.ready(function() {
-    Native.log("native is ready：" + Native.version);
+var native = require('@mlibai/native.extended.js');
+// 或者
+import '@mlibai/native.extended.js'
+```
+
+核心模块或增强模块只需引用一个，两者区别请继续往下看。
+
+### 如何使用
+
+1. 初始化
+
+```javascript
+native.ready(function() {
+    NativeLog("原生 App 已完成初始化，可以进行交互了。");
 });
 ```
 
+2. 调用原生方法。
+
+```javascript
+native.performMethod("login", function(user) {
+    // ...
+});
+```
+
+3. 注册原生可以调用的 JS 方法。
+
+```javascript
+native.addAcitonTarget("setFontSize", function(fontSize) {
+    // ...
+});
+```
+
+
+
+
 ### 交互机制
 
+
+## 特色
+
+`native.js` 使用消息机制来实现交互，通过了 NativeMethod 和 NativeAction 两大消息机制来处理原生与 JavaScript 的交互，其中：
+
+    NativeMethod 表示原生方法。
+    NativeAction 表示原生行为。
+
+    - NativeMode.url: 通过拦截 URL 进行交互，安卓、iOS通用的交互方式。
+    - NativeMode.json: 适用于安卓平台注入对象的交互方式，注入的对象只能接收基本数据类型的参数。
+    - NativeMode.object: 适用于 iOS 使用 UIWebView 注入对象的交互方式，注入的对象可以接收所有类型的数据。
+    - NativeMode.javascript: 适用于 iOS 使用 WKWebView 注入 JS 的方式进行交互。
+
+
+
+
+一般情况下，HTML 与 App 交互，并不是从 App 创建 `WebView` 对象后立即就可以进行交互操作，而且不同的平台处理交互的方式也不尽相同。为了解决此问题，框架 `native.js` 提供了统一的交互接口，并在内部实现与 App 的不同交互方式，简化 HTML 与 App 的交互操作。
 
 
 ### 运行流程
