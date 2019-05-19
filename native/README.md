@@ -249,7 +249,7 @@ class NativeHandler: NSObject, WKScriptMessageHandler {
             let callback = String(format: "native.callback('\(parameters[2])')('%@');", result); 
             webView.evaluateJavaScript(callback, completionHandler: nil) // 执行回调函数
         default:
-            
+            print("JavaScript 访问了尚未实现的方法 \(method) !")
         }
     }
     
