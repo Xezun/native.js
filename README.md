@@ -1,8 +1,8 @@
 # native.js API 文档
 
-## 说明
+## 简介
 
-`native.js` 旨在简化 JavaScript 与原生 native 的交互过程，提供统一接口，规范交互流程，以方便研发和维护。
+`native.js` 旨在规范 JavaScript 与原生 native 的交互过程，以方便研发和维护。
 
 ## HTML
 
@@ -30,7 +30,7 @@ import '@mlibai/native.extended.js'
 
 ### 如何使用
 
-1. 初始化
+初始化
 
 ```javascript
 native.ready(function() {

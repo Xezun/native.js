@@ -2,46 +2,36 @@
 
 // Native.js 静态方法。
 
-let date1 = window.native.cookie.value("date");
-if (date1) {
-    NativeLog("上次访问日期：" + date1);
+function log(message, style) {
+    NativeLog((new Date()).valueOf() + " " + message, style);
 }
 
-let date2 = (new Date()).valueOf();
-native.cookie.value("date", date2);
-
-// Native.ready
+log("上次访问日期：" + window.native.cookie.value("date"));
+native.cookie.value("date", (new Date()) + "");
 
 $.holdReady(true);  // 暂停 JQ
-NativeLog("JQ 已暂停");
+log("JQ 已暂停");
 
 native.ready(function() {
-    NativeLog("native.ready 执行：" + (new Date()).valueOf());
+    log("native.ready 执行：");
     $.holdReady(false); // 恢复 JQ
-    NativeLog("JQ 已恢复");
+    log("JQ 已恢复");
 });
-NativeLog("已注册 native.ready 事件：" + (new Date()).valueOf());
+log("已注册 native.ready 事件：");
 
 // 业务逻辑：JQ示例
 
 $(function () {
-    NativeLog("JQ.ready 执行：" + (new Date()).valueOf());
-    //console.log(native.currentUser.name);
+    log("JQ.ready 已执行！");
 
-    // 网络请求
-    $("#http").click(function () {
-        native.http({
-            url: "./dat/data.json?rnd="+Math.random(),
-            method: "GET",
-            headers: {"Custom-Header": "ABCDEFG"},
-            data: {}
-        }, function (response) {
-            let jq = $("#httpDiv");
-            for (let i = 0; i < response.data.length; i++) {
-                jq.append("<div>" + response.data[i] + "</div>");
-            }
-        });
+    native.perfromMethod("nativeMethod1", "method1_arg1", "method1_arg2", function() {
+        log("nativeMethod1 callback executed!");
     });
+
+    native.addActionTarget("nativeAction1", function(arg1) {
+        log("nativeAction1 was called with " + arg1);
+    });
+
 
     // 点击事件1
     $("#event1").click(function () {
@@ -240,5 +230,5 @@ function setDelegate(type) {
         default: break;
     }
 
-    NativeLog("已注册 native 代理和交互方式：" + (new Date()).valueOf());
+    NativeLog("已注册 native 代理和交互方式：");
 }

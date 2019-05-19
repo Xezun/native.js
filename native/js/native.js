@@ -1,36 +1,19 @@
 // native.js
 // Created by mlibai. 2019.05.18
 
-/**
- * 控制台输出样式枚举。
- *
- * @constant
- * @name LogStyle
- * @property {number} default 在控制台输出普通样式文本，表示一条普通的输出信息。
- * @property {number} warning 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
- * @property {number} error   输出错误样式文本，表示一条错误信息，开发者需要修复。
- */
+// Log 样式枚举。
 const _NativeLogStyle = Object.freeze({
-	"default": 0,
-	"warning": 1,
-	"error": 2
+	"default": 0, // 在控制台输出普通样式文本，表示一条普通的输出信息。
+	"warning": 1, // 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
+	"error": 2 // 输出错误样式文本，表示一条错误信息，开发者需要修复。
 });
 
-/**
- * Native 与原生的交互模式。
- *
- * @constant
- * @name Mode
- * @property {string} url        使用 URL 方式交互。
- * @property {string} json       使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
- * @property {string} object     使用 iOS 注入原生对象作为代理：支持所有类型的数据。
- * @property {string} javascript 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
- */
+// 交互模式枚举。
 const _NativeMode = Object.freeze({
-	"url": "url",
-	"json": "json",
-	"object": "object",
-	"javascript": "javascript"
+	"url": "url", // 使用 URL 方式交互。
+	"json": "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
+	"object": "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
+	"javascript": "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
 });
 
 // 交互模式。
@@ -109,6 +92,9 @@ Object.defineProperties(exports, {
 	"scheme": {
 		get: function() {
 			return _scheme;
+		},
+		set: function(newValue) {
+			_scheme = newValue;
 		}
 	},
 	"isReady": {
@@ -149,11 +135,6 @@ Object.defineProperties(exports, {
 	"ready": {
 		get: function() {
 			return _ready;
-		}
-	},
-	"register": {
-		get: function() {
-			return _register;
 		}
 	},
 	"extend": {
@@ -204,7 +185,7 @@ function _callback(callbackOrUniqueID, needsRemoveAfterCalled) {
 			}
 			return callback;
 		default:
-			return _NativeLog("Parameters error: Only function or string is allowed for Native.callback()'s first argument.", Native.LogStyle.error);;
+			return _NativeLog("native.callback() 方法第一个参数必须为回调函数或回调函数的唯一ID。");
 	}
 }
 
@@ -234,7 +215,7 @@ function _removeActionTarget(eventName, eventHandler) {
 	}
 	let listeners = _actionTargets[eventName];
 	for (var i = listeners.length - 1; i >= 0; i--) {
-		if (listeners[i] == eventHandler) {
+		if (listeners[i] === eventHandler) {
 			listeners.splice(i, 1);
 		}
 	}
@@ -248,59 +229,93 @@ function _sendAction(eventName) {
 	if (!_actionTargets.hasOwnProperty(eventName)) {
 		return;
 	}
+	let listeners = _actionTargets[eventName];
+	if (listeners.length === 0) {
+		return null;
+	}
 	let parameters = [];
 	for (var i = 1; i < arguments.length; i++) {
 		parameters.push(arguments[i]);
 	}
-	let listeners = _actionTargets[eventName];
-	for (var i = 0; i < listeners.length; i++) {
-		listeners[i].apply(this, parameters);
+	if (listeners.length === 1) {
+		return listeners[0].apply(this, parameters);
 	}
+	let results = [];
+	for (var i = 0; i < listeners.length; i++) {
+		results.push(listeners[i].apply(this, parameters))
+	}
+	return results;
 }
 
 // ---------- 交互初始化 ---------- 
 
 // 注册 ready 方法。
+_NativeAction("ready", "ready");
 _NativeMethod("ready", "ready");
 // App 配置信息。
 let _configuration = {};
 // native 拓展。
 const _extensions = [];
-// 当前的 native.ready 回调函数标识符。
-let _readyID = null;
 // 已注册的 ready 事件函数。
 const _readyListeners = [];
+// 调用 ready 方法的回调函数 ID 。
+let _readyID = null;
 
-// App注册代理和交互方式。
-function _register(delegate, mode) {
-	_delegate = delegate;
-	_mode = mode;
-	// 如果已经初始化，则不再初始化，仅仅是改变代理。
-	if (_isReady) {
+// 监听 native 的 ready 事件。
+_addActionTarget(_NativeAction.ready, function _nativeWasReady(delegate, mode, configuration) {
+	if ( !_NativeObjectEnumerator(NativeMode, function(key, value) { return value === mode; }) ) {
+		_NativeLog("native 不支持 " + mode + " 交互模式！", _NativeLogStyle.error);
 		return this;
 	}
-	// 删除已经发起的 ready 事件。
-	if (!!_readyID) {
-		_callback(_readyID, true);
+	_isReady = true;
+	_delegate = delegate;
+	_mode = mode;
+	_configuration = configuration;
+	if ( !!configuration ) {
+		_configuration = configuration;
 	}
-	let that = this;
-	// 在 document.ready 之后发送 native.ready 事件（避免 App 可能无法接收事件的问题），告诉 App 初始化 native 对象。
+	while (_extensions.length > 0) {
+		const extension = _extensions.shift();
+		Object.defineProperties(this, extension.apply(this, [_configuration]));
+	}
+	// 执行 ready，回调函数中 this 指向 window 对象。
+	while (_readyListeners.length > 0) {
+		(_readyListeners.shift()).apply(global);
+	}
+	_removeActionTarget(_NativeAction.ready, _nativeWasReady);
+});
+
+function _ready(callback) {
+	if (!callback) {
+		return this;
+	}
+	// 注册 ready 事件：只有一个参数且为函数。
+	if (arguments.length === 1 && typeof callback === 'function') {
+		if (_isReady) {
+			setTimeout(callback);
+			return this;
+		}
+		_readyListeners.push(callback);
+		return this;
+	}
+	// 一般初始化 native 函数：三个参数。
+	if (arguments.length == 3) {
+		_sendAction.call(this, _NativeAction.ready, callback, arguments[1], arguments[2]);
+		return this;
+	}
+	// URL交互方式时，初始 native：只有一个参数，且为对象。
+	if (arguments.length === 1 && _mode === _NativeMode.url && typeof callback === 'object') {
+		_sendAction.call(this, _NativeAction.ready, null, _NativeMode.url, callback);
+		return this;
+	}
+	_NativeLog("方法 native.ready 不支持当前调用！", _NativeLogStyle.error);
+	return this;
+}
+
+(function() {
+	// 向原生发送 ready 消息。
 	function _documentWasReady() {
-		_readyID = _performMethod.call(that, _NativeMethod.ready, function(configuration) {
-			_isReady = true;
-			_readyID = null;
-			if (!!configuration) {
-				_configuration = configuration;
-			}
-			while (_extensions.length > 0) {
-				let extension = _extensions.shift();
-				Object.defineProperties(that, extension.apply(that, [_configuration]));
-			}
-			// 执行 ready，回调函数中 this 指向 window 对象。。
-			while (_readyListeners.length > 0) {
-				(_readyListeners.shift()).apply(global);
-			}
-		});
+	    _readyID = _performMethod.call(exports, _NativeMethod.ready, _isReady);
 	}
 	// 检查 document 状态，根据状态来确定何时发送 native.ready 事件。
 	if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
@@ -319,21 +334,7 @@ function _register(delegate, mode) {
 		// WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
 		window.addEventListener("load", _docummentLoadedEventListener);
 	}
-	return this;
-}
-
-/**
- * 注册 native 交互初始化后的操作。
- * @param {NativeReadyCallback} callback 回调函数。
- */
-function _ready(callback) {
-	if (_isReady) {
-		setTimeout(callback);
-		return this;
-	}
-	_readyListeners.push(callback);
-	return this;
-}
+})();
 
 // 自定义拓展的支持。
 function _extend(callback) {
@@ -412,7 +413,14 @@ function _performByObject(method) {
 		let array = method.split("/");
 		let object = _delegate;
 		for (let i = 0; i < array.length; i++) {
-			object = object[array[i]];
+			let key = array[i];
+			if (!object.hasOwnProperty(key)) {
+				return _NativeLog("根据方法 "+ method +" 搜索原生对象时，没有找到属性 " + key + " 的实现！", _NativeLogStyle.warning);
+			} 
+			object = object[key];
+			if (!object) {
+				return _NativeLog("根据方法 "+ method +" 搜索原生对象时，属性 " + key + " 的值不存在，无法继续执行！", _NativeLogStyle.warning);;
+			}
 		}
 		// 直接触发原生方法，this 指向 window 。
 		object.apply(global, parameters);
@@ -736,3 +744,4 @@ function _NativeCookie() {
 		}
 	});
 }
+

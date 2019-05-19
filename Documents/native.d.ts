@@ -3,7 +3,7 @@
 /**
  * NativeLog 控制台文本输出样式。
  */
-enum NativeLogStyle {
+declare enum NativeLogStyle {
     /**
      * 在控制台输出普通文本信息，代码运行过程中的信息输出，用于调试。
      */
@@ -21,7 +21,7 @@ enum NativeLogStyle {
 /**
  * JavaScript 与原生对象的交互模式。
  */
-enum NativeMode {
+declare enum NativeMode {
     /**
      * 使用 URL 方式交互。
      */
@@ -45,13 +45,13 @@ enum NativeMode {
  * 
  * @param anObject 待转换成查询字符串的对象。
  */
-function NativeParseURLQuery(anObject: any): string;
+declare function NativeParseURLQuery(anObject: any): string;
 
 /**
  * 将任意值转换成 URL 查询字段值，已转义。
  * @param aValue URL查询字段值。
  */
-function NativeParseURLQueryComponent(aValue: any): string;
+declare function NativeParseURLQueryComponent(aValue: any): string;
 
 /**
  * 在控制台输出信息。
@@ -59,7 +59,7 @@ function NativeParseURLQueryComponent(aValue: any): string;
  * @param style   文本输出样式。
  * @see NativeLogStyle
  */
-function NativeLog(message: string, style?: LogStyle): void;
+declare function NativeLog(message: string, style?: NativeLogStyle): void;
 
 /**
  * 注册交互方法，同时该属性也是所有已注册的交互方法的对象。
@@ -69,12 +69,12 @@ function NativeLog(message: string, style?: LogStyle): void;
  * @param name 交互方法名，在 JavaScript 中的命名，用于方便引用。
  * @param value 交换方法值，交互方法值，必须与所有已存在的方法都不相同。
  */
-const NativeMethod: ((name: string, value: string|object) => void) | object;
+declare const NativeMethod: ((name: string, value: string|object) => void) | object;
 
 /**
  * 注册交互事件。
  */
-const NativeAction: ((name: string, value: string|object) => void) | object;
+declare const NativeAction: ((name: string, value: string|object) => void) | object;
 
 /**
  * 注册 Cookie 键，同时该属性也是获取所有已注册键的对象。
@@ -84,7 +84,7 @@ const NativeAction: ((name: string, value: string|object) => void) | object;
  * @param cookieKeyName 交互方法名，在 JavaScript 中的命名，用于方便引用。
  * @param cookieKeyValue 交换方法值，交互方法值，必须与所有已存在的方法都不相同。
  */
-const NativeCookieKey: ((cookieKeyName: string, cookieKeyValue: string) => void) | object;
+declare const NativeCookieKey: ((cookieKeyName: string, cookieKeyValue: string) => void) | object;
 
 /**
  * native 是统一的 JavaScript 访问原生的接口。
@@ -93,22 +93,22 @@ declare module native {
     /**
      * 只读，交互模式。决定交互时所使用的数据类型。
      */
-    mode: string;
+    const mode: string;
 
     /**
      * 只读。一般时原生对象，与 JS 进行交互的对象。
      */
-    delegate: any;
+    const delegate: any;
 
     /**
      * URL 交互方式的协议头，默认 native 。
      */
-    scheme: string;
+    const scheme: string;
 
     /**
      * 当前是否已经 ready 。
      */
-    isReady: boolean;
+    const isReady: boolean;
 
     /**
      * 执行原生方法。预定义字符串 method 与原生方法对应，原生代码比较该字符串并调用对应的方法。
@@ -116,7 +116,7 @@ declare module native {
      * @param {string} method 预定义的原生方法字符串。
      * @param parameters 原生方法所需的参数。
      */
-    performMethod(method: string, ...parameters: any[]): void;
+    function performMethod(method: string, ...parameters: any[]): void;
 
     /**
      * 获取指定标识符对应的回调函数。
@@ -125,7 +125,7 @@ declare module native {
      * @param needsRemove 获取指定标识符对应的回调函数后是否移除该回调函数，默认移除。
      * @return 指定标识符对应的回调函数，如果不存在，则返回 undefined 。
      */
-    callback(identifier: string, needsRemove?: boolean): (...arg: any[]) => any;
+    function callback(identifier: string, needsRemove?: boolean): (...arg: any[]) => any;
 
     /**
      * 注册回调函数。
@@ -133,50 +133,52 @@ declare module native {
      * @param  func 待保存的回调函数。
      * @return {string} 保存回调函数所使用的唯一标识符。
      */
-    callback(func: (...arg: any[]) => any): string;
-
-    // 监听原生事件。
-    addActionTarget(actionName, callback): void;
-
-    // 移除监听事件。
-    removeActionTarget(actionName, callback): void;
-
-    // 原生调用此方法触发已绑定的监听函数。
-    sendAction(actionName, ...parameters: any): void;
-
-
+    function callback(func: (...arg: any[]) => any): string;
 
     /**
-     * 注册与 App 的交互操作。
-     * 由于交互方式的不同，JavaScript 环境运行时，与原生的交互并不都是可以立即进行的。所以 native 提供了此接口，
-     * 用于注册涉及交互的操作，并在 native 初始化可以进行交互后，按照注册顺序依次执行这些回调函数。如果注册回调时，
-     * native 已经可以进行交互，那么回调函数会立即异步执行。
-     * 
-     * 回调函数中，this 指向 window 。
-     * @param {() => void} fn 回调函数。
+     * 注册一个原生可以调用的方法。
+     * @param actionName 方法名。
+     * @param imp 方法实现。
      */
-    ready(fn: () => void): void;
+    function addActionTarget(actionName: string, imp: (...arg: any[]) => any): void;
 
     /**
-     * 注册已注入到 JS 环境注入的原生对象的方法。
-     * 原生代码必须调用此方法注册已注入的对象，才能进行 JS 与原生代码按照既定规则交互。
-     *
-     * @param delegate 一般是注入 JS 中的原生对象。
-     * @param mode 交互方法或原生对象能接收的数据类型，详见 Native.Mode 枚举。
+     * 删除已注册的方法。
+     * @param actionName 方法名。
+     * @param imp 方法实现。
      */
-    register(delegate: object | ((method: string, parameters: [any]) => void) | null, mode: string): void;
+    function removeActionTarget(actionName: string, imp: (...arg: any[]) => any): void;
+
+    /**
+     * 原生调用 H5 已注册的方法。
+     * @param actionName 方法名。
+     * @param parameters 方法参数。
+     */
+    function sendAction(actionName: string, ...parameters: any[]): any | [any];
+
+    /**
+     * 注册在 native 初始化完成后执行的操作。
+     * @param {() => void} fn 回调函数，this 指向 window 。
+     */
+    function ready(fn: () => void): void;
+
+    /**
+     * 原生通过此方法初始化 native 对象，执行 NativeAction.ready 的便利方法。
+     * @param delegate 接收交互消息的对象。
+     * @param mode 交互模式。
+     * @param configuration native 的初始化配置信息。
+     */
+    function ready(delegate: any, mode: number, configuration: NativeConfiguration): void;
 
     /**
      * native 框架通过消息机制与原生进行交互，消息机制包活方法 Native.Method 和执行方法所需的参数，即 
-     * {@link native.core.perform(method,...parameters)} 方法，但是为了方便访问，native 提供了
+     * {@link native.performMethod(method,...parameters)} 方法，但是为了方便访问，native 提供了
      * 拓展方法，将自定义的交互方法封装成 native 对象的方法，以方便调用。
      * 
      * 在回调函数中 this 指向当前 native 对象。
      * @param callback 构造属性的函数。
      */
-    extend(callback: (configuration: NativeConfiguration) => object): void;
-
-
+    function extend(callback: (configuration: NativeConfiguration) => object): void;
 
     /**
      * 当前框架的 Cookie 管理器模块。相比于直接读取 Cookie ，本模块提供了更便捷的
