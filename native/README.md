@@ -30,13 +30,15 @@ import '@mlibai/native.js'
 #### 定义消息
 
 `native.js` 实现交互的过程类似于消息机制：JavaScript 调用原生方法的过程，称为发送 `NativeMethod` 消息；
-原生调用 JavaScript 方法的过程，称为发送 `NativeAction` 消息。在进行交互前，原生和 H5 两端序先协定可
-访问方法列表，即接口文档或交互文档。
+原生调用 JavaScript 方法的过程，称为发送 `NativeAction` 消息。在进行交互前，建议两端先协定好交互文档，
+将可访问的原生方法和可访问的 JavaScript 方法列成文档，方便查看维护。
 
 ```javascript
+// NativeMethod.doc
 // 原生支持的方法
 function nativeCustomMethod(arg1: string, arg2: string, callback: (value: string) => void): void;
 
+// NativeAction.doc
 // H5 支持的方法
 function nativeCustomAction(arg1: string): void;
 ```
@@ -62,6 +64,8 @@ native.ready(function() {
     });
 });
 ```
+
+*native.ready(fn) 注册的是 native 对象初始化完成后执行的函数，而原生收到 ready 方法的调用是 document 加载完成的 DOM 事件；两者触发的时机可能不相同，特别是 native.ready(fn) 可能在 DOM 事件之前调用。*
 
 为了方便访问，可以对 `native` 对象进行拓展，比如。
 
