@@ -110,7 +110,7 @@ native.addActionTarget(NativeAction.nativeCustomAction, function(arg1) {
 });
 ```
 
-建议为方法提供编译函数。
+建议为方法拓展便利函数。
 
 ```javascript
 native.extend(function() {
