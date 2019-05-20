@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mlibai/native.extended.js": "^3.1.0",
+    "@mlibai/native.js": "^3.1.0",
     "jquery": "^3.4.1",
     "webpack": "^4.32.0"
   },

@@ -1,7 +1,7 @@
 // js.js
 
 const $ = require("jquery");
-const native = require("@mlibai/native.js");
+require("@mlibai/native.extended.js");
 
 function log(message, style) {
     NativeLog((new Date()).valueOf() + " " + message, style);
@@ -25,7 +25,7 @@ log("已注册 native.ready 事件：");
 $(function () {
     log("JQ.ready 已执行！");
 
-    native.perfromMethod("nativeMethod1", "method1_arg1", "method1_arg2", function() {
+    native.performMethod("nativeMethod1", "method1_arg1", "method1_arg2", function() {
         log("nativeMethod1 callback executed!");
     });
 
@@ -33,18 +33,31 @@ $(function () {
         log("nativeAction1 was called with " + arg1);
     });
 
+    $("#http").click(function () {
+        native.http({
+            url: "./dat/data.json?rnd="+Math.random(),
+            method: "GET",
+            headers: {"Custom-Header": "ABCDEFG"},
+            data: {}
+        }, function (response) {
+            let jq = $("#httpDiv");
+            for (let i = 0; i < response.data.length; i++) {
+                jq.append("<div>" + response.data[i] + "</div>");
+            }
+        });
+    });
 
     // 点击事件1
     $("#event1").click(function () {
         native.eventService.documentElementWasClicked("EventPage", "ProductSelectButton", {"id": 1234}, function () {
-            NativeLog("打开商品规格页回调。");
+            log("打开商品规格页回调。");
         });
     });
 
     // 点击事件2
     $("#event2").click(function () {
         native.eventService.documentElementWasClicked("EventPage", "ProductDetailButton", {"id": 5678}, function () {
-            NativeLog("进入商品详情页页回调。");
+            log("进入商品详情页页回调。");
         });
     });
 
@@ -59,7 +72,7 @@ $(function () {
     });
 
     native.addActionTarget("nameChange", function(newName) {
-        NativeLog("The nameChange: " + newName);
+        log("The nameChange: " + newName);
     });
     
     native.dataService.cachedResourceForURL("http://www.baidu.com/image.png", "image", function (cachePath) {
@@ -74,7 +87,7 @@ $(function () {
         
     });
 
-    NativeLog(NativeParseURLQuery({"name": "John", "age": 12, "school": "Best One"}));
+    log(NativeParseURLQuery({"name": "John", "age": 12, "school": "Best One"}));
 
 });
 
@@ -86,69 +99,46 @@ $(function () {
 
 // JS 模拟 App 操作
 
-setDelegate("javascript");
+setDelegate(NativeMode.javascript);
 
 function setDelegate(type) {
+
+    const configuration = {
+        currentTheme: "default",
+        currentUser: {
+            id: 123,
+            name: "John",
+            info: {},
+            version: 1
+        },
+        navigation: {
+            bar: {
+                title: "Test",
+                titleColor: "#000",
+                isHidden: false,
+                backgroundColor: "#fff"
+            }
+        },
+        networking: {
+            status: "WiFi"
+        }
+    };
+
     switch (type) {
-        case "url":
+        case NativeMode.url:
             // 模拟 App 操作：基于 URL 的操作方式。
-            native.register(function (url) {
-                NativeLog(url);
-                if (url.substr(0, 14) === "native://ready") {
-                    let id = url.substr(32, 10);
-                    let cb = native.callback(id);
-                    cb({
-                        currentTheme: "default",
-                        currentUser: {
-                            id: 123,
-                            name: "John",
-                            info: {},
-                            version: 1
-                        },
-                        navigation: {
-                            bar: {
-                                title: "Test",
-                                titleColor: "#000",
-                                isHidden: false,
-                                backgroundColor: "#fff"
-                            }
-                        },
-                        networking: {
-                            status: "WiFi"
-                        }
-                    });
-                }
-            }, NativeMode.url);
+            native.ready(function(){
+                log(url);
+            }, NativeMode.url, configuration);
             break;
 
-        case "javascript":
+        case NativeMode.javascript:
             // 模拟 App 操作：JS 环境模拟 App 操作。
-            native.register(function(method, parameters) {
+            native.ready(function(method, parameters) {
                 let methods = method.split("/");
                 switch (methods[0]) {
                     case "ready":
-                        NativeLog("App 已完成初始化！", NativeLogStyle.warning);
-                        let callback = native.callback(parameters[0]);
-                        callback({
-                            currentTheme: "default",
-                            currentUser: {
-                                id: 123,
-                                name: "John",
-                                info: {},
-                                version: 1
-                            },
-                            navigation: {
-                                bar: {
-                                    title: "Test",
-                                    titleColor: "#000",
-                                    isHidden: false,
-                                    backgroundColor: "#fff"
-                                }
-                            },
-                            networking: {
-                                status: "WiFi"
-                            }
-                        });
+                        log("The document is ready!", NativeLogStyle.warning);
                         break;
 
                     case "networking":
@@ -183,7 +173,7 @@ function setDelegate(type) {
                                 });
                             }
                         });
-                        NativeLog("App 执行网络请求：" + request.url, NativeLogStyle.warning);
+                        log("App 执行网络请求：" + request.url, NativeLogStyle.warning);
                         break;
 
                     case "eventService":
@@ -193,11 +183,11 @@ function setDelegate(type) {
                                     case "EventPage":
                                         switch (parameters[1]) {
                                             case "ProductSelectButton":
-                                                NativeLog("App 展示商品规格选择页：" + parameters[2].id, NativeLogStyle.warning);
+                                                log("App 展示商品规格选择页：" + parameters[2].id, NativeLogStyle.warning);
                                                 break;
 
                                             case "ProductDetailButton":
-                                                NativeLog("App 展示商品详情页：" + parameters[2].id, NativeLogStyle.warning);
+                                                log("App 展示商品详情页：" + parameters[2].id, NativeLogStyle.warning);
                                                 break;
 
                                             default: break;
@@ -216,7 +206,7 @@ function setDelegate(type) {
                                 }
                                 break;
                             case "track":
-                                NativeLog("App 执行埋点操作：" + parameters[0] + "(" + JSON.stringify(parameters[1]) + ")", NativeLogStyle.warning);
+                                log("App 执行埋点操作：" + parameters[0] + "(" + JSON.stringify(parameters[1]) + ")", NativeLogStyle.warning);
                                 break;
                             default: break;
                         }
@@ -225,11 +215,12 @@ function setDelegate(type) {
 
                     default: break;
                 }
-            }, window.NativeMode.javascript);
-
+            }, NativeMode.javascript, configuration);
             break;
-        default: break;
+
+        default: 
+            break;
     }
 
-    NativeLog("已注册 native 代理和交互方式：");
+    log("已注册 native 代理和交互方式：");
 }

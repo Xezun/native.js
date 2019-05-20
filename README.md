@@ -12,9 +12,9 @@
 
 ```bash
 # 核心模块
-$ npm install @mlibai/native.js
+$ npm i @mlibai/native.js
 # 带拓展的模块（包括上面的核心部分）
-$ npm install @mlibai/native.extended.js
+$ npm i @mlibai/native.extended.js
 ```
 
 ### 引用
