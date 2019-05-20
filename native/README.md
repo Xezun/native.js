@@ -1,13 +1,13 @@
 # native.js 文档
 
-## 简介
+## 一、简介
 
 `native.js` 旨在规范 JavaScript 与原生 native 的交互过程，以方便研发和维护。由于平台及环境的不同，原生与 JavaScript 交互的方式也可能不同。`native.js` 封装了几种常用的交互方式，
 并定义了统一的接口，供 JavaScript 和原生交互使用。
 
-## HTML
+## 二、HTML
 
-### 安装
+### 1. 安装
 
 `native.js` 支持使用 npm 安装，也可以直接下载 `Products` 目录下[已压缩好源码文件](../Products/native.js)。
 
@@ -25,15 +25,15 @@ var native = require('@mlibai/native.js');
 import '@mlibai/native.js'
 ```
 
-### 如何使用
+### 2. 如何使用
 
-#### 定义消息
+#### 2.1 定义消息
 
 `native.js` 实现交互的过程类似于消息机制：JavaScript 调用原生方法的过程，称为发送 `NativeMethod` 消息；
 原生调用 JavaScript 方法的过程，称为发送 `NativeAction` 消息。在进行交互前，建议两端先协定好交互文档，
 将可访问的原生方法和可访问的 JavaScript 方法列成文档，方便查看维护。
 
-```javascript
+```typescript
 // NativeMethod.doc
 // 原生支持的方法
 function nativeCustomMethod(arg1: string, arg2: string, callback: (value: string) => void): void;
@@ -43,7 +43,7 @@ function nativeCustomMethod(arg1: string, arg2: string, callback: (value: string
 function nativeCustomAction(arg1: string): void;
 ```
 
-#### JavaScript 调用原生方法
+#### 2.1 JavaScript 调用原生方法
 
 比如，访问原生提供的 `nativeCustomMethod` 方法，使用 `native.js` 只需要下面这样写。
 
@@ -53,7 +53,7 @@ native.performMethod("nativeCustomMethod", "参数1", "参数2", function(arg1) 
 });
 ```
 
-由于平台及交互方式的不同，交互方法可能并非随 JavaScript 环境创建就可用，所以一般操作需在 `ready` 方法中进行。
+由于平台及交互方式的不同，交互操作可能并非随 JavaScript 环境创建就可以立即进行。为了解决此问题，`native.js` 引入了 `ready` 机制。
 
 ```javascript
 native.ready(function() {
@@ -65,9 +65,11 @@ native.ready(function() {
 });
 ```
 
-*native.ready(fn) 注册的是 native 对象初始化完成后执行的函数，而原生收到 ready 方法的调用是 document 加载完成的 DOM 事件；两者触发的时机可能不相同，特别是 native.ready(fn) 可能在 DOM 事件之前调用。*
+*注意：native.ready(fn) 注册的是 native 对象初始化完成后执行的函数，表示原生端已准备好接受交互操作；*
+*而原生收到 ready 方法的调用，则是 document 加载完成的 DOM 事件，原生最迟要在此时完成 native 的初始化操作；*
+*两端的 `ready` 触发的时机不一定相同，一般情况下，除使用拦截 URL 交互方式外，方法 native.ready(fn) 的回调函数在 DOM 事件之前调用。*
 
-为了方便访问，可以对 `native` 对象进行拓展，比如。
+为了方便使用，可以对 `native` 对象进行方法拓展，比如。
 
 ```javascript
 // define.js
@@ -93,14 +95,14 @@ native.extend(function(appInfo) {
 // main.js
 native.ready(function() {
     NativeLog("原生 App 已完成初始化，可以进行交互了。");
-    // 在业务逻辑中直接使用已拓展的方法，就像直接调用原生方法一样。
+    // 在业务逻辑中直接使用已拓展的方法。
     native.nativeCustomMethod("参数1", "参数2", function(arg1) {
         // 回调函数。
     });
 });
 ```
 
-#### 提供给原生可访问的方法的实现
+#### 2.3 NativeAction（原生可访问的方法）的实现
 
 原生对 JavaScript 方法的访问被 `native.js` 抽象为原生行为，即 `NativeAction`，所以原生可访问的方法的实现，就变成了处理 `NativeAction` 消息。
 
@@ -131,7 +133,7 @@ native.extend(function() {
 });
 ```
 
-#### 与其它框架兼容
+#### 2.4 与其它框架兼容
 
 `native.js` 的 ready 机制可以保证交互操作能够正常进行，但是如果每次交互操作都放在 ready 方法中进行的话就太过繁琐。
 为了解决这个问题，可以通过调整各框架的执行顺序，以保证多框架混合开发时的兼容问题。
@@ -180,9 +182,9 @@ native.ready(function () {
 ```
 
 
-## 原生
+## 三、原生
 
-### 调用 JavaScript 方法
+### 1. 调用 JavaScript 方法
 
 不论使用何种交互方式，调用 JavaScript 方法都是执行一段类似如下的代码。
 
@@ -197,11 +199,11 @@ native.sendAction("nativeCustomAction", "参数1");
 native.nativeCustomAction("参数1");
 ```
 
-### 实现 JavaScript 可访问的方法
+### 2. 实现 JavaScript 可访问的方法
 
 由于平台和交互方式的不同，因此实现方式也各不同。
 
-#### 通过拦截 URL 实现的交互。
+#### 2.1 通过拦截 URL 实现的交互。
 
 默认的交互方式，安卓、iOS通用，具体怎么拦截这里就不说了，主要说下 `native.js` 的 URL 规则：
 
@@ -229,12 +231,13 @@ default:
     print("JavaScript 访问了尚未实现的方法 \(method) !")
 }
 ```
+*示例中使用的关于 URL 解析方法来自 [XZKit](https://github.com/mlibai/XZKit) 框架中的类目拓展，下同。*
 
-#### 安卓平台注入对象的交互方式
+#### 2.2 安卓平台注入对象的交互方式
 
-#### iOS 平台注入对象的交互方式
+#### 2.3 iOS 平台注入对象的交互方式
 
-#### iOS 平台 WKWebView 注入 JS 的交互方式
+#### 2.4 iOS 平台 WKWebView 注入 JS 的交互方式
 
 1. 创建处理交互的对象。
 
