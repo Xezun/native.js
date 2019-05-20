@@ -1,6 +1,7 @@
 // js.js
 
-// Native.js 静态方法。
+const $ = require("jquery");
+const native = require("@mlibai/native.js");
 
 function log(message, style) {
     NativeLog((new Date()).valueOf() + " " + message, style);

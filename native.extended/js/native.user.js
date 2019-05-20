@@ -1,6 +1,6 @@
 // native.user.js
 
-module.exports = require('../../native/js/native.js');
+module.exports = require('@mlibai/native.js');
 
 NativeMethod("login", "login");
 NativeCookieKey("currentUser", "com.mlibai.native.cookie.currentUser");

@@ -19,7 +19,9 @@ $ npm install @mlibai/native.extended.js
 
 ### 引用
 
-1. [@mlibai/native.js](./native/README.md)
+1. 核心模块 [@mlibai/native.js](./native/README.md)
+
+核型模块只包含基础功能，开发者可以在此基础上，根据自身业务需求进行拓展。
 
 ```javascript
 var native = require('@mlibai/native.js');
@@ -27,7 +29,9 @@ var native = require('@mlibai/native.js');
 import '@mlibai/native.js'
 ```
 
-2. [@mlibai/native.extended.js](./native.extend/README.md)
+2. 拓展模块 [@mlibai/native.extended.js](./native.extend/README.md)
+
+自带了部分拓展功能的模块。
 
 ```javascript
 var native = require('@mlibai/native.extended.js');

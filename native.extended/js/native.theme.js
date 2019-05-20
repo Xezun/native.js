@@ -1,6 +1,6 @@
 // native.theme.js
 
-module.exports = require('../../native/js/native.js');
+module.exports = require('@mlibai/native.js');
 
 NativeMethod("setCurrentTheme", "setCurrentTheme");
 NativeCookieKey("currentTheme", "com.mlibai.native.cookie.currentTheme");
