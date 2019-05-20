@@ -1,6 +1,6 @@
 {
   "name": "@mlibai/native.js",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "A library for JavaScript interact with Native App.",
   "main": "js/native.js",
   "scripts": {
@@ -31,7 +31,5 @@
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2"
   },
-  "dependencies": {
-    "jsdoc": "^3.5.5"
-  }
+  "dependencies": {}
 }

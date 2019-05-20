@@ -13,7 +13,8 @@
 ```bash
 # 核心模块
 $ npm i @mlibai/native.js
-# 带拓展的模块（包括上面的核心部分）
+
+# 带拓展功能的模块
 $ npm i @mlibai/native.extended.js
 ```
 
