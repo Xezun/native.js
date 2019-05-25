@@ -1,325 +1,283 @@
 // native.js
 // Created by mlibai. 2019.05.18
 
-// Log 样式枚举。
-const _NativeLogStyle = Object.freeze({
-	"default": 0, // 在控制台输出普通样式文本，表示一条普通的输出信息。
-	"warning": 1, // 输出警告样式文本，表示一条警告信息，可能需要开发者注意。 
-	"error": 2 // 输出错误样式文本，表示一条错误信息，开发者需要修复。
-});
+/**
+ * native 模块。
+ * @module native
+ */
 
-// 交互模式枚举。
-const _NativeMode = Object.freeze({
-	"url": "url", // 使用 URL 方式交互。
-	"json": "json", // 使用安卓 JS 注入原生对象作为代理：函数参数支持基本数据类型，复杂数据使用 JSON 。
-	"object": "object", // 使用 iOS 注入原生对象作为代理：支持所有类型的数据。
-	"javascript": "javascript" // 调试或者 iOS WebKit 注入 js ，使用函数作为代理。
-});
+import * as Native from './native.static';
 
-// 交互模式。
-let _mode = _NativeMode.url;
-// _perform 方法中的回调函数：{"uniqueID": callback}
-let _performedHandlers = {};
-// 已注册的监听原生事件的函数：{"EventName": [hander1, handler2, ...]}
-let _actionTargets = {};
-// 唯一标识符。
-let _uniqueID = 10000000;
-// 使用 URL 交互时使用的协议头。
+// 注册 ready 事件/方法。
+Native.Action("ready", "ready");
+Native.Method("ready", "ready");
+
+/** 
+* 交互模式。 
+* @name mode
+* @readonly
+*/
+let _mode = Native.Mode.url;
+/**
+ * 使用 URL 交互时使用的协议头。
+ * @name scheme
+ */
 let _scheme = "native";
-// 原生用于接收事件的对象。
+/**
+ * 原生用于接收事件的对象。
+ * @name delegate
+ * @readonly
+ */
 let _delegate = null;
-// 是否可以进行交互。
+/**
+ * 是否可以进行交互。
+ * @name isReady
+ * @readonly
+ */
 let _isReady = false;
-// 共用的 Cookie 管理
-const _cookie = new _NativeCookie();
 
-// ---------- 模块输出 ---------- 
-
-Object.defineProperties(global, {
-	"NativeLogStyle": {
-		get: function() {
-			return _NativeLogStyle;
-		}
-	},
-	"NativeMode": {
-		get: function() {
-			return _NativeMode;
-		}
-	},
-	"NativeParseURLQuery": {
-		get: function() {
-			return _NativeParseURLQuery;
-		}
-	},
-	"NativeParseURLQueryComponent": {
-		get: function() {
-			return _NativeParseURLQueryComponent;
-		}
-	},
-	"NativeLog": {
-		get: function() {
-			return _NativeLog;
-		}
-	},
-	"NativeMethod": {
-		get: function() {
-			return _NativeMethod;
-		}
-	},
-	"NativeAction": {
-		get: function() {
-			return _NativeAction;
-		}
-	},
-	"NativeCookieKey": {
-		get: function() {
-			return _NativeCookieKey;
-		}
-	},
-	"native": {
-		get: function() {
-			return exports;
-		}
-	}
-});
-
-Object.defineProperties(exports, {
-	"mode": {
-		get: function() {
-			return _mode;
-		}
-	},
-	"scheme": {
-		get: function() {
-			return _scheme;
-		},
-		set: function(newValue) {
-			_scheme = newValue;
-		}
-	},
-	"isReady": {
-		get: function() {
-			return _isReady;
-		}
-	},
-	"delegate": {
-		get: function() {
-			return _delegate;
-		}
-	},
-	"performMethod": {
-		get: function() {
-			return _performMethod;
-		}
-	},
-	"callback": {
-		get: function() {
-			return _callback;
-		}
-	},
-	"addActionTarget": {
-		get: function() {
-			return _addActionTarget;
-		}
-	},
-	"removeActionTarget": {
-		get: function() {
-			return _removeActionTarget;
-		}
-	},
-	"sendAction": {
-		get: function() {
-			return _sendAction;
-		}
-	},
-	"ready": {
-		get: function() {
-			return _ready;
-		}
-	},
-	"extend": {
-		get: function() {
-			return _extend;
-		}
-	},
-	"cookie": {
-		get: function() {
-			return _cookie;
-		}
-	}
-});
-
-// ------------- 主要实现代码 ----------------
-
-// 执行原生方法：方法名，参数1，参数2，……。
-function _performMethod(nativeMethod) {
-	switch (_mode) {
-		case _NativeMode.url:
-			return _performByURL.apply(this, arguments);
-		case _NativeMode.json:
-			return _performByJSON.apply(this, arguments);
-		case _NativeMode.object:
-			return _performByObject.apply(this, arguments);
-		case _NativeMode.javascript:
-			return _performByJavaScript.apply(this, arguments);
-		default:
-			return _NativeLog("native.js 暂不支持 " + _mode + " 交互模式，请使用 NativeMode 所枚举的交互模式！", _NativeLogStyle.error);
-	}
-}
-
-// 存储回调函数：回调函数 -> 唯一ID。
-// 取出回调函数：唯一ID，是否删除回调函数（可选，默认true）。
-function _callback(callbackOrUniqueID, needsRemoveAfterCalled) {
-	switch (typeof callbackOrUniqueID) {
-		case "function":
-			let uniqueID = "NT" + (_uniqueID++);
-			_performedHandlers[uniqueID] = callbackOrUniqueID;
-			return uniqueID;
-		case "string":
-			if (!_performedHandlers.hasOwnProperty(callbackOrUniqueID)) {
-				return _NativeLog("没有找到标识符 " + callbackOrUniqueID + " 所注册的回调函数！\n提示：如果回调函数须多次执行，请指定第二个参数为 false，以保证在回调函数执行后不被删除。", _NativeLogStyle.error);
-			}
-			let callback = _performedHandlers[callbackOrUniqueID];
-			if (typeof needsRemoveAfterCalled === "undefined" || !!needsRemoveAfterCalled) {
-				delete _performedHandlers[callbackOrUniqueID];
-			}
-			return callback;
-		default:
-			return _NativeLog("native.callback() 方法第一个参数必须为回调函数或回调函数的唯一ID。");
-	}
-}
-
-// 监听原生事件：事件名称, 回调函数。		
-function _addActionTarget(eventName, eventHandler) {
-	if (typeof eventHandler !== 'function' || typeof eventName !== 'string' || eventName.length == 0) {
-		return;
-	}
-	if (!_actionTargets.hasOwnProperty(eventName)) {
-		_actionTargets[eventName] = [eventHandler];
-		return;
-	}
-	_actionTargets.push(eventHandler);
-}
-
-// 移除监听：事件名称，回调函数（可选，默认删除所有）。
-function _removeActionTarget(eventName, eventHandler) {
-	if (typeof eventName !== 'string' || eventName.length == 0) {
-		return;
-	}
-	if (!_actionTargets.hasOwnProperty(eventName)) {
-		return;
-	}
-	if (!eventHandler) {
-		delete _actionTargets[eventName];
-		return;
-	}
-	let listeners = _actionTargets[eventName];
-	for (var i = listeners.length - 1; i >= 0; i--) {
-		if (listeners[i] === eventHandler) {
-			listeners.splice(i, 1);
-		}
-	}
-}
-
-// 发送事件：事件名称，参数1（可选，与事件相关），参数2（可选，可选与事件相关），……。
-function _sendAction(eventName) {
-	if (typeof eventName !== 'string' || eventName.length == 0) {
-		return;
-	}
-	if (!_actionTargets.hasOwnProperty(eventName)) {
-		return;
-	}
-	let listeners = _actionTargets[eventName];
-	if (listeners.length === 0) {
-		return null;
-	}
-	let parameters = [];
-	for (var i = 1; i < arguments.length; i++) {
-		parameters.push(arguments[i]);
-	}
-	if (listeners.length === 1) {
-		return listeners[0].apply(this, parameters);
-	}
-	let results = [];
-	for (var i = 0; i < listeners.length; i++) {
-		results.push(listeners[i].apply(this, parameters))
-	}
-	return results;
-}
-
-// ---------- 交互初始化 ---------- 
-
-// 注册 ready 方法。
-_NativeAction("ready", "ready");
-_NativeMethod("ready", "ready");
-// App 配置信息。
+/// _perform 方法中的回调函数：{"uniqueID": callback} 
+let _performedHandlers = {};
+/// 已注册的监听原生事件的函数：{"EventName": [hander1, handler2, ...]}
+let _actionTargets = {};
+/// 唯一标识符，每次生产唯一标识符自增。
+let _uniqueID = 10000000;
+/// App 配置信息。
 let _configuration = {};
-// native 拓展。
+/// native 拓展函数。
 const _extensions = [];
 // 已注册的 ready 事件函数。
 const _readyListeners = [];
-// 调用 ready 方法的回调函数 ID 。
-let _readyID = null;
+
+/**
+ * 执行原生方法：方法名，参数1，参数2，……。
+ * @name performMethod
+ * @param {string} method 原生方法。
+ * @param {any} [args] 方法所需的参数。
+ */
+function _performMethod() {
+	switch (_mode) {
+		case Native.Mode.url:
+			return _performByURL.apply(this, arguments);
+		case Native.Mode.json:
+			return _performByJSON.apply(this, arguments);
+		case Native.Mode.object:
+			return _performByObject.apply(this, arguments);
+		case Native.Mode.javascript:
+			return _performByJavaScript.apply(this, arguments);
+		default:
+			break;
+	}
+}
+
+/**
+ * 存储或取出回调函数。
+ * @name callback
+ * @param {function|string} callbackOrID 待保存的回调函数或待取出回调函数的唯一ID。
+ * @param {boolen} [removes=true] 取出回调函数时，是否同时删除该回调函数。
+ * @param {boolen} [wraps=true] 是否包装原始函数，函数包装后，执行时 this 指向 native。
+ * @returns {string|function} 保存回调函数所用的唯一ID或取出的回调函数。
+ * @description 包装后的函数，并非原始保存的函数。
+ */
+function _callback(callbackOrID, removes, wraps) {
+	switch (typeof callbackOrID) {
+		case "function":
+			const uniqueID = "NTCB" + (_uniqueID++);
+			_performedHandlers[uniqueID] = callbackOrID;
+			return uniqueID;
+
+		case "string":
+			if (!_performedHandlers.hasOwnProperty(callbackOrID)) {
+				Native.log("指定标识符对应的注册函数没有找到：" + callbackOrID, Native.LogStyle.error);
+				return;
+			}
+			const callback = _performedHandlers[callbackOrID];
+			if (typeof removes === "undefined" || !!removes) {
+				delete _performedHandlers[callbackOrID];
+			}
+			if (typeof wraps === "undefined" || !!wraps) {
+				const that = this;
+				return function () {
+					return callback.apply(that, arguments);
+				};
+			}
+			return callback;
+
+		default:
+			Native.log("native.callback() 方法第一个参数必须为回调函数或回调函数的唯一ID。");
+			return;
+	}
+}
+
+/**
+ * 监听原生事件。
+ * @name addActionTarget
+ * @param {string} action 原生事件。
+ * @param {string} target 监听函数。
+ */
+function _addActionTarget(action, target) {
+	if (typeof target !== 'function' || typeof action !== 'string' || action.length == 0) {
+		return this;
+	}
+	if (!_actionTargets.hasOwnProperty(action)) {
+		_actionTargets[action] = target;
+		return this;
+	}
+	const array = _actionTargets[action];
+	if (Array.isArray(array)) {
+		array.push(target);
+	} else {
+		_actionTargets[action] = [array, target];
+	}
+	return this;
+}
+
+/**
+ * 移除原生事件监听。
+ * @name removeActionTarget
+ * @param {string} action 原生事件。
+ * @param {function} target 监听函数。
+ */
+function _removeActionTarget(action, target) {
+	if (typeof action !== 'string' || action.length == 0) {
+		return this;
+	}
+	if (!_actionTargets.hasOwnProperty(action)) {
+		return this;
+	}
+	if (!target) { // if null, delete all targets.
+		delete _actionTargets[action];
+		return this;
+	}
+	const targets = _actionTargets[action];
+	if (Array.isArray(targets)) {
+		for (var i = targets.length - 1; i >= 0; i--) {
+			if (targets[i] === target) {
+				targets.splice(i, 1); // target may added mutiple times.
+			}
+		}
+		return this;
+	}
+	if (targets === target) {
+		delete _actionTargets[action];
+	}
+	return this;
+}
+
+/**
+ * 将函数 arguments 从指定位置开始后面的所有参数转换成数组。
+ * @private
+ * @param {Arguments} args 函数的 arguments 
+ * @param {number} from 起始 index
+ */
+function _sliceArguments(args, from) {
+	const params = [];
+	while (from < args.length) {
+		params.push(args[from++]);
+	}
+	return params;
+}
+
+/**
+ * 发送原生事件。
+ * @name sendAction
+ * @param {string} action 事件名称。
+ * @param {any} [args] 事件参数。
+ * @returns {any|array} 返回值，JSON 字符串。
+ * @description 如果事件被多处监听，则返回结果为所有监听函数返回值数组的 JSON 字符串。
+ */
+function _sendAction(action) {
+	if (typeof action !== 'string' || action.length == 0) {
+		return null;
+	}
+	if (!_actionTargets.hasOwnProperty(action)) {
+		return null;
+	}
+	const parameters = _sliceArguments(arguments, 1);
+	const targets = _actionTargets[action];
+	if (typeof targets === "function") {
+		return JSON.stringify(targets.apply(this, parameters));
+	}
+	const results = targets.slice(0); // 复制数组，避免遍历的过程中发生了改变。
+	for (var i = 0; i < targets.length; i++) {
+		results.splice(i, 1, targets[i].apply(this, parameters))
+	}
+	return JSON.stringify(results);
+}
 
 // 监听 native 的 ready 事件。
-_addActionTarget(_NativeAction.ready, function _nativeWasReady(delegate, mode, configuration) {
-	if ( !_NativeObjectEnumerator(NativeMode, function(key, value) { return value === mode; }) ) {
-		_NativeLog("native 不支持 " + mode + " 交互模式！", _NativeLogStyle.error);
-		return this;
+_addActionTarget(Native.Action.ready, function _nativeWasReady(delegate, mode, configuration) {
+	if (_isReady) {
+		Native.log("重复初始化被忽略：native 已完成初始化，但是又收到初始化事件，请检查！");
+		return;
+	}
+	// 检查 mode 是否合法。
+	if (!Native.enumerate(Native.Mode, function (key, value) { return value === mode; })) {
+		Native.log("初始化错误：不支持 " + mode + " 交互模式！", Native.LogStyle.error);
+		return;
 	}
 	_isReady = true;
 	_delegate = delegate;
 	_mode = mode;
 	_configuration = configuration;
-	if ( !!configuration ) {
-		_configuration = configuration;
-	}
+	// 执行拓展函数。
 	while (_extensions.length > 0) {
-		const extension = _extensions.shift();
-		Object.defineProperties(this, extension.apply(this, [_configuration]));
+		const descriptors = _extensions.shift().call(this, _configuration);
+		if (!!descriptors && typeof descriptors === 'object') {
+			Object.defineProperties(this, descriptors);
+		}
 	}
-	// 执行 ready，回调函数中 this 指向 window 对象。
+	// 执行 ready 回调函数。
 	while (_readyListeners.length > 0) {
-		(_readyListeners.shift()).apply(global);
+		(_readyListeners.shift()).call(this);
 	}
-	_removeActionTarget(_NativeAction.ready, _nativeWasReady);
+	// 删除回调。
+	_removeActionTarget(Native.Action.ready, _nativeWasReady);
 });
 
-function _ready(callback) {
-	if (!callback) {
+/**
+ * 监听或触发原始 ready 事件的便利方法。
+ * @name ready
+ * @param {function|object|null} callbackOrDelegate 监听原生 ready 事件的的函数或原生发送 ready 事件时指定的与 JavaScript 交互的代理对象。
+ * @param {string} [mode] 第二个参数，原生在发送 ready 消息时，指定与 JavaScript 的交互模式。
+ * @param {object} [configuration] 第三个参数，原生在发送 ready 消息时，提供的关于原生的配置信息。
+ * @description 默认交互方式为 NativeMode.url ，在此模式下，原生发送 ready 消息，可以只在第一个参数提供 configuration 对象。 
+ */
+function _ready(callbackOrDelegate) {
+	if (!callbackOrDelegate) {
 		return this;
 	}
 	// 注册 ready 事件：只有一个参数且为函数。
-	if (arguments.length === 1 && typeof callback === 'function') {
+	if (arguments.length === 1 && typeof callbackOrDelegate === 'function') {
 		if (_isReady) {
-			setTimeout(callback);
+			setTimeout(callbackOrDelegate);
 			return this;
 		}
-		_readyListeners.push(callback);
+		_readyListeners.push(callbackOrDelegate);
 		return this;
 	}
 	// 一般初始化 native 函数：三个参数。
 	if (arguments.length == 3) {
-		_sendAction.call(this, _NativeAction.ready, callback, arguments[1], arguments[2]);
+		_sendAction.call(this, Native.Action.ready, callbackOrDelegate, arguments[1], arguments[2]);
 		return this;
 	}
 	// URL交互方式时，初始 native：只有一个参数，且为对象。
-	if (arguments.length === 1 && _mode === _NativeMode.url && typeof callback === 'object') {
-		_sendAction.call(this, _NativeAction.ready, null, _NativeMode.url, callback);
+	if (arguments.length === 1 && typeof callbackOrDelegate === 'object' && _mode === Native.Mode.url) {
+		_sendAction.call(this, Native.Action.ready, null, Native.Mode.url, callbackOrDelegate);
 		return this;
 	}
-	_NativeLog("方法 native.ready 不支持当前调用！", _NativeLogStyle.error);
+	Native.log("方法 native.ready 不支持当前调用：" + callbackOrDelegate, Native.LogStyle.error);
 	return this;
 }
 
-(function() {
+(function (native) {
 	// 向原生发送 ready 消息。
 	function _documentWasReady() {
-	    _readyID = _performMethod.call(exports, _NativeMethod.ready, _isReady);
+		_performMethod.call(native, Native.Method.ready, _isReady);
 	}
 	// 检查 document 状态，根据状态来确定何时发送 native.ready 事件。
 	if (document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)) {
-		setTimeout(function() {
+		setTimeout(function () {
 			_documentWasReady();
 		});
 	} else {
@@ -334,18 +292,26 @@ function _ready(callback) {
 		// WKWebView 某些情况下获取不到 DOMContentLoaded 事件。
 		window.addEventListener("load", _docummentLoadedEventListener);
 	}
-})();
+})(this);
 
-// 自定义拓展的支持。
+/**
+ * 给 native 添加拓展自定义方法。
+ * @private
+ * @param {function} callback 回调函数，回调函数的返回值为属性配置。
+ * @description 拓展回调函数将在收到原生 ready 消息时执行；如果原生当前已经初始化，则立即执行；回调函数中 this 指向 native 对象。
+ */
 function _extend(callback) {
 	if (typeof callback !== 'function') {
 		return this;
 	}
 	if (_isReady) {
-		Object.defineProperties(this, callback.apply(this, [_configuration]));
-	} else {
-		_extensions.push(callback);
+		const descriptors = callback.call(this, _configuration);
+		if (!!descriptors && typeof descriptors === 'object') {
+			Object.defineProperties(this, descriptors);
+		}
+		return this;
 	}
+	_extensions.push(callback);
 	return this;
 }
 
@@ -353,9 +319,9 @@ function _extend(callback) {
 // -------------- 支持函数 -------------
 
 function _performByURL(method) {
-	let parameters = [];
+	const parameters = [];
 	for (let i = 1; i < arguments.length; i += 1) {
-		let argument = arguments[i];
+		const argument = arguments[i];
 		if (typeof argument === 'function') {
 			parameters.push(_callback(argument));
 		} else {
@@ -363,7 +329,7 @@ function _performByURL(method) {
 		}
 	}
 	// URL 示例：native://login?parameters=["John", "pw123456"]
-	let url = _scheme + "://" + method + "?parameters=" + _NativeParseURLQueryComponent(parameters);
+	const url = _scheme + "://" + method + "?parameters=" + Native.parseURLQueryComponent(parameters);
 
 	// 如果 URL 模式下，delegate 存在，则将 URL 发送给 delegate 。
 	if (typeof _delegate === "function") {
@@ -371,20 +337,20 @@ function _performByURL(method) {
 	}
 
 	// 创建一个不显示，不占空间的 iframe 向 webView 发送请求。
-	let nativeFrame = document.createElement('iframe');
+	const nativeFrame = document.createElement('iframe');
 	nativeFrame.style.display = 'none';
 	nativeFrame.setAttribute('src', url);
 	document.body.appendChild(nativeFrame);
-	setTimeout(function() {
+	setTimeout(function () {
 		document.body.removeChild(nativeFrame);
 	}, 2000);
 }
 
 // 调用 App 方法前，将所有参数转换成 JSON 数据类型，number/string/boolean 类型除外。
 function _performByJSON(method) {
-	let parameters = [method];
+	const parameters = [method];
 	for (let i = 1; i < arguments.length; i += 1) {
-		let argument = arguments[i];
+		const argument = arguments[i];
 		switch (typeof argument) {
 			case 'number':
 			case 'string':
@@ -403,32 +369,26 @@ function _performByJSON(method) {
 }
 
 function _performByObject(method) {
-	let parameters = [];
-	for (let i = 1; i < arguments.length; i += 1) {
-		parameters.push(arguments[i]);
-	}
-	setTimeout(function() {
-		// Method 使用 / 分割属性，在使用 URL 交互方式时，
-		// 方便判断方法的大类。
-		let array = method.split("/");
-		let object = _delegate;
-		for (let i = 0; i < array.length; i++) {
-			let key = array[i];
-			if (!object.hasOwnProperty(key)) {
-				return _NativeLog("根据方法 "+ method +" 搜索原生对象时，没有找到属性 " + key + " 的实现！", _NativeLogStyle.warning);
-			} 
-			object = object[key];
-			if (!object) {
-				return _NativeLog("根据方法 "+ method +" 搜索原生对象时，属性 " + key + " 的值不存在，无法继续执行！", _NativeLogStyle.warning);;
-			}
+	// Method 使用 / 分割属性，在使用 URL 交互方式时，
+	// 方便判断方法的大类。
+	const keyPaths = method.split("/");
+	let nativeMethod = _delegate;
+	for (let i = 0; i < keyPaths.length; i++) {
+		const key = keyPaths[i];
+		if (nativeMethod.hasOwnProperty(key)) {
+			nativeMethod = nativeMethod[key];
+			continue;
 		}
-		// 直接触发原生方法，this 指向 window 。
-		object.apply(global, parameters);
-	});
+		nativeMethod = null;
+	}
+	if (!nativeMethod || typeof nativeMethod !== 'function') {
+		return Native.log("执行原生方法发生错误：在代理对象（" + _delegate + "）上没有找到待执行的方法（" + nativeMethod + "）！", Native.LogStyle.error);
+	}
+	return nativeMethod.apply(this, _sliceArguments(arguments, 1));
 }
 
 function _performByJavaScript(method) {
-	let parameters = [];
+	const parameters = [];
 	for (let i = 1; i < arguments.length; i++) {
 		if (typeof arguments[i] === "function") {
 			parameters.push(_callback(arguments[i]));
@@ -436,312 +396,31 @@ function _performByJavaScript(method) {
 			parameters.push(arguments[i]);
 		}
 	}
-	setTimeout(function() {
-		// 代理触发，this 指向 window 。
-		_delegate.apply(global, [method, parameters]);
-	});
+	_delegate.call(this, method, parameters);
 }
 
+export default {
+	mode: _mode,
+	scheme: _scheme,
+	delegate: _delegate,
+	isReady: _isReady,
+	performMethod: _performMethod,
+	callback: _callback,
+	addActionTarget: _addActionTarget,
+	removeActionTarget: _removeActionTarget,
+	sendAction: _sendAction,
+	ready: _ready,
+	extend: _extend
+};
+export { _mode as mode };
+export { _scheme as scheme };
+export { _delegate as delegate };
+export { _isReady as isReady };
 
-function _NativeLog(message, style) {
-	if (typeof style !== "number" || style === _NativeLogStyle.default) {
-		return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #333333", message);
-	}
-	if (style === _NativeLogStyle.warning) {
-		return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #f98300", message);
-	}
-	return console.log("%c[Native]%c %s", "color: #0b78d7; font-weight: bold;", "color: #c2352d", message);
-}
-
-function _NativeParseURLQueryComponent(aValue) {
-	if (!aValue) {
-		return "";
-	}
-	switch (typeof aValue) {
-		case 'string':
-			return encodeURIComponent(aValue);
-		case 'undefined':
-			return '';
-		default:
-			return encodeURIComponent(JSON.stringify(aValue));
-	}
-}
-
-function _NativeParseURLQuery(anObject) {
-	if (!anObject) {
-		return "";
-	}
-
-	// [a,b,c] -> a&b&c
-	if (Array.isArray(anObject)) {
-		let values = [];
-		for (let i = 0; i < anObject.length; i++) {
-			values.push(_NativeParseURLQueryComponent(anObject[i]));
-		}
-		return values.join("&");
-	}
-
-	switch (typeof anObject) {
-		case 'string': // any string -> any%20string
-			return encodeURIComponent(anObject);
-
-		case 'object': // { key1: value1, key2: value2 } -> key1=value1&key2=value2
-			let queryString = "";
-			for (let key in anObject) {
-				if (!anObject.hasOwnProperty(key)) {
-					continue;
-				}
-				if (queryString.length > 0) {
-					queryString += ("&" + encodeURIComponent(key));
-				} else {
-					queryString = encodeURIComponent(key);
-				}
-				if (!anObject[key]) {
-					continue;
-				}
-				queryString += ("=" + _NativeParseURLQueryComponent(anObject[key]));
-			}
-			return queryString;
-		case 'undefined':
-			return '';
-		default:
-			return encodeURIComponent(JSON.stringify(anObject));
-	}
-}
-
-function _NativeDefineProperty(anObject, name, descriptor) {
-	if (typeof anObject === "undefined") {
-		return _NativeLog("Define property error: Can not define properties for an undefined value.", 2);
-	}
-	if (typeof name !== "string" || name.length === 0) {
-		return _NativeLog("Define property error: The name for " + anObject.constructor.name + "'s property must be a nonempty string.", 2);
-	}
-	if (anObject.hasOwnProperty(name)) {
-		return _NativeLog("Define property warning: The property " + name + " to be defined for " + anObject.constructor.name + " is already exist.", 1);
-	}
-	descriptor.enumerable = true;
-	Object.defineProperty(anObject, name, descriptor);
-	return anObject;
-}
-
-function _NativeDefineProperties(anObject, descriptors) {
-	if (typeof anObject === "undefined") {
-		return _NativeLog("Define properties error: Can not define properties for an undefined value.", 2);
-	}
-	if (typeof descriptors !== "object") {
-		return _NativeLog("Define properties error: The property descriptors for " + anObject.constructor.name + " at second parameter must be an Object.", 2);
-	}
-	for (let propertyName in descriptors) {
-		if (!descriptors.hasOwnProperty(propertyName)) {
-			continue;
-		}
-		_NativeDefineProperty(anObject, propertyName, descriptors[propertyName]);
-	}
-	return anObject;
-}
-
-function _NativeObjectEnumerator(anObject, callback) {
-	for (const key in anObject) {
-		const value = anObject[key];
-		switch (typeof value) {
-			case "string":
-				if (callback(key, value)) {
-					return true;
-				}
-				break;
-			case "object":
-				if (_NativeObjectEnumerator(value, callback)) {
-					return true
-				};
-				break;
-			default:
-				break;
-		}
-	}
-	return false;
-}
-
-function _NativeMethod(methodName, methodValue) {
-	if (typeof methodName !== "string" || methodName.length === 0) {
-		return _NativeLog("NativeMethod 注册失败，方法名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
-	}
-	if (_NativeMethod.hasOwnProperty(methodName)) {
-		return _NativeLog("NativeMethod 注册失败，已存在名称为“" + methodName + "”的方法！", NativeLogStyle.error);
-	}
-	if (_NativeObjectEnumerator(_NativeMethod, function(key, value) {
-			return (value === methodValue);
-		})) {
-		return _NativeLog("NativeMethod 注册失败，已存在值为“" + methodValue + "”的方法！", NativeLogStyle.error);
-	}
-	_NativeDefineProperty(_NativeMethod, methodName, {
-		get: function() {
-			return methodValue;
-		}
-	});
-	return methodValue;
-}
-
-function _NativeAction(eventName, eventValue) {
-	if (typeof eventName !== "string" || eventName.length === 0) {
-		return _NativeLog("NativeAction 注册失败，事件名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
-	}
-	if (_NativeAction.hasOwnProperty(eventName)) {
-		return _NativeLog("NativeAction 注册失败，已存在名称为“" + eventName + "”的事件！", NativeLogStyle.error);
-	}
-	if (_NativeObjectEnumerator(_NativeAction, function(key, value) {
-			return (value === eventValue);
-		})) {
-		return _NativeLog("NativeAction 注册失败，已存在值为“" + eventValue + "”的事件！", NativeLogStyle.error);
-	}
-	_NativeDefineProperty(_NativeAction, eventName, {
-		get: function() {
-			return eventValue;
-		}
-	});
-	return eventValue;
-}
-
-function _NativeCookieKey(keyName, keyValue) {
-	if (typeof keyName !== "string" || keyName.length === 0) {
-		return _NativeLog("NativeCookieKey 注册失败，名称必须为长度大于 0 的字符串！", NativeLogStyle.error);
-	}
-	if (typeof keyValue !== "string" || keyValue.length === 0) {
-		return _NativeLog("NativeCookieKey 注册失败，值必须为大于 0 的字符串！", NativeLogStyle.error);
-	}
-	if (_NativeCookieKey.hasOwnProperty(keyName)) {
-		return _NativeLog("NativeCookieKey 注册失败，已存在名称为“`" + keyName + "`”的 Cookie 键！", NativeLogStyle.error);
-	}
-	if (_NativeObjectEnumerator(_NativeCookieKey, function(key, value) {
-			return (value === keyValue);
-		})) {
-		return _NativeLog("NativeCookieKey 注册失败，已存在值为“" + keyValue + "”的 Cookie 键！", NativeLogStyle.error);
-	}
-	_NativeDefineProperty(_NativeCookieKey, keyName, {
-		get: function() {
-			return keyValue;
-		}
-	});
-	return keyValue;
-}
-
-
-function _NativeCookie() {
-	/**
-	 * 保存了已解析过的 Cookie 值。
-	 * @private
-	 */
-	let keyedCookies = null;
-
-	// 当页面显示时，重置 Cookie 。
-	window.addEventListener('pageshow', function() {
-		keyedCookies = null;
-	});
-
-	/**
-	 * 读取或设置 Cookie 值。
-	 * 调用此方法时，如果只有一个参数，或者第二个参数不是 string 类型，表示读取 Cookie 中对应的键值；
-	 * 第二个参数，null 表示删除 Cookie 值，string 表示设置新的值；
-	 * 第三个参数，Cookie 保存时长，默认 30 天，单位秒。
-	 * @param  {!string} cookieKey 保存Cookie所使用的键名。
-	 * @param  {?string} newCookieValue 可选，待设置的值，如果没有此参数则表示读取。 
-	 * @param  {?number} cookieExpires 可选，Cookie 保存时长。
-	 * @return {?string} 已保存的Cookie值，如果未找到返回 null ，设置值时返回设置后的值。
-	 *
-	 * @constant
-	 */
-	function value(cookieKey, newCookieValue, cookieExpires) {
-		if (typeof cookieKey !== "string") {
-			return undefined;
-		}
-		if (typeof newCookieValue === "string") {
-			// 设置 Cookie
-			let expireDate = new Date();
-			if (typeof cookieExpires === "number") {
-				expireDate.setTime(expireDate.getTime() + cookieExpires * 1000);
-			} else {
-				expireDate.setTime(expireDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-			}
-			let key = _NativeParseURLQueryComponent(cookieKey);
-			let value = _NativeParseURLQueryComponent(newCookieValue);
-			document.cookie = key + "=" + value + "; expires=" + expireDate.toUTCString();
-			if (!!keyedCookies) {
-				keyedCookies[cookieKey] = newCookieValue;
-			}
-			return newCookieValue;
-		} else if (newCookieValue === null) {
-			// 删除 Cookie 
-			let expireDate = new Date();
-			date.setTime(date.getTime() - 1);
-			document.cookie = _NativeParseURLQueryComponent(cookieKey) + "; expires=" + date.toUTCString();
-			if (!!keyedCookies) {
-				keyedCookies[cookieKey] = newCookieValue;
-			}
-			return newCookieValue;
-		}
-		// 读取 Cookie
-		readIfNeeded();
-		if (keyedCookies.hasOwnProperty(cookieKey)) {
-			return keyedCookies[cookieKey];
-		}
-		return null;
-	}
-
-	/**
-	 * 同步 Cookie ，刷新 Cookie 缓存，重新从系统 Cookie 中读取。
-	 *
-	 * @constant
-	 */
-	function synchronize() {
-		keyedCookies = null;
-		return this;
-	}
-
-	/**
-	 * 解析 Cookie ，解析后的 Cookie 保存在 keyedCookies 中，并且只存在一个 runloop 周期；
-	 * 如果已解析则不操作。
-	 * @private
-	 */
-	function readIfNeeded() {
-		if (!!keyedCookies) {
-			return;
-		}
-
-		keyedCookies = {};
-		setTimeout(function() {
-			keyedCookies = null;
-		});
-
-		let cookieStore = document.cookie;
-		if (!cookieStore) {
-			return;
-		}
-		let cookies = cookieStore.split("; ");
-		while (cookies.length > 0) {
-			let tmp = (cookies.pop()).split("=");
-			if (!Array.isArray(tmp) || tmp.length === 0) {
-				continue;
-			}
-
-			let name = decodeURIComponent(tmp[0]);
-			if (tmp.length > 1) {
-				keyedCookies[name] = decodeURIComponent(tmp[1]);
-			} else {
-				keyedCookies[name] = null;
-			}
-		}
-	}
-
-	Object.defineProperties(this, {
-		"value": {
-			get: function() {
-				return value;
-			}
-		},
-		"synchronize": {
-			get: function() {
-				return synchronize;
-			}
-		}
-	});
-}
-
+export { _performMethod as performMethod };
+export { _callback as callback };
+export { _addActionTarget as addActionTarget };
+export { _removeActionTarget as removeActionTarget };
+export { _sendAction as sendAction };
+export { _ready as ready };
+export { _extend as extend };

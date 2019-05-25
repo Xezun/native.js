@@ -4,7 +4,7 @@ module.exports = {
 		path: __dirname + "/js", 		// 打包后的文件存放的地方
 		filename: "js.min.js" 				// 打包后输出文件的文件名
 	},
-	mode: 'production'  					// development/production
+	mode: 'development'  					// development/production
 
 	// devtool: 'eval-source-map',
 	// devServer: {

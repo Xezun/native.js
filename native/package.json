@@ -8,7 +8,7 @@
     "debug": "webpack --mode development",
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "webpack-dev-server --open",
-    "documentation": "./node_modules/.bin/jsdoc"
+    "documentation": "./node_modules/.bin/jsdoc -c ./jsdoc.config.json"
   },
   "repository": {
     "type": "git",
@@ -31,5 +31,7 @@
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "jsdoc": "^3.6.2"
+  }
 }
