@@ -42,5 +42,5 @@ import '@mlibai/native.extended.js'
 
 ## 研发计划
 
-
+1. 解决低版本安卓手机不能执行超长 js 的问题：native.evaluate("file:///tmp/js.js", callbak);
 
