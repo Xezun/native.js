@@ -1,67 +1,68 @@
 // native.dataService.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("dataService", Object.freeze({
+Native.Method("dataService", Object.freeze({
     "cachedResourceForURL": "dataService/cachedResourceForURL",
     "numberOfRowsInList": "dataService/numberOfRowsInList",
     "dataForRowAtIndex": "dataService/dataForRowAtIndex"
 }));
 
-const NativeCachedResourceType = Object.freeze({
+const _NativeCachedResourceType = Object.freeze({
     image: "image"
 });
 
-Object.defineProperty(global, "NativeCachedResourceType", {
+Object.defineProperty(Native, "CachedResourceType", {
     get: function() {
-        return NativeCachedResourceType;
+        return _NativeCachedResourceType;
     }
 });
 
 native.extend(function() {
 
-    function NativeDataService(_native) {
+    function _NativeDataService() {
 
         function _numberOfRowsInList(documentName, listName, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string') {
-                NativeLog("Method `numberOfRowsInList` first/second parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `numberOfRowsInList` first/second parameter must be a string value.", Native.LogStyle.error);
                 return null;
             }
-            return global.native.performMethod(NativeMethod.dataService.numberOfRowsInList, documentName, listName, callback);
+            return native.performMethod(Native.Method.dataService.numberOfRowsInList, documentName, listName, callback);
         }
 
         function _dataForRowAtIndex(documentName, listName, index, callback) {
             if (typeof documentName !== 'string' || typeof listName !== 'string' || typeof index !== 'number') {
-                NativeLog("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", NativeLogStyle.error);
+                Native.log("Method `dataForRowAtIndex` first/second/third parameter must be a string/string/number value.", Native.LogStyle.error);
                 return null;
             }
-            return global.native.performMethod(NativeMethod.dataService.dataForRowAtIndex, documentName, listName, index, callback);
+            return native.performMethod(Native.Method.dataService.dataForRowAtIndex, documentName, listName, index, callback);
         }
 
         function _cachedResourceForURL(url, cacheType, completion) {
             // 检查 URL
             if (typeof url !== 'string') {
-                NativeLog("Method `cachedResourceForURL` url parameter must be a string value.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` url parameter must be a string value.", Native.LogStyle.error);
                 return null;
             }
             // 检查 cacheType
             switch (typeof cacheType) {
                 case 'function':
                     completion = cacheType;
-                    cacheType = NativeCachedResourceType.image;
+                    cacheType = Native.CachedResourceType.image;
                     break;
                 case 'string':
                     break;
                 default:
-                    cacheType = NativeCachedResourceType.image;
+                    cacheType = Native.CachedResourceType.image;
                     break;
             }
             // 检查 handler
             if (typeof completion !== 'function') {
-                NativeLog("Method `cachedResourceForURL` must have a callback handler.", NativeLogStyle.error);
+                Native.log("Method `cachedResourceForURL` must have a callback handler.", Native.LogStyle.error);
                 return null;
             }
-            return global.native.performMethod(NativeMethod.dataService.cachedResourceForURL, url, cacheType, completion);
+            return native.performMethod(Native.Method.dataService.cachedResourceForURL, url, cacheType, completion);
         }
 
         Object.defineProperties(this, {
@@ -83,7 +84,7 @@ native.extend(function() {
         });
     }
 
-    let _dataService = new NativeDataService(this);
+    const _dataService = new _NativeDataService();
 
     return {
         "dataService": {
@@ -94,3 +95,5 @@ native.extend(function() {
     };
 });
 
+export { Native, native };
+export default native;

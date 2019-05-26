@@ -1,8 +1,9 @@
 // js.js
 
+import $ from "jquery";
 import Native from "../../../native/js/native.static"
 import native from "../../../native/js/native"
-import $ from "jquery";
+
 
 function log(message, style) {
     Native.log((new Date()).valueOf() + " " + message, style);

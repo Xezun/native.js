@@ -1,15 +1,16 @@
 // native.present.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("present", "present");
-NativeMethod("dismiss", "dismiss");
+Native.Method("present", "present");
+Native.Method("dismiss", "dismiss");
 
-global.native.extend(function() {
+native.extend(function() {
 
     function _present(url, arg1, arg2) {
         if (typeof url !== 'string') {
-            NativeLog("Method `present` first parameter must be a string value.", NativeLogStyle.error);
+            Native.log("Method `present` first parameter must be a string value.", Native.LogStyle.error);
             return null;
         }
         let animated = arg1;
@@ -21,7 +22,7 @@ global.native.extend(function() {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.performMethod(NativeMethod.present, url, animated, completion);
+        return this.performMethod(Native.Method.present, url, animated, completion);
     }
 
     function _dismiss(arg1, arg2) {
@@ -34,7 +35,7 @@ global.native.extend(function() {
         if (typeof animated !== 'boolean') {
             animated = true;
         }
-        return this.performMethod(NativeMethod.dismiss, animated, completion);
+        return this.performMethod(Native.Method.dismiss, animated, completion);
     }
 
     return {
@@ -51,3 +52,6 @@ global.native.extend(function() {
     }
 
 });
+
+export { Native, native };
+export default native;

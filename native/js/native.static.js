@@ -358,26 +358,57 @@ function _NativeCookie() {
 
 const _cookie = new _NativeCookie();
 
-export default {
-    LogStyle: _NativeLogStyle,
-    Mode: _NativeMode,
-    CookieKey: _NativeCookieKey,
-    Method: _NativeMethod,
-    Action: _NativeAction,
-    log: _NativeLog,
-    parseURLQuery: _NativeParseURLQuery,
-    parseURLQueryComponent: _NativeParseURLQueryComponent,
-    cookie: _cookie,
-    enumerate: _NativeObjectEnumerator
-};
-
-export { _NativeLogStyle as LogStyle }
-export { _NativeMode as Mode }
-export { _NativeCookieKey as CookieKey }
-export { _NativeMethod as Method }
-export { _NativeAction as Action }
-export { _NativeLog as log }
-export { _NativeParseURLQuery as parseURLQuery }
-export { _NativeParseURLQueryComponent as parseURLQueryComponent }
-export { _cookie as cookie }
-export { _NativeObjectEnumerator as enumerate }
+export default new (function() {
+    Object.defineProperties(this, {
+        LogStyle: {
+            get: function() {
+                return _NativeLogStyle;
+            }
+        },
+        Mode:  {
+            get: function() {
+                return _NativeMode;
+            }
+        },
+        CookieKey:  {
+            get: function() {
+                return _NativeCookieKey;
+            }
+        },
+        Method:  {
+            get: function() {
+                return _NativeMethod;
+            }
+        },
+        Action:  {
+            get: function() {
+                return _NativeAction;
+            }
+        },
+        log:  {
+            get: function() {
+                return _NativeLog;
+            }
+        },
+        parseURLQuery:  {
+            get: function() {
+                return _NativeParseURLQuery;
+            }
+        },
+        parseURLQueryComponent:  {
+            get: function() {
+                return _NativeParseURLQueryComponent;
+            }
+        },
+        cookie:  {
+            get: function() {
+                return _cookie;
+            }
+        },
+        enumerate:  {
+            get: function() {
+                return _NativeObjectEnumerator;
+            }
+        }
+    });
+})();

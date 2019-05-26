@@ -1,49 +1,50 @@
 // native.theme.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("setCurrentTheme", "setCurrentTheme");
-NativeCookieKey("currentTheme", "com.mlibai.native.cookie.currentTheme");
-NativeAction("setCurrentTheme", "setCurrentTheme");
-NativeAction("currentThemeChange", "currentThemeChange");
+Native.Method("setCurrentTheme", "setCurrentTheme");
+Native.CookieKey("currentTheme", "com.mlibai.native.cookie.currentTheme");
+Native.Action("setCurrentTheme", "setCurrentTheme");
+Native.Action("currentThemeChange", "currentThemeChange");
 
-global.native.extend(function(_configuration) {
+native.extend(function(_configuration) {
 
     let _currentTheme = _configuration.currentTheme;
 
-    this.addActionTarget(NativeAction.setCurrentTheme, function(newTheme, animated) {
+    this.addActionTarget(Native.Action.setCurrentTheme, function(newTheme, animated) {
         _currentTheme = newTheme;
-        this.cookie.value(NativeCookieKey.currentTheme, newTheme); // 将主题保存到 cookie 中.
+        Native.cookie.value(Native.CookieKey.currentTheme, newTheme); // 将主题保存到 cookie 中.
     });
 
     // 设置当前主题。
     function _setCurrentTheme(newTheme, animated, needsSyncToApp) {
         if (typeof needsSyncToApp === "undefined" || needsSyncToApp) { 
-            // 由 JS 触发，需要同步到 App，不触发 NativeAction 事件。
+            // 由 JS 触发，需要同步到 App，不触发 Native.Action 事件。
             _currentTheme = newTheme;
-            this.cookie.value(NativeCookieKey.currentTheme, newTheme);
-            return this.performMethod(NativeMethod.setCurrentTheme, newValue, animated);
+            Native.cookie.value(Native.CookieKey.currentTheme, newTheme);
+            return this.performMethod(Native.Method.setCurrentTheme, newValue, animated);
         }
         // 由 App 触发，发送事件。
-        return this.sendAction(NativeAction.setCurrentTheme, newTheme, animated);
+        return this.sendAction(Native.Action.setCurrentTheme, newTheme, animated);
     }
 
     function _currentThemeChange(callback, animated) {
         if (typeof callback === 'function') {
-            return this.addActionTarget(NativeAction.currentThemeChange, callback);
+            return this.addActionTarget(Native.Action.currentThemeChange, callback);
         }
-        return this.sendAction(NativeAction.currentThemeChange, _currentTheme, !!animated);
+        return this.sendAction(Native.Action.currentThemeChange, _currentTheme, !!animated);
     }
 
     (function() {
         function _pageShow() {
             // 从 Cookie 中恢复 cookie .
-            let newTheme = global.native.cookie.value(NativeCookieKey.currentTheme);
-            if (!newTheme || newTheme === global.native.currentTheme) {
+            let newTheme = Native.cookie.value(Native.CookieKey.currentTheme);
+            if (!newTheme || newTheme === native.currentTheme) {
                 return;
             }
             _currentTheme = newTheme;
-            global.native.sendAction(NativeAction.currentThemeChange, newTheme, false);
+            native.sendAction(Native.Action.currentThemeChange, newTheme, false);
         }
 
         function _pageHide() {
@@ -76,3 +77,7 @@ global.native.extend(function(_configuration) {
         }
     }
 });
+
+
+export { Native, native };
+export default native;

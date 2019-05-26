@@ -1,21 +1,22 @@
 // native.networking.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("networking", Object.freeze({
+Native.Method("networking", Object.freeze({
     "http": "networking/http"
 }));
 
-const NativeNetworkStatus = Object.freeze({
+const _NativeNetworkStatus = Object.freeze({
     "WiFi": "WiFi"
 });
-Object.defineProperty(global, "NativeNetworkStatus", {
+Object.defineProperty(Native, "NetworkStatus", {
     get: function() {
-        return NativeNetworkStatus;
+        return _NativeNetworkStatus;
     }
 });
 
-global.native.extend(function(configuration) {
+native.extend(function(configuration) {
 
     function _NativeNetworking(_networkingInfo) {
 
@@ -25,10 +26,10 @@ global.native.extend(function(configuration) {
         // HTTP 请求
         function _http(request, callback) {
             if (!request || typeof request !== 'object') {
-                NativeLog("Method `http` first parameter must be an request object.", NativeLogStyle.error);
+                Native.log("Method `http` first parameter must be an request object.", Native.LogStyle.error);
                 return null;
             }
-            return global.native.performMethod(NativeMethod.networking.http, request, callback);
+            return native.performMethod(Native.Method.networking.http, request, callback);
         }
 
         // 网络状态监听。
@@ -51,7 +52,7 @@ global.native.extend(function(configuration) {
         Object.defineProperties(this, {
             "isViaWiFi": {
                 get: function() {
-                    return (_status === NativeNetworkStatus.WiFi);
+                    return (_status === _NativeNetworkStatus.WiFi);
                 }
             },
             "status": {
@@ -86,7 +87,7 @@ global.native.extend(function(configuration) {
     if ( !networkInfo ) {
         networkInfo = { "status": "Unknown" };
     }
-    let _networking = new _NativeNetworking(networkInfo);
+    const _networking = new _NativeNetworking(networkInfo);
 
     return {
         "networking": {
@@ -101,3 +102,6 @@ global.native.extend(function(configuration) {
         }
     };
 });
+
+export { Native, native };
+export default native;

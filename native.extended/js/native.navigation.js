@@ -1,8 +1,9 @@
 // native.navigation.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("navigation", Object.freeze({
+Native.Method("navigation", Object.freeze({
     "push": "navigation/push",
     "pop": "navigation/pop",
     "popTo": "navigation/popTo",
@@ -14,7 +15,7 @@ NativeMethod("navigation", Object.freeze({
     })
 }));
 
-global.native.extend(function(configuration) {
+native.extend(function(configuration) {
 
     function _NativeNavigationBar(_barInfo) {
 
@@ -25,36 +26,36 @@ global.native.extend(function(configuration) {
 
         function _setTitle(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeLog("The navigation.bar.title must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.title must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _title = newValue;
             if (needsSyncToApp) {
-                global.native.performMethod(NativeMethod.navigation.bar.setTitle, newValue);
+                native.performMethod(Native.Method.navigation.bar.setTitle, newValue);
             }
             return this;
         }
 
         function _setTitleColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeLog("The navigation.bar.titleColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.titleColor must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _titleColor = newValue;
             if (needsSyncToApp) {
-                global.native.performMethod(NativeMethod.navigation.bar.setTitleColor, newValue);
+                native.performMethod(Native.Method.navigation.bar.setTitleColor, newValue);
             }
             return this;
         }
 
         function _setHidden(newValue, animated, needsSyncToApp) {
             if (typeof newValue !== 'boolean') {
-                NativeLog("The navigation.bar.isHidden must be a boolean value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.isHidden must be a boolean value.", Native.LogStyle.error);
                 return this;
             }
             _isHidden = newValue;
             if (needsSyncToApp) {
-                global.native.performMethod(NativeMethod.navigation.bar.setHidden, newValue, animated);
+                native.performMethod(Native.Method.navigation.bar.setHidden, newValue, animated);
             }
             return this;
         }
@@ -71,14 +72,14 @@ global.native.extend(function(configuration) {
 
         function _setBackgroundColor(newValue, needsSyncToApp) {
             if (typeof newValue !== 'string') {
-                NativeLog("The navigation.bar.backgroundColor must be a string value.", NativeLogStyle.error);
+                Native.log("The navigation.bar.backgroundColor must be a string value.", Native.LogStyle.error);
                 return this;
             }
             _backgroundColor = newValue;
             if (!needsSyncToApp) {
                 return this;
             }
-            global.native.performMethod(NativeMethod.navigation.bar.setBackgroundColor, newValue);
+            native.performMethod(Native.Method.navigation.bar.setBackgroundColor, newValue);
             return this;
         }
 
@@ -152,7 +153,7 @@ global.native.extend(function(configuration) {
         // 3.1 进入下级页面。
         let _push = function(url, animated) {
             if (typeof url !== 'string') {
-                NativeLog("Method `push` can not be called without a url parameter.", NativeLogStyle.error);
+                Native.log("Method `push` can not be called without a url parameter.", Native.LogStyle.error);
                 return null;
             }
             // 判断 URL 是否是相对路径。
@@ -168,7 +169,7 @@ global.native.extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return global.native.performMethod(NativeMethod.navigation.push, url, animated);
+            return native.performMethod(Native.Method.navigation.push, url, animated);
         };
 
         // 3.2 推出当前页面，使栈内页面数量 -1。
@@ -176,19 +177,19 @@ global.native.extend(function(configuration) {
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return global.native.performMethod(NativeMethod.navigation.pop, animated);
+            return native.performMethod(Native.Method.navigation.pop, animated);
         };
 
         // 3.3 移除栈内索引大于 index 的所有页面，即将 index 页面所显示的内容展示出来。
         let _popTo = function(index, animated) {
             if (typeof index !== 'number') {
-                NativeLog("Method `popTo` can not be called without a index parameter.", NativeLogStyle.error);
+                Native.log("Method `popTo` can not be called without a index parameter.", Native.LogStyle.error);
                 return;
             }
             if (typeof animated !== 'boolean') {
                 animated = true;
             }
-            return global.native.performMethod(NativeMethod.navigation.popTo, index, animated);
+            return native.performMethod(Native.Method.navigation.popTo, index, animated);
         };
 
         let barInfo = _info.bar;
@@ -225,7 +226,7 @@ global.native.extend(function(configuration) {
     if ( !navigationInfo ) {
         navigationInfo = { "bar": { "title": "native.js", "titleColor": "#000", "backgroundColor": "#fff", "isHidden": false } };
     }
-    let _navigation = new _NativeNavigation(navigationInfo);
+    const _navigation = new _NativeNavigation(navigationInfo);
 
     return {
         "navigation": {
@@ -235,3 +236,6 @@ global.native.extend(function(configuration) {
         }
     };
 });
+
+export { Native, native };
+export default native;

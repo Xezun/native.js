@@ -1,8 +1,8 @@
 {
   "name": "@mlibai/native.extended.js",
-  "version": "3.2.0",
+  "version": "3.3.1",
   "description": "A library for JavaScript interact with Native App.",
-  "main": "./js/index.js",
+  "main": "./js/native.extended.js",
   "scripts": {
     "start": "webpack --mode production",
     "debug": "webpack --mode development",
@@ -28,10 +28,10 @@
   },
   "homepage": "https://github.com/mlibai/native.js#readme",
   "devDependencies": {
-    "webpack": "^4.31.0",
+    "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2"
   },
   "dependencies": {
-    "@mlibai/native.js": "^3.1.0"
+    "@mlibai/native.js": "^3.3.0"
   }
 }

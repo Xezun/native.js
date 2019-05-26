@@ -6,7 +6,7 @@
  * @module native
  */
 
-import * as Native from './native.static';
+import Native from './native.static';
 
 // 注册 ready 事件/方法。
 Native.Action("ready", "ready");
@@ -399,28 +399,66 @@ function _performByJavaScript(method) {
 	_delegate.call(this, method, parameters);
 }
 
-export default {
-	mode: _mode,
-	scheme: _scheme,
-	delegate: _delegate,
-	isReady: _isReady,
-	performMethod: _performMethod,
-	callback: _callback,
-	addActionTarget: _addActionTarget,
-	removeActionTarget: _removeActionTarget,
-	sendAction: _sendAction,
-	ready: _ready,
-	extend: _extend
-};
-export { _mode as mode };
-export { _scheme as scheme };
-export { _delegate as delegate };
-export { _isReady as isReady };
 
-export { _performMethod as performMethod };
-export { _callback as callback };
-export { _addActionTarget as addActionTarget };
-export { _removeActionTarget as removeActionTarget };
-export { _sendAction as sendAction };
-export { _ready as ready };
-export { _extend as extend };
+const native = new (function () {
+	Object.defineProperties(this, {
+		mode: {
+			get: function () {
+				return _mode;
+			}
+		},
+		scheme: {
+			get: function () {
+				return _scheme;
+			}
+		},
+		delegate: {
+			get: function () {
+				return _delegate;
+			}
+		},
+		isReady: {
+			get: function () {
+				return _isReady;
+			}
+		},
+		performMethod: {
+			get: function () {
+				return _performMethod;
+			}
+		},
+		callback: {
+			get: function () {
+				return _callback;
+			}
+		},
+		addActionTarget: {
+			get: function () {
+				return _addActionTarget;
+			}
+		},
+		removeActionTarget: {
+			get: function () {
+				return _removeActionTarget;
+			}
+		},
+		sendAction: {
+			get: function () {
+				return _sendAction;
+			}
+		},
+		ready: {
+			get: function () {
+				return _ready;
+			}
+		},
+		extend: {
+			get: function () {
+				return _extend;
+			}
+		}
+	})
+})();
+
+export { Native, native };
+export default native;

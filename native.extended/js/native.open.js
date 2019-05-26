@@ -1,17 +1,18 @@
 // native.open.js
 
-module.exports = require('@mlibai/native.js');
+import Native from "../../native/js/native.static";
+import native from "../../native/js/native";
 
-NativeMethod("open", "open");
+Native.Method("open", "open");
 
-global.native.extend(function() {
+native.extend(function() {
 
     function _open(page) {
         if (typeof page !== 'string') {
-            NativeLog("Method `open`'s page parameter must be a string value.", NativeLogStyle.error);
+            Native.log("Method `open`'s page parameter must be a string value.", Native.LogStyle.error);
             return null;
         }
-        return this.performMethod(NativeMethod.open, page);
+        return this.performMethod(Native.Method.open, page);
     }
 
     return {
@@ -22,3 +23,7 @@ global.native.extend(function() {
         }
     };
 });
+
+
+export { Native, native };
+export default native;
