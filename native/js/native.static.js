@@ -5,6 +5,8 @@
  * @module Native
  */
 
+const _version = "3.3.2";
+
 /**
  * 控制台输出样式枚举。
  * @name LogStyle
@@ -358,8 +360,13 @@ function _NativeCookie() {
 
 const _cookie = new _NativeCookie();
 
-export default new (function() {
+const Native = new (function() {
     Object.defineProperties(this, {
+        version: {
+            get: function() {
+                return _version;
+            }
+        },
         LogStyle: {
             get: function() {
                 return _NativeLogStyle;
@@ -411,4 +418,15 @@ export default new (function() {
             }
         }
     });
+
+    if (typeof window !== 'undefined') {
+        window.Native = this;
+    } else if (typeof global !== 'undefined') {
+        global.Native = this;
+    } else {
+        _NativeLog("不能输出全局引用 Native !", _NativeLogStyle.warning);
+    }
 })();
+
+
+export default Native;

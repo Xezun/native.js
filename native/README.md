@@ -20,25 +20,25 @@ $ npm install @mlibai/native.js
 引用到项目中：
 
 ```javascript
-var native = require('@mlibai/native.js');
+import native from '@mlibai/native.js'
 // 或者
-import '@mlibai/native.js'
+import { Native, native } from '@mlibai/native.js'
 ```
 
 ### 2. 如何使用
 
 #### 2.1 定义消息
 
-`native.js` 实现交互的过程类似于消息机制：JavaScript 调用原生方法的过程，称为发送 `NativeMethod` 消息；
-原生调用 JavaScript 方法的过程，称为发送 `NativeAction` 消息。在进行交互前，建议两端先协定好交互文档，
+`native.js` 实现交互的过程类似于消息机制：JavaScript 调用原生方法的过程，称为发送 `Native.Method` 消息；
+原生调用 JavaScript 方法的过程，称为发送 `Native.Action` 消息。在进行交互前，建议两端先协定好交互文档，
 将可访问的原生方法和可访问的 JavaScript 方法列成文档，方便查看维护。
 
 ```typescript
-// NativeMethod.doc
+// Native.Method.doc
 // 原生支持的方法
 function nativeCustomMethod(arg1: string, arg2: string, callback: (value: string) => void): void;
 
-// NativeAction.doc
+// Native.Action.doc
 // H5 支持的方法
 function nativeCustomAction(arg1: string): void;
 ```
@@ -57,7 +57,7 @@ native.performMethod("nativeCustomMethod", "参数1", "参数2", function(arg1) 
 
 ```javascript
 native.ready(function() {
-    NativeLog("原生 App 已完成初始化，可以进行交互了。");
+    Native.log("原生 App 已完成初始化，可以进行交互了。");
 
     native.performMethod("nativeCustomMethod", "参数1", "参数2", function(arg1) {
         // 回调函数。
@@ -73,14 +73,14 @@ native.ready(function() {
 
 ```javascript
 // define.js
-// 在 NativeMethod 中注册方法，可以帮助检查方法定义冲突。
-NativeMethod("nativeCustomMethod", "nativeCustomMethod");
+// 在 Native.Method 中注册方法，可以帮助检查方法定义冲突。
+Native.Method("nativeCustomMethod", "nativeCustomMethod");
 
 // 拓展 native 。
 native.extend(function(appInfo) {
     
     function _nativeCustomMethod(arg1, arg2, callback) {
-        return this.performMethod(NativeMethod.nativeCustomMethod, arg1, arg2, callback);
+        return this.performMethod(Native.Method.nativeCustomMethod, arg1, arg2, callback);
     }
 
     return {
@@ -94,7 +94,7 @@ native.extend(function(appInfo) {
 
 // main.js
 native.ready(function() {
-    NativeLog("原生 App 已完成初始化，可以进行交互了。");
+    Native.log("原生 App 已完成初始化，可以进行交互了。");
     // 在业务逻辑中直接使用已拓展的方法。
     native.nativeCustomMethod("参数1", "参数2", function(arg1) {
         // 回调函数。
@@ -102,17 +102,17 @@ native.ready(function() {
 });
 ```
 
-#### 2.3 NativeAction（原生可访问的方法）的实现
+#### 2.3 Native.Action（原生可访问的方法）的实现
 
-原生对 JavaScript 方法的访问被 `native.js` 抽象为原生行为，即 `NativeAction`，所以原生可访问的方法的实现，就变成了处理 `NativeAction` 消息。
+原生对 JavaScript 方法的访问被 `native.js` 抽象为原生行为，即 `Native.Action`，所以原生可访问的方法的实现，就变成了处理 `Native.Action` 消息。
 
 ```javascript
-// 注册 NativeAction 可以帮助检查定义冲突。
-NativeAction("nativeCustomAction", "nativeCustomAction");
+// 注册 Native.Action 可以帮助检查定义冲突。
+Native.Action("nativeCustomAction", "nativeCustomAction");
 
 // 注册原生行为触发时的函数。
-native.addActionTarget(NativeAction.nativeCustomAction, function(arg1) {
-    log("原生行为 " + NativeAction.nativeCustomAction + " 触发了：" + arg1);
+native.addActionTarget(Native.Action.nativeCustomAction, function(arg1) {
+    log("原生行为 " + Native.Action.nativeCustomAction + " 触发了：" + arg1);
 });
 ```
 
@@ -121,7 +121,7 @@ native.addActionTarget(NativeAction.nativeCustomAction, function(arg1) {
 ```javascript
 native.extend(function() {
     function _nativeCustomAction(arg1) {
-        return this.sendAction(NativeAction.nativeCustomAction, arg1);
+        return this.sendAction(Native.Action.nativeCustomAction, arg1);
     }
     return {
         "nativeCustomAction": {
@@ -242,36 +242,93 @@ default:
 1. 创建处理交互的对象。
 
 ```swift
+protocol NativeHandlerDelegate: AnyObject {
+    
+    func ready()
+    func nativeCustomMethod(arg1: String, arg2: String, completion: ((String) -> Void)?)
+    
+}
+
 class NativeHandler: NSObject, WKScriptMessageHandler {
     
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let message = message.body as? [String: Any] else { return }
+    weak var delegate: NativeHandlerDelegate?
+    
+    init(_ userContentController: WKUserContentController, delegate: NativeHandlerDelegate?) {
+        super.init()
+        
+        self.delegate = delegate
+        
+        userContentController.add(self, name: "native")
+        let info = String.init(json: [:])
+        let script = WKUserScript.init(source: """
+            native.ready(function(method, parameters) {
+                window.webkit.messageHandlers.native.postMessage({"method": method, "parameters": parameters});
+            }, Native.Mode.javascript, \(info));
+            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        userContentController.addUserScript(script)
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive scriptMessage: WKScriptMessage) {
+        guard let message = scriptMessage.body as? [String: Any] else { return }
         guard let method = message["method"] as? String else { return }
-        guard let parameters = message["parameters"] as? [Any] else { return }
         
         switch method {
-        case "ready": break
+        case "ready":
+            delegate?.ready()
+            
         case "nativeCustomMethod":
-            let result = self.nativeCustomMethod(parameters[0] as! String, parameters[1] as! String) // 假定回调函数是获取原生方法 nativeCustomMethod 的返回值。
-            let callback = String(format: "native.callback('\(parameters[2])')('%@');", result); 
-            webView.evaluateJavaScript(callback, completionHandler: nil) // 执行回调函数
+            guard let parameters = message["parameters"] as? [String] else { return }
+            guard parameters.count >= 2 else {
+                return
+            }
+            switch parameters.count {
+            case 0, 1:
+                print("参数错误：方法 nativeCustomMethod 需要三个参数，详情请查看接口文档！")
+            case 2:
+                delegate?.nativeCustomMethod(arg1: parameters[0], arg2: parameters[1], completion: nil)
+            default:
+                delegate?.nativeCustomMethod(arg1: parameters[0], arg2: parameters[1], completion: { (result) in
+                    let encoded = result.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+                    let js = "native.callback(\(parameters[2]))(decodeURIComponent('\(encoded)'))"
+                    scriptMessage.webView?.evaluateJavaScript(js, completionHandler: nil)
+                })
+            }
+            
         default:
-            print("JavaScript 访问了尚未实现的方法 \(method) !")
+            print("执行错误：方法 \(method) 尚未实现！")
         }
     }
     
 }
-// 注册 handler
-webView.configuration.userContentController.add(NativeHandler(), name: "native")
 ```
 
-2. 注入 JS ，设置交互方式为 `NativeMode.javascript` ，并将消息转发到已注册的 Handler ，如上例中的 NativeHandler 。
+2. 在需要交互的页面注入 JS 。
 
 ```swift
-let script = WKUserScript.init(source: """
-native.ready(function(method, parameters) {
-    window.webkit.messageHandlers.native.postMessage({"method": method, "parameters": parameters});
-}, NativeMode.javascript, \(1);
-""", injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-webView.configuration.userContentController.addUserScript(script)
+class WebViewController: UIViewController, NativeHandlerDelegate {
+
+    override func loadView() {
+        self.view = WKWebView.init(frame: UIScreen.main.bounds)
+    }
+    
+    var webView: WKWebView {
+        return view as! WKWebView
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // 注入 JS
+        NativeHandler.init(webView.configuration.userContentController, delegate: self)
+    }
+    
+    func ready() {
+        print("document was ready.")
+    }
+    
+    func nativeCustomMethod(arg1: String, arg2: String, completion: ((String) -> Void)?) {
+        print("do someting.")
+        completion?("The result of nativeCustomMethod.")
+    }
+    
+}
 ```

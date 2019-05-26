@@ -25,9 +25,9 @@ $ npm i @mlibai/native.extended.js
 核型模块只包含基础功能，开发者可以在此基础上，根据自身业务需求进行拓展。
 
 ```javascript
-var native = require('@mlibai/native.js');
+import native from '@mlibai/native.js'
 // 或者
-import '@mlibai/native.js'
+import { Native, native } from '@mlibai/native.js'
 ```
 
 2. 拓展模块 [@mlibai/native.extended.js](./native.extend/README.md)
@@ -35,12 +35,12 @@ import '@mlibai/native.js'
 自带了部分拓展功能的模块。
 
 ```javascript
-var native = require('@mlibai/native.extended.js');
+import native from '@mlibai/native.extended.js'
 // 或者
-import '@mlibai/native.extended.js'
+import { Native, native } from '@mlibai/native.extended.js'
 ```
 
 ## 研发计划
 
-1. 解决低版本安卓手机不能执行超长 js 的问题：native.evaluate("file:///tmp/js.js", callbak);
+1. 拓展 native 增加执行本地 js 的能力，以解决低版本安卓手机不能执行超长 js 的问题：native.evaluate("file:///tmp/js.js", callbak);
 

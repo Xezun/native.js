@@ -458,6 +458,14 @@ const native = new (function () {
 			}
 		}
 	})
+
+	if (typeof window !== 'undefined') {
+		window.native = this;
+	} else if (typeof global !== 'undefined') {
+		global.native = this;
+	} else {
+		Native.log("不能输出全局引用 native !", Native.LogStyle.warning);
+	}
 })();
 
 export { Native, native };
