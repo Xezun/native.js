@@ -8,6 +8,24 @@
 
 import Native from './native.static';
 
+class NativeError extends Error {
+	constructor(code, file, line) {
+		let message = null;
+		switch (code) {
+			case 0: message = "没有找到";
+				break;
+		
+			default:
+				message = "未知错误！"
+				break;
+		}
+		super(message, file, line);
+		if (Error.captureStackTrace) {
+			Error.captureStackTrace(this, NativeError);
+		}
+	}
+}
+
 // 注册 ready 事件/方法。
 Native.Action("ready", "ready");
 Native.Method("ready", "ready");
