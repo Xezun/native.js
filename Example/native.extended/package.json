@@ -12,7 +12,7 @@
   "dependencies": {
     "@mlibai/native.extended.js": "^3.1.0",
     "@mlibai/native.js": "^3.1.0",
-    "jquery": "^3.4.1"
+    "jquery": "^3.5.0"
   },
   "devDependencies": {
     "webpack-cli": "^3.3.2",
