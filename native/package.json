@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/mlibai/native.js#readme",
   "devDependencies": {
-    "webpack": "^4.27.1",
+    "webpack": "^5.105.4",
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
